@@ -106,14 +106,9 @@ async function loadGlobalState() {
                 state.settings = settings.find(s => s.id === 'global') || settings[0];
             }
 
-            // Load purchase requests from localStorage (no table in Supabase yet)
-            const saved = localStorage.getItem('pakki_locker_state');
-            if (saved) {
-                const local = JSON.parse(saved);
-                state.purchaseRequests = local.purchaseRequests || [];
-            } else {
-                state.purchaseRequests = [];
-            }
+            // Load purchase requests from Supabase
+            const { data: purchaseRequests } = await supabaseClient.from('purchase_requests').select('*');
+            state.purchaseRequests = purchaseRequests || [];
             return;
         } catch (err) {
             console.warn('Supabase error, falling back to localStorage:', err.message);
@@ -707,7 +702,7 @@ Tel: +1 (305) 555-0199
         if (cityField && !cityField.value) cityField.value = loggedUser.city;
     },
 
-    handleRegisterPurchaseRequest: function() {
+    handleRegisterPurchaseRequest: async function() {
         const url = document.getElementById('bfm-url').value.trim();
         const productName = document.getElementById('bfm-name').value.trim();
         const characteristics = document.getElementById('bfm-chars').value.trim();
@@ -717,8 +712,6 @@ Tel: +1 (305) 555-0199
         const buyerName = document.getElementById('bfm-buyer').value.trim();
         const deliveryCity = document.getElementById('bfm-city').value.trim();
         const insure = document.getElementById('bfm-insure').checked;
-
-        loadGlobalState();
 
         const todayStr = new Date().toISOString().split('T')[0];
 
@@ -739,8 +732,19 @@ Tel: +1 (305) 555-0199
             insure
         };
 
-        state.purchaseRequests.push(newRequest);
-        saveGlobalState();
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('purchase_requests').insert([newRequest]);
+            if (error) {
+                this.showAlert(`Error al enviar solicitud: ${error.message}`, 'danger');
+                return;
+            }
+            // Reload from Supabase to sync
+            const { data: prs } = await supabaseClient.from('purchase_requests').select('*');
+            state.purchaseRequests = prs || [];
+        } else {
+            state.purchaseRequests.push(newRequest);
+            saveGlobalState();
+        }
 
         this.showAlert(`Solicitud para <strong>${productName}</strong> enviada con éxito. El equipo Pakki la procesará pronto.`, 'success');
         document.getElementById('form-buyforme').reset();

@@ -125,9 +125,13 @@ async function loadState() {
             const { data: settings, error: errSettings } = await supabaseClient.from('settings').select('*');
             if (errSettings) throw errSettings;
 
+            // 5. Obtener solicitudes de compra
+            const { data: purchaseRequests } = await supabaseClient.from('purchase_requests').select('*');
+
             state.users = users || [];
             state.prealerts = prealerts || [];
             state.packages = packages || [];
+            state.purchaseRequests = purchaseRequests || [];
             
             if (settings && settings.length > 0) {
                 state.settings = settings.find(s => s.id === 'global') || settings[0];
@@ -1180,7 +1184,7 @@ const app = {
         this.openModal('modal-pr-detail');
     },
 
-    handleUpdatePRStatus: function() {
+    handleUpdatePRStatus: async function() {
         const prId = document.getElementById('pr-modal-id').value;
         const newStatus = document.getElementById('pr-new-status').value;
 
@@ -1188,7 +1192,12 @@ const app = {
         if (idx === -1) return;
 
         state.purchaseRequests[idx].status = newStatus;
-        saveStateLocal();
+
+        if (useSupabase) {
+            await supabaseClient.from('purchase_requests').update({ status: newStatus }).eq('id', prId);
+        } else {
+            saveStateLocal();
+        }
 
         this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>.`, 'success');
         this.closeModal('modal-pr-detail');
