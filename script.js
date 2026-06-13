@@ -1,3 +1,45 @@
+// ── EMAILJS: Notificaciones por correo ──────────────────────────────────────
+// Crea tu cuenta en https://www.emailjs.com y completa estos tres valores.
+// Ver instrucciones en: README del proyecto.
+const EMAILJS_SERVICE_ID  = 'TU_SERVICE_ID';   // ej: 'service_abc123'
+const EMAILJS_TEMPLATE_ID = 'TU_TEMPLATE_ID';  // ej: 'template_xyz789'
+const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY';   // ej: 'aBcDeFgHiJkLmNoP'
+
+const FIXED_NOTIFICATION_EMAILS = 'info@yotraigo.com,administrativo@yotraigo.com,gerencia@yotraigo.com';
+
+async function sendStatusNotification(req, newStatus) {
+    if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') return;
+
+    const clientUser = (state.users || []).find(u => u.lockerCode === req.lockerCode);
+    const clientEmail = clientUser ? clientUser.email : '';
+    const toEmails = clientEmail
+        ? `${clientEmail},${FIXED_NOTIFICATION_EMAILS}`
+        : FIXED_NOTIFICATION_EMAILS;
+
+    const statusMessages = {
+        'Pendiente':  'Tu solicitud está pendiente de revisión.',
+        'En Proceso': 'Tu solicitud está siendo procesada por nuestro equipo.',
+        'Completado': 'Tu solicitud ha sido completada exitosamente.',
+        'Cancelado':  'Tu solicitud ha sido cancelada. Contáctanos para más información.'
+    };
+
+    try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_emails:    toEmails,
+            client_name:  req.clientName,
+            locker_code:  req.lockerCode,
+            product_name: req.productName,
+            store:        req.store || '',
+            status:       newStatus,
+            status_msg:   statusMessages[newStatus] || '',
+            date:         new Date().toLocaleDateString('es-CO', { dateStyle: 'long' })
+        }, EMAILJS_PUBLIC_KEY);
+        console.log('Notificación enviada a:', toEmails);
+    } catch (err) {
+        console.warn('Error enviando notificación:', err);
+    }
+}
+
 // CONFIGURACIÓN DE CONEXIÓN CON SUPABASE
 // Reemplaza los siguientes valores con la URL y la Clave Anónima de tu proyecto de Supabase.
 // Si dejas estos valores por defecto, la aplicación funcionará automáticamente en MODO DE PRUEBA LOCAL (usando LocalStorage).
@@ -1191,6 +1233,7 @@ const app = {
         const idx = (state.purchaseRequests || []).findIndex(r => r.id === prId);
         if (idx === -1) return;
 
+        const req = state.purchaseRequests[idx];
         state.purchaseRequests[idx].status = newStatus;
 
         if (useSupabase) {
@@ -1199,7 +1242,9 @@ const app = {
             saveStateLocal();
         }
 
-        this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>.`, 'success');
+        await sendStatusNotification(req, newStatus);
+
+        this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>. Notificación enviada.`, 'success');
         this.closeModal('modal-pr-detail');
         this.renderPurchaseRequestsList();
     },
