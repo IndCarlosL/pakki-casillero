@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakki Internacional | Sistema de Casilleros</title>
+    <meta name="description" content="Sistema interactivo para la gestión de casillero internacional de Pakki: usuarios, prealertas, bodega y prefacturación.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">P</div>
+                <div class="brand-info">
+                    <span class="brand-name">Pakki</span>
+                    <span class="brand-tag">Casillero</span>
+                </div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-tab="tab-dashboard">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                        </svg>
+                        <span>Resumen</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-usuarios">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                        <span>Registrar Usuario</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-casillero-list">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                        <span>Casilleros</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-prealertas">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a9.041 9.041 0 01-1.258.077H11.25c-1.152 0-2.23-.332-3.136-.906M14.857 17.082a9.04 9.04 0 001.5-3.374M14.857 17.082a9.04 9.04 0 01-3.607 1.573M16.357 13.708L18.75 16.1M18.75 16.1v-3.75m0 3.75h-3.75M16.357 13.708a9.04 9.04 0 001.5-3.374M16.357 13.708a9.04 9.04 0 01-3.607-1.573M17.857 10.333H14.857M11.25 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
+                        </svg>
+                        <span>Prealertas</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-bodega">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.375M9 18h3.375m7.5-12h-18c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h18c.621 0 1.125-.504 1.125-1.125V7.125c0-.621-.504-1.125-1.125-1.125zM16.5 7.125v11.25m0-11.25L13.5 12" />
+                        </svg>
+                        <span>Recepción / Bodega</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-prefacturacion">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Prefacturación y Lógica</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-purchase-requests">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                        <span>Compramos por Ti</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-cotizador">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V13.5zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V18zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V13.5zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V18zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V18zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.598 4.5 4.698V18a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 18V4.698c0-1.1-.807-1.998-1.907-2.126A48.507 48.507 0 0012 2.25z" />
+                        </svg>
+                        <span>Cotizador</span>
+                    </a>
+                </li>
+                <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                    <a href="client.html" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #f97316; text-decoration: none; font-weight: 600; border-radius: var(--radius-md); transition: var(--transition);">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px; color:#f97316;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                        </svg>
+                        <span>Portal de Clientes ↗</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-avatar" id="sidebar-user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Administrador Pakki</span>
+                    <span class="user-role">Nivel Operador</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1 id="page-title">Resumen del Sistema</h1>
+                    <p id="page-subtitle">Panel de operaciones y métricas generales del casillero.</p>
+                </div>
+                <div class="header-actions">
+                    <div class="date-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px; height:16px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        <span id="current-date">Cargando fecha...</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notification Alerts container -->
+            <div id="alerts-container"></div>
+
+            <!-- Tab 1: Dashboard / Resumen -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="metrics-grid">
+                    <div class="card metric-card">
+                        <div class="metric-data">
+                            <h3>Casilleros Activos</h3>
+                            <div class="value" id="metric-lockers">0</div>
+                            <span class="trend up">
+                                <span class="trend-icon">↑</span>
+                                <span>+12% este mes</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card metric-card">
+                        <div class="metric-data">
+                            <h3>Prealertas Pendientes</h3>
+                            <div class="value" id="metric-prealerts">0</div>
+                            <span class="trend warning">
+                                <span>Por recibir en Miami</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon warning">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card metric-card">
+                        <div class="metric-data">
+                            <h3>Paquetes en Bodega</h3>
+                            <div class="value" id="metric-packages">0</div>
+                            <span class="trend info">
+                                <span>Listos para despacho</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card metric-card">
+                        <div class="metric-data">
+                            <h3>Ingresos del Mes</h3>
+                            <div class="value" id="metric-revenue">$0.00</div>
+                            <span class="trend up">
+                                <span class="trend-icon">↑</span>
+                                <span>Flete + Cargos liquidables</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon success">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-split">
+                    <!-- Left: Recent Packages -->
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Últimos Paquetes Recibidos (Bodega)</h2>
+                            <button class="btn btn-secondary btn-sm" onclick="app.switchTab('tab-bodega')">Ver Todos</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Casillero</th>
+                                        <th>Tracking</th>
+                                        <th>Peso (Lbs)</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-recent-packages">
+                                    <!-- Dynamic -->
+                                    <tr><td colspan="5" style="text-align:center;">Cargando paquetes...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Quick Operations -->
+                    <div class="card miami-address-card">
+                        <h3>Dirección del Casillero</h3>
+                        <p>Los usuarios deben registrar sus compras usando la siguiente dirección estándar en Miami:</p>
+                        <pre id="miami-address-template">
+Nombre del Cliente [SU-CASILLERO]
+8400 NW 25th Street, Suite 100
+Doral, FL 33198
+Tel: +1 (305) 555-0199
+                        </pre>
+                        <div style="margin-top: 1.5rem;">
+                            <h4 style="font-size: 0.9rem; font-family: var(--font-heading); color: var(--primary); margin-bottom: 0.5rem;">Operación Rápida:</h4>
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                                <button class="btn btn-primary" onclick="app.switchTab('tab-usuarios')">+ Registrar Nuevo Cliente</button>
+                                <button class="btn btn-secondary" style="background-color: rgba(255,255,255,0.1); border:none; color: white;" onclick="app.switchTab('tab-prealertas')">+ Crear Prealerta</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Crear Usuario -->
+            <section id="tab-usuarios" class="tab-content">
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="section-card-header">
+                        <h2>Formulario de Registro de Usuario</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Crea un nuevo usuario en la base de datos de Pakki. Se le asignará automáticamente una cuenta de casillero.</p>
+                    </div>
+                    
+                    <form id="form-register-user">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="user-fullname">Nombre Completo *</label>
+                                <input type="text" id="user-fullname" required placeholder="Ej. Juan Andrés Pérez">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-email">Correo Electrónico *</label>
+                                <input type="email" id="user-email" required placeholder="Ej. juan.perez@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-phone">Teléfono de Contacto *</label>
+                                <input type="tel" id="user-phone" required placeholder="Ej. +57 300 123 4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-doc">Documento de Identidad (C.C. / NIT) *</label>
+                                <input type="text" id="user-doc" required placeholder="Ej. 1029384756 (Para Aduana)">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-city">Ciudad de Destino (Colombia) *</label>
+                                <input type="text" id="user-city" required placeholder="Ej. Bogotá D.C.">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-address">Dirección de Entrega en Colombia *</label>
+                                <input type="text" id="user-address" required placeholder="Ej. Calle 45 # 12-34 Apto 502">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                            <button type="reset" class="btn btn-secondary">Limpiar Formulario</button>
+                            <button type="submit" class="btn btn-primary">Registrar y Crear Casillero</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Tab 3: Casilleros (Lista) -->
+            <section id="tab-casillero-list" class="tab-content">
+                <div class="card">
+                    <div class="section-card-header">
+                        <h2>Base de Clientes y Casilleros</h2>
+                        <div class="filters-bar">
+                            <div class="search-input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                                <input type="text" id="search-lockers" placeholder="Buscar por Nombre, Correo o Código de Casillero...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código Casillero</th>
+                                    <th>Nombre del Cliente</th>
+                                    <th>Documento / Identidad</th>
+                                    <th>Correo Electrónico</th>
+                                    <th>Teléfono</th>
+                                    <th>Ciudad Destino</th>
+                                    <th>Fecha Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-lockers-body">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 4: Prealertas -->
+            <section id="tab-prealertas" class="tab-content">
+                <div class="dashboard-split">
+                    <!-- Left: Registrar Prealerta Form -->
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Crear Nueva Prealerta</h2>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Registra las compras realizadas para notificar a la bodega de Miami de su próxima llegada.</p>
+                        
+                        <form id="form-register-prealert">
+                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                                <div class="form-group">
+                                    <label for="prealert-locker">Seleccionar Casillero / Usuario *</label>
+                                    <select id="prealert-locker" required>
+                                        <option value="">-- Selecciona un casillero --</option>
+                                        <!-- Dynamic options -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="prealert-tracking">Número de Tracking (Rastreo) *</label>
+                                    <input type="text" id="prealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
+                                </div>
+                                <div class="form-group">
+                                    <label for="prealert-carrier">Transportadora *</label>
+                                    <select id="prealert-carrier" required>
+                                        <option value="">-- Selecciona transportadora --</option>
+                                        <option value="Amazon Log">Amazon Logistics</option>
+                                        <option value="UPS">UPS</option>
+                                        <option value="FedEx">FedEx</option>
+                                        <option value="USPS">USPS (Correo Postal EE.UU.)</option>
+                                        <option value="DHL">DHL Express</option>
+                                        <option value="Otro">Otra / Desconocida</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="prealert-value">Valor Declarado (USD) *</label>
+                                    <input type="number" id="prealert-value" required min="1" step="0.01" placeholder="Ej. 149.99">
+                                </div>
+                                <div class="form-group">
+                                    <label for="prealert-desc">Descripción del Contenido *</label>
+                                    <textarea id="prealert-desc" required placeholder="Ej. Calzado deportivo Adidas, 1 par de tenis color negro."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="prealert-invoice">Subir Factura de Compra (Simulado)</label>
+                                    <input type="file" id="prealert-invoice" style="border: 1px dashed var(--border-color); padding: 0.5rem;">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Registrar Prealerta</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Right: Prealertas Registradas -->
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Prealertas Registradas</h2>
+                        </div>
+                        <div class="filters-bar">
+                            <select id="filter-prealert-status" style="width: 100%; padding: 0.5rem;">
+                                <option value="all">Todas las Prealertas</option>
+                                <option value="Pendiente">Pendientes (Por recibir)</option>
+                                <option value="Recibido">Recibidas (En bodega)</option>
+                            </select>
+                        </div>
+                        
+                        <div style="max-height: 550px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" id="prealerts-list-cards">
+                            <!-- Dynamic rendering of cards -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 5: Bodega Miami (Recepción) -->
+            <section id="tab-bodega" class="tab-content">
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="section-card-header">
+                        <h2>Recepción de Paquetes en Miami (Check-in)</h2>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Usa este panel para registrar los paquetes cuando ingresen físicamente a la bodega de Miami. Si el cliente prealertó el tracking, se cargarán los datos automáticamente.</p>
+                    
+                    <form id="form-checkin-package">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="checkin-tracking">Escanear / Ingresar Tracking *</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="checkin-tracking" required placeholder="Ej. 1Z999AA10123456784" style="flex-grow: 1;">
+                                    <button type="button" class="btn btn-secondary" id="btn-search-prealert">Buscar Prealerta</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkin-locker">Asociar a Casillero *</label>
+                                <select id="checkin-locker" required>
+                                    <option value="">-- Selecciona Casillero --</option>
+                                    <!-- Dynamic -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkin-carrier">Transportadora *</label>
+                                <select id="checkin-carrier" required>
+                                    <option value="">-- Seleccionar --</option>
+                                    <option value="Amazon Log">Amazon Logistics</option>
+                                    <option value="UPS">UPS</option>
+                                    <option value="FedEx">FedEx</option>
+                                    <option value="USPS">USPS</option>
+                                    <option value="DHL">DHL Express</option>
+                                    <option value="Otro">Otra</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkin-weight">Peso Físico Real (Lbs) *</label>
+                                <input type="number" id="checkin-weight" required min="0.1" step="0.1" placeholder="Ej. 4.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="checkin-dimensions">Dimensiones (Largo x Ancho x Alto en Pulgadas) *</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="number" id="checkin-length" required min="1" placeholder="Largo" style="width: 33%;">
+                                    <input type="number" id="checkin-width" required min="1" placeholder="Ancho" style="width: 33%;">
+                                    <input type="number" id="checkin-height" required min="1" placeholder="Alto" style="width: 33%;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkin-value">Valor Declarado (USD) *</label>
+                                <input type="number" id="checkin-value" required min="1" step="0.01" placeholder="Ej. 150.00">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="checkin-desc">Descripción detallada del contenido *</label>
+                                <input type="text" id="checkin-desc" required placeholder="Ej. Ropa y zapatos deportivos">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                            <button type="reset" class="btn btn-secondary" id="btn-reset-checkin">Limpiar</button>
+                            <button type="submit" class="btn btn-primary">Registrar Entrada en Bodega</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="section-card-header">
+                        <h2>Inventario de Bodega e Historial de Envíos</h2>
+                        <div class="filters-bar">
+                            <div class="search-input-wrapper" style="flex-grow: 1;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                                <input type="text" id="search-packages" placeholder="Buscar por Tracking o Casillero...">
+                            </div>
+                            <select id="filter-packages-status" style="padding: 0.75rem;">
+                                <option value="all">Todos los Estados</option>
+                                <option value="En Bodega Miami">En Bodega Miami</option>
+                                <option value="En Tránsito a Colombia">En Tránsito a Colombia</option>
+                                <option value="Nacionalización">Aduana / DIAN</option>
+                                <option value="Listo para Entrega">Listo para Entrega</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha Reg.</th>
+                                    <th>Casillero</th>
+                                    <th>Tracking / Carrier</th>
+                                    <th>Peso Físico (Lbs)</th>
+                                    <th>Dim. (Pulg)</th>
+                                    <th>Peso Vol. (Lbs)</th>
+                                    <th>Peso Facturable</th>
+                                    <th>Valor USD</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-packages-body">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 6: Prefacturación y Lógica -->
+            <section id="tab-prefacturacion" class="tab-content">
+                <div class="dashboard-split" style="grid-template-columns: 2fr 1.1fr;">
+                    
+                    <!-- Left: Liquidaciones Facturables -->
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Liquidación de Guías (Prefacturación)</h2>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Aquí se muestran los montos de flete y recargos calculados automáticamente en base a las reglas configuradas en la derecha.</p>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Casillero</th>
+                                        <th>Tracking</th>
+                                        <th>Flete ($)</th>
+                                        <th>Seguro ($)</th>
+                                        <th>Impuestos ($)</th>
+                                        <th>Manejo + Gas ($)</th>
+                                        <th>Total Liquidado</th>
+                                        <th>Estado</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-billing-body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Lógica Tarifaria y Configuración -->
+                    <div class="card config-card">
+                        <div class="section-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                            <h2 style="color: var(--primary);">Lógica y Tarifas (Configuración)</h2>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 1rem 0;">Los cambios realizados en estos valores de control recalculan dinámicamente las liquidaciones de todos los paquetes pendientes de cobro.</p>
+                        
+                        <form id="form-config-logic" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <div class="form-group">
+                                <label for="cfg-base-rate">Tarifa Base por Libra (USD) *</label>
+                                <input type="number" id="cfg-base-rate" required min="0.1" step="0.01">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Costo de transporte aéreo por libra.</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cfg-handling">Cargo Fijo de Manejo (USD) *</label>
+                                <input type="number" id="cfg-handling" required min="0" step="0.01">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Mano de obra, reempaque o consolidación básica.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cfg-insurance">Porcentaje de Seguro (%) *</label>
+                                <input type="number" id="cfg-insurance" required min="0" step="0.1" max="100">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Porcentaje cobrado sobre el valor declarado.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cfg-fuel">Recargo por Combustible (%) *</label>
+                                <input type="number" id="cfg-fuel" required min="0" step="0.1">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Calculado como porcentaje sobre el flete base.</span>
+                            </div>
+
+                            <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                                <label for="cfg-vat-threshold">Umbral de Impuestos (USD) *</label>
+                                <input type="number" id="cfg-vat-threshold" required min="0" step="1">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">El valor declarado máximo libre de IVA (ej. 200 USD).</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cfg-vat-rate">Tasa de Impuesto IVA (%) *</label>
+                                <input type="number" id="cfg-vat-rate" required min="0" step="1" max="100">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Porcentaje de impuesto a aplicar por superar el umbral.</span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Guardar y Aplicar Lógica</button>
+                        </form>
+                    </div>
+
+                </div>
+            </section>
+            <!-- Tab 7: Compramos por Ti (Solicitudes) -->
+            <section id="tab-purchase-requests" class="tab-content">
+                <div class="card">
+                    <div class="section-card-header">
+                        <h2>Solicitudes "Compramos por Ti"</h2>
+                        <div class="filters-bar">
+                            <select id="filter-pr-status" style="padding: 0.5rem;">
+                                <option value="all">Todos los estados</option>
+                                <option value="Pendiente">Pendientes</option>
+                                <option value="En Proceso">En Proceso</option>
+                                <option value="Completado">Completados</option>
+                                <option value="Cancelado">Cancelados</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Solicitudes de compra enviadas por los clientes desde el portal. Haz clic en "Ver" para revisar los detalles y actualizar el estado.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Casillero</th>
+                                    <th>Cliente</th>
+                                    <th>Producto</th>
+                                    <th>Tienda</th>
+                                    <th>Cant.</th>
+                                    <th>Peso Est.</th>
+                                    <th>Asegurado</th>
+                                    <th>Ciudad</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-pr-body">
+                                <tr><td colspan="11" style="text-align:center; color:var(--text-muted);">No hay solicitudes registradas.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 8: Cotizador -->
+            <section id="tab-cotizador" class="tab-content">
+                <div class="dashboard-split" style="grid-template-columns: 290px 1fr;">
+
+                    <!-- Left: Configuración de tarifas -->
+                    <div class="card config-card">
+                        <div class="section-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                            <h2 style="color: var(--primary);">Tarifas del Cotizador</h2>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 1rem 0;">Actualiza la TRM y las tarifas base para cotizaciones precisas.</p>
+
+                        <form id="form-cotizador-config" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="cot-trm">TRM (COP por 1 USD)</label>
+                                <input type="number" id="cot-trm" min="1000" step="1">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Tasa representativa del mercado.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-flete-primera-lb">Primera Libra (USD)</label>
+                                <input type="number" id="cot-flete-primera-lb" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-flete-adicional-lb">Libras Adicionales (USD c/u)</label>
+                                <input type="number" id="cot-flete-adicional-lb" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-iva-pct">IVA (%)</label>
+                                <input type="number" id="cot-iva-pct" min="0" step="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-seguro-pct">Seguro (% del valor declarado)</label>
+                                <input type="number" id="cot-seguro-pct" min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-domicilio-usd">Domicilio (USD fijo)</label>
+                                <input type="number" id="cot-domicilio-usd" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-arancel-pct">Arancel (% del valor declarado)</label>
+                                <input type="number" id="cot-arancel-pct" min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-servicio-pct">Servicio de Compra (%)</label>
+                                <input type="number" id="cot-servicio-pct" min="0" step="0.1">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Guardar Tarifas</button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Formulario + Resultados -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+                        <!-- Input form -->
+                        <div class="card">
+                            <div class="section-card-header">
+                                <h2>Nueva Cotización</h2>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">* Cotización válida por hoy</span>
+                            </div>
+
+                            <div class="form-grid" style="margin-top: 1rem;">
+                                <div class="form-group">
+                                    <label for="cot-valor">Valor Declarado (USD) *</label>
+                                    <input type="number" id="cot-valor" min="0" step="0.01" placeholder="Ej. 150.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cot-peso">Peso (Libras) *</label>
+                                    <input type="number" id="cot-peso" min="0" step="0.1" placeholder="Ej. 3.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cot-otros-cargos">Otros Cargos (USD)</label>
+                                    <input type="number" id="cot-otros-cargos" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1rem 1.25rem; background: var(--bg-app); border-radius: var(--radius-md); margin-top: 1rem;">
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                    <input type="checkbox" id="cot-chk-seguro" style="width:16px;height:16px;accent-color:var(--primary);">
+                                    Seguro
+                                </label>
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                    <input type="checkbox" id="cot-chk-domicilio" style="width:16px;height:16px;accent-color:var(--primary);">
+                                    Domicilio
+                                </label>
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                    <input type="checkbox" id="cot-chk-servicio" style="width:16px;height:16px;accent-color:var(--primary);">
+                                    Servicio de Compra
+                                </label>
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                    <input type="checkbox" id="cot-chk-arancel" style="width:16px;height:16px;accent-color:var(--primary);">
+                                    Cobro Arancel
+                                </label>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                                <button class="btn btn-secondary" onclick="app.limpiarCotizacion()">Limpiar</button>
+                                <button class="btn btn-primary" onclick="app.calcularCotizacion()">Calcular Cotización</button>
+                            </div>
+                        </div>
+
+                        <!-- Results card (hidden initially) -->
+                        <div class="card" id="cot-results-card" style="display: none;">
+                            <div class="section-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                                <div>
+                                    <h2>Resultado de la Cotización</h2>
+                                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;" id="cot-fecha-resultado"></p>
+                                </div>
+                                <button class="btn btn-primary" onclick="app.imprimirCotizacion()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+                                    </svg>
+                                    Imprimir / PDF
+                                </button>
+                            </div>
+                            <div id="cot-breakdown-content" style="margin-top: 1rem;"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: Detalle de Prefacturación (Liquidación de Envío) -->
+    <div class="modal-overlay" id="modal-invoice-detail">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Detalle de Liquidación</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-invoice-detail')">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-invoice-body">
+                <!-- Dynamic Content (Invoice Receipt) -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.printInvoice()">Imprimir Recibo</button>
+                <button class="btn btn-primary" id="btn-mark-paid">Marcar como Cobrado / Pagado</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cambiar Estado de Paquete -->
+    <div class="modal-overlay" id="modal-change-status">
+        <div class="modal-container" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Cambiar Estado de Envío</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-change-status')">&times;</button>
+            </div>
+            <form id="form-update-status">
+                <div class="modal-body">
+                    <input type="hidden" id="status-package-id">
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Modifica el estado actual del paquete con tracking: <strong id="status-package-tracking">-</strong></p>
+                        
+                        <div class="form-group">
+                            <label for="new-package-status">Nuevo Estado:</label>
+                            <select id="new-package-status" required style="width: 100%;">
+                                <option value="En Bodega Miami">En Bodega Miami</option>
+                                <option value="En Tránsito a Colombia">En Tránsito a Colombia</option>
+                                <option value="Nacionalización">Aduana / DIAN (Nacionalización)</option>
+                                <option value="Listo para Entrega">Listo para Entrega</option>
+                                <option value="Entregado">Entregado / Finalizado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-change-status')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Estado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Detalle de Solicitud de Compra -->
+    <div class="modal-overlay" id="modal-pr-detail">
+        <div class="modal-container" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3>Detalle de Solicitud</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-pr-detail')">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-pr-body"></div>
+            <div class="modal-footer" style="flex-direction: column; gap: 0.75rem; align-items: stretch;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <label style="font-weight:600; font-size:0.85rem; white-space:nowrap;">Cambiar estado:</label>
+                    <select id="pr-new-status" style="flex:1; padding:0.5rem;">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Completado">Completado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                    <input type="hidden" id="pr-modal-id">
+                    <button class="btn btn-primary" onclick="app.handleUpdatePRStatus()">Guardar</button>
+                </div>
+                <button class="btn btn-secondary" onclick="app.closeModal('modal-pr-detail')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
