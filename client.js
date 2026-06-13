@@ -1,3 +1,15 @@
+// Supabase connection (same credentials as admin panel)
+const SUPABASE_URL = "https://uuaglghhsxbzhvbjzgky.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdsZ2hoc3hiemh2Ymp6Z2t5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMDMxOTgsImV4cCI6MjA5Njc3OTE5OH0.WI317E3WbMLHcS8hFDYnIH8TjCjkL09G55lt3Qd7X6k";
+
+let useSupabase = false;
+let supabaseClient = null;
+
+if (typeof supabase !== 'undefined') {
+    useSupabase = true;
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
 // Customer Portal Application logic
 let state = {
     users: [],
@@ -78,17 +90,46 @@ const SEED_PACKAGES = [
     }
 ];
 
-// Load state from localStorage
-function loadGlobalState() {
+// Load state from Supabase or localStorage
+async function loadGlobalState() {
+    if (useSupabase) {
+        try {
+            const { data: users } = await supabaseClient.from('users').select('*');
+            const { data: prealerts } = await supabaseClient.from('prealerts').select('*');
+            const { data: packages } = await supabaseClient.from('packages').select('*');
+            const { data: settings } = await supabaseClient.from('settings').select('*');
+
+            state.users = users || [];
+            state.prealerts = prealerts || [];
+            state.packages = packages || [];
+            if (settings && settings.length > 0) {
+                state.settings = settings.find(s => s.id === 'global') || settings[0];
+            }
+
+            // Load purchase requests from localStorage (no table in Supabase yet)
+            const saved = localStorage.getItem('pakki_locker_state');
+            if (saved) {
+                const local = JSON.parse(saved);
+                state.purchaseRequests = local.purchaseRequests || [];
+            } else {
+                state.purchaseRequests = [];
+            }
+            return;
+        } catch (err) {
+            console.warn('Supabase error, falling back to localStorage:', err.message);
+        }
+    }
+
+    // localStorage fallback
     const saved = localStorage.getItem('pakki_locker_state');
     if (saved) {
         state = JSON.parse(saved);
         if (!state.purchaseRequests) state.purchaseRequests = [];
     } else {
-        // Load Seed Data fallback
         state.users = SEED_USERS;
         state.prealerts = SEED_PREALERTS;
         state.packages = SEED_PACKAGES;
+        state.purchaseRequests = [];
         saveGlobalState();
     }
 }
@@ -99,13 +140,12 @@ function saveGlobalState() {
 }
 
 const clientApp = {
-    init: function() {
-        loadGlobalState();
+    init: async function() {
+        await loadGlobalState();
         this.setupAuth();
         this.setupNavigation();
         this.setupEventListeners();
-        
-        // Show current date
+
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('client-current-date').textContent = new Date().toLocaleDateString('es-ES', options);
     },
@@ -160,7 +200,7 @@ const clientApp = {
         });
     },
 
-    switchTab: function(tabId) {
+    switchTab: async function(tabId) {
         document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
         const activeMenuItem = document.querySelector(`.menu-item[data-tab="${tabId}"]`);
         if (activeMenuItem) activeMenuItem.classList.add('active');
@@ -169,10 +209,10 @@ const clientApp = {
         const targetPanel = document.getElementById(tabId);
         if (targetPanel) {
             targetPanel.classList.add('active');
-            
+
             const headerTitle = document.getElementById('client-page-title');
             const headerSub = document.getElementById('client-page-subtitle');
-            
+
             if (tabId === 'tab-client-dashboard') {
                 headerTitle.textContent = "Mi Casillero";
                 headerSub.textContent = "Monitorea tus entregas y prealerta tus compras desde el exterior.";
@@ -191,8 +231,7 @@ const clientApp = {
                 this.prefillBuyForMeForm();
             }
 
-            // Sync database states and re-render
-            loadGlobalState();
+            await loadGlobalState();
             this.renderAll();
         }
     },
