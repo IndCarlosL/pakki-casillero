@@ -245,7 +245,7 @@ Cargando dirección...
                                 </div>
                                 <div class="form-group">
                                     <label for="cprealert-carrier">Transportadora *</label>
-                                    <select id="cprealert-carrier" required>
+                                    <select id="cprealert-carrier" required onchange="toggleClientCarrierOther(this)">
                                         <option value="">-- Selecciona --</option>
                                         <option value="Amazon Log">Amazon Logistics</option>
                                         <option value="UPS">UPS</option>
@@ -254,6 +254,7 @@ Cargando dirección...
                                         <option value="DHL">DHL Express</option>
                                         <option value="Otro">Otra</option>
                                     </select>
+                                    <input type="text" id="cprealert-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;">
                                 </div>
                                 <div class="form-group">
                                     <label for="cprealert-value">Valor Declarado (USD) *</label>

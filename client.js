@@ -1,3 +1,12 @@
+function toggleClientCarrierOther(sel) {
+    const inp = document.getElementById('cprealert-carrier-other');
+    if (!inp) return;
+    const isOther = sel.value === 'Otro';
+    inp.style.display = isOther ? 'block' : 'none';
+    inp.required = isOther;
+    if (!isOther) inp.value = '';
+}
+
 // Supabase connection (same credentials as admin panel)
 const SUPABASE_URL = "https://uuaglghhsxbzhvbjzgky.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdsZ2hoc3hiemh2Ymp6Z2t5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMDMxOTgsImV4cCI6MjA5Njc3OTE5OH0.WI317E3WbMLHcS8hFDYnIH8TjCjkL09G55lt3Qd7X6k";
@@ -431,7 +440,12 @@ Tel: +1 (305) 555-0199
 
     handleRegisterPrealert: function() {
         const tracking = document.getElementById('cprealert-tracking').value.trim();
-        const carrier = document.getElementById('cprealert-carrier').value;
+        const carrierSel = document.getElementById('cprealert-carrier');
+        const carrierOther = document.getElementById('cprealert-carrier-other');
+        const carrier = carrierSel.value === 'Otro'
+            ? (carrierOther.value.trim() || (() => { carrierOther.setCustomValidity('Ingresa el nombre de la transportadora.'); carrierOther.reportValidity(); return null; })())
+            : carrierSel.value;
+        if (!carrier) return;
         const value = parseFloat(document.getElementById('cprealert-value').value);
         const description = document.getElementById('cprealert-desc').value.trim();
         
