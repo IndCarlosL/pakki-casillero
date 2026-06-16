@@ -22,6 +22,12 @@ function resolveCarrier(selectId, inputId) {
     return sel ? sel.value : '';
 }
 
+// Formatea un valor USD a COP usando la TRM configurada
+function fmtCOP(usdVal) {
+    const trm = (state && state.settings && state.settings.trm) || 4000;
+    return `$${Math.round(usdVal * trm).toLocaleString('es-CO')} COP`;
+}
+
 // ── EMAILJS: Notificaciones por correo ──────────────────────────────────────
 // Crea tu cuenta en https://www.emailjs.com y completa estos tres valores.
 // Ver instrucciones en: README del proyecto.
@@ -497,7 +503,10 @@ const app = {
             totalRevenue += pricing.total;
         });
         
-        document.getElementById('metric-revenue').textContent = `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+        const revenueUsd = totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const trm = state.settings.trm || 4000;
+        const revenueCop = Math.round(totalRevenue * trm).toLocaleString('es-CO');
+        document.getElementById('metric-revenue').innerHTML = `$${revenueUsd} USD<br><small style="font-size:0.7em; opacity:0.75; font-weight:500;">≈ $${revenueCop} COP</small>`;
     },
 
     openRevenueChart: function() {
@@ -777,7 +786,7 @@ const app = {
                 <td>${pkg.lengthIn}x${pkg.widthIn}x${pkg.heightIn}</td>
                 <td>${calc.volWeight} lbs</td>
                 <td><strong style="color:var(--secondary);">${calc.chargeableWeight} lbs</strong></td>
-                <td>$${pkg.value.toFixed(2)}</td>
+                <td>$${pkg.value.toFixed(2)}<br><small style="color:var(--text-muted); font-size:0.78rem;">${fmtCOP(pkg.value)}</small></td>
                 <td><span class="badge ${badgeClass}">${pkg.status}</span></td>
                 <td>
                     <div style="display:flex; gap:0.25rem;">
@@ -932,7 +941,7 @@ const app = {
                 <td>$${calc.insurance.toFixed(2)}</td>
                 <td>$${calc.tax.toFixed(2)}</td>
                 <td>$${(calc.handling + calc.fuel).toFixed(2)}</td>
-                <td><strong style="color:var(--secondary); font-size:1rem;">$${calc.total.toFixed(2)} USD</strong></td>
+                <td><strong style="color:var(--secondary); font-size:1rem;">$${calc.total.toFixed(2)} USD</strong><br><small style="color:var(--text-muted); font-size:0.78rem;">${fmtCOP(calc.total)}</small></td>
                 <td><span class="badge ${paidBadge}">${pkg.invoiceStatus || 'Pendiente'}</span></td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="app.viewInvoiceDetail('${pkg.id}')">Ver Detalle</button>
@@ -950,6 +959,7 @@ const app = {
         document.getElementById('cfg-fuel').value = s.fuelSurchargePercent;
         document.getElementById('cfg-vat-threshold').value = s.vatThresholdUsd;
         document.getElementById('cfg-vat-rate').value = s.vatPercent;
+        document.getElementById('cfg-trm').value = s.trm || 4000;
     },
 
     // EVENT HANDLERS
@@ -1168,7 +1178,8 @@ const app = {
         const fuel = parseFloat(document.getElementById('cfg-fuel').value);
         const vatThreshold = parseFloat(document.getElementById('cfg-vat-threshold').value);
         const vatRate = parseFloat(document.getElementById('cfg-vat-rate').value);
-        
+        const trm = parseFloat(document.getElementById('cfg-trm').value) || 4000;
+
         const newSettings = {
             id: 'global',
             baseRatePerLb: baseRate,
@@ -1176,7 +1187,8 @@ const app = {
             insurancePercent: insurance,
             fuelSurchargePercent: fuel,
             vatThresholdUsd: vatThreshold,
-            vatPercent: vatRate
+            vatPercent: vatRate,
+            trm: trm
         };
         
         if (useSupabase) {
@@ -1297,7 +1309,7 @@ const app = {
                         <div class="invoice-grid-item"><span>Tracking:</span> ${pkg.tracking}</div>
                         <div class="invoice-grid-item"><span>Transportadora:</span> ${pkg.carrier}</div>
                         <div class="invoice-grid-item"><span>Descripción:</span> ${pkg.description}</div>
-                        <div class="invoice-grid-item"><span>Valor Declarado:</span> $${pkg.value.toFixed(2)} USD</div>
+                        <div class="invoice-grid-item"><span>Valor Declarado:</span> $${pkg.value.toFixed(2)} USD <small style="color:var(--text-muted);">(${fmtCOP(pkg.value)})</small></div>
                     </div>
                 </div>
 
@@ -1329,33 +1341,34 @@ const app = {
                     <div class="invoice-total-section">
                         <div class="invoice-total-row">
                             <span>Flete Base (${calc.chargeableWeight} Lbs &times; $${s.baseRatePerLb.toFixed(2)} USD):</span>
-                            <span>$${calc.freight.toFixed(2)}</span>
+                            <span>$${calc.freight.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.freight)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Cargo de Manejo Bodega:</span>
-                            <span>$${calc.handling.toFixed(2)}</span>
+                            <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Seguro Comercial (${s.insurancePercent}% del Valor):</span>
-                            <span>$${calc.insurance.toFixed(2)}</span>
+                            <span>$${calc.insurance.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.insurance)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Recargo Combustible (${s.fuelSurchargePercent}% del Flete):</span>
-                            <span>$${calc.fuel.toFixed(2)}</span>
+                            <span>$${calc.fuel.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.fuel)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Impuestos Aduana (IVA ${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200 USD' : 'Exento < $200 USD'}):</span>
-                            <span>$${calc.tax.toFixed(2)}</span>
+                            <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         <div class="invoice-total-row grand-total">
-                            <span>TOTAL A LIQUIDAR (USD):</span>
-                            <span>$${calc.total.toFixed(2)} USD</span>
+                            <span>TOTAL A LIQUIDAR:</span>
+                            <span>$${calc.total.toFixed(2)} USD<br><span style="font-size:0.88em;">${fmtCOP(calc.total)}</span></span>
                         </div>
                     </div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem;">TRM aplicada: $${(s.trm||4000).toLocaleString('es-CO')} COP/USD</p>
                 </div>
             </div>
         `;
-        
+
         this.openModal('modal-invoice-detail');
     },
 

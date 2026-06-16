@@ -1,3 +1,8 @@
+function fmtCOP(usdVal) {
+    const trm = (state && state.settings && state.settings.trm) || 4000;
+    return `$${Math.round(usdVal * trm).toLocaleString('es-CO')} COP`;
+}
+
 function toggleClientCarrierOther(sel) {
     const inp = document.getElementById('cprealert-carrier-other');
     if (!inp) return;
@@ -373,7 +378,8 @@ Tel: +1 (305) 555-0199
                 unpaidTotal += pricing.total;
             }
         });
-        document.getElementById('cmetric-billing-due').textContent = `$${unpaidTotal.toFixed(2)} USD`;
+        const trm = state.settings.trm || 4000;
+        document.getElementById('cmetric-billing-due').innerHTML = `$${unpaidTotal.toFixed(2)} USD<br><small style="font-size:0.7em; opacity:0.8; font-weight:500;">≈ $${Math.round(unpaidTotal * trm).toLocaleString('es-CO')} COP</small>`;
 
         // Dashboard short list of packages
         const tbody = document.getElementById('table-client-recent-packages');
@@ -596,10 +602,10 @@ Tel: +1 (305) 555-0199
                     <span style="font-size:0.75rem; color:var(--text-muted);">${pkg.description}</span>
                 </td>
                 <td>${pricing.chargeableWeight} Lbs</td>
-                <td>$${pkg.value.toFixed(2)}</td>
+                <td>$${pkg.value.toFixed(2)}<br><small style="color:var(--text-muted); font-size:0.78rem;">${fmtCOP(pkg.value)}</small></td>
                 <td>$${pricing.freight.toFixed(2)}</td>
                 <td>$${(pricing.tax + pricing.insurance).toFixed(2)}</td>
-                <td><strong style="color:var(--secondary); font-size:0.95rem;">$${pricing.total.toFixed(2)} USD</strong></td>
+                <td><strong style="color:var(--secondary); font-size:0.95rem;">$${pricing.total.toFixed(2)} USD</strong><br><small style="color:var(--text-muted); font-size:0.78rem;">${fmtCOP(pricing.total)}</small></td>
                 <td><span class="badge ${statusBadge}">${pkg.invoiceStatus || 'Pendiente'}</span></td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="clientApp.viewInvoiceDetail('${pkg.id}')">Ver Prefactura</button>
@@ -646,7 +652,7 @@ Tel: +1 (305) 555-0199
                     <div class="invoice-grid">
                         <div class="invoice-grid-item"><span>Tracking:</span> ${pkg.tracking}</div>
                         <div class="invoice-grid-item"><span>Descripción:</span> ${pkg.description}</div>
-                        <div class="invoice-grid-item"><span>Valor Declarado:</span> $${pkg.value.toFixed(2)} USD</div>
+                        <div class="invoice-grid-item"><span>Valor Declarado:</span> $${pkg.value.toFixed(2)} USD <small style="color:var(--text-muted);">(${fmtCOP(pkg.value)})</small></div>
                     </div>
                 </div>
 
@@ -678,29 +684,30 @@ Tel: +1 (305) 555-0199
                     <div class="invoice-total-section">
                         <div class="invoice-total-row">
                             <span>Flete Base (${calc.chargeableWeight} Lbs &times; $${s.baseRatePerLb.toFixed(2)} USD):</span>
-                            <span>$${calc.freight.toFixed(2)}</span>
+                            <span>$${calc.freight.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.freight)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Manejo Bodega:</span>
-                            <span>$${calc.handling.toFixed(2)}</span>
+                            <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Seguro Comercial (${s.insurancePercent}%):</span>
-                            <span>$${calc.insurance.toFixed(2)}</span>
+                            <span>$${calc.insurance.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.insurance)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>Recargo Combustible (${s.fuelSurchargePercent}%):</span>
-                            <span>$${calc.fuel.toFixed(2)}</span>
+                            <span>$${calc.fuel.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.fuel)}</small></span>
                         </div>
                         <div class="invoice-total-row">
                             <span>IVA Aduana (${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200' : 'Exento'}):</span>
-                            <span>$${calc.tax.toFixed(2)}</span>
+                            <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         <div class="invoice-total-row grand-total">
                             <span>TOTAL NETO A PAGAR:</span>
-                            <span>$${calc.total.toFixed(2)} USD</span>
+                            <span>$${calc.total.toFixed(2)} USD<br><span style="font-size:0.88em;">${fmtCOP(calc.total)}</span></span>
                         </div>
                     </div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem;">TRM aplicada: $${(s.trm||4000).toLocaleString('es-CO')} COP/USD</p>
                 </div>
             </div>
         `;
