@@ -352,16 +352,7 @@ const app = {
             this.handleRegisterPrealert();
         });
 
-        // Checkin Package Form
-        document.getElementById('form-checkin-package').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleCheckinPackage();
-        });
-
-        // Search Prealert click in package form
-        document.getElementById('btn-search-prealert').addEventListener('click', () => {
-            this.handleSearchPrealert();
-        });
+        // (check-in now handled via modal — form-checkin-modal uses onsubmit inline)
 
         // Edit Config Logic Form
         document.getElementById('form-config-logic').addEventListener('submit', (e) => {
@@ -403,10 +394,6 @@ const app = {
             this.renderPurchaseRequestsList();
         });
 
-        // Search prealert input: enter key triggers search
-        document.getElementById('checkin-tracking').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); this.handleSearchPrealert(); }
-        });
     },
 
     // Show dynamic notification alerts
@@ -642,24 +629,12 @@ const app = {
 
     renderUserDropdowns: function() {
         const prealertSelect = document.getElementById('prealert-locker');
-        const checkinSelect = document.getElementById('checkin-locker');
-        
-        // Keep initial option
         prealertSelect.innerHTML = '<option value="">-- Selecciona un casillero --</option>';
-        checkinSelect.innerHTML = '<option value="">-- Selecciona Casillero --</option>';
-        
         state.users.forEach(u => {
-            const optionText = `${u.lockerCode} - ${u.name} (${u.city})`;
-            
-            const opt1 = document.createElement('option');
-            opt1.value = u.lockerCode;
-            opt1.textContent = optionText;
-            prealertSelect.appendChild(opt1);
-            
-            const opt2 = document.createElement('option');
-            opt2.value = u.lockerCode;
-            opt2.textContent = optionText;
-            checkinSelect.appendChild(opt2);
+            const opt = document.createElement('option');
+            opt.value = u.lockerCode;
+            opt.textContent = `${u.lockerCode} - ${u.name} (${u.city})`;
+            prealertSelect.appendChild(opt);
         });
     },
 
@@ -901,8 +876,8 @@ const app = {
                 <td style="font-size:0.85rem;">${pre.deliveryCity || '—'}</td>
                 <td>${fileLink}</td>
                 <td>
-                    <button class="btn btn-secondary btn-sm" onclick="app.loadPrealertIntoCheckin('${pre.id}')">
-                        ↙ Cargar
+                    <button class="btn btn-primary btn-sm" onclick="app.loadPrealertIntoCheckin('${pre.id}')">
+                        ✏️ Confirmar
                     </button>
                 </td>
             `;
@@ -913,23 +888,141 @@ const app = {
     loadPrealertIntoCheckin: function(preId) {
         const pre = (state.prealerts || []).find(p => p.id === preId);
         if (!pre) return;
-        document.getElementById('checkin-tracking').value = pre.tracking;
-        document.getElementById('checkin-locker').value = pre.lockerCode;
+
+        const user = (state.users || []).find(u => u.lockerCode === pre.lockerCode);
+
+        // Fill identification banner
+        document.getElementById('mci-prealert-id').value = pre.id;
+        document.getElementById('mci-locker-display').textContent = pre.lockerCode;
+        document.getElementById('mci-client-display').textContent = user ? user.name : '—';
+
+        // Fill prealert fields
+        document.getElementById('mci-tracking').value = pre.tracking || '';
+        document.getElementById('mci-store').value = pre.store || '';
+        document.getElementById('mci-value').value = pre.value || '';
+        document.getElementById('mci-desc').value = pre.description || '';
+        document.getElementById('mci-city').value = pre.deliveryCity || '';
+
+        // Carrier
         const knownCarriers = ['Amazon Log', 'UPS', 'FedEx', 'USPS', 'DHL'];
         const carrierVal = pre.carrier || '';
+        const mciCarrier = document.getElementById('mci-carrier');
+        const mciCarrierOther = document.getElementById('mci-carrier-other');
         if (knownCarriers.includes(carrierVal)) {
-            document.getElementById('checkin-carrier').value = carrierVal;
-            toggleCarrierOther('checkin-carrier', 'checkin-carrier-other');
+            mciCarrier.value = carrierVal;
+            mciCarrierOther.style.display = 'none';
+            mciCarrierOther.required = false;
+            mciCarrierOther.value = '';
+        } else if (carrierVal) {
+            mciCarrier.value = 'Otro';
+            mciCarrierOther.style.display = 'block';
+            mciCarrierOther.required = true;
+            mciCarrierOther.value = carrierVal;
         } else {
-            document.getElementById('checkin-carrier').value = 'Otro';
-            document.getElementById('checkin-carrier-other').style.display = 'block';
-            document.getElementById('checkin-carrier-other').required = true;
-            document.getElementById('checkin-carrier-other').value = carrierVal;
+            mciCarrier.value = '';
+            mciCarrierOther.style.display = 'none';
+            mciCarrierOther.required = false;
         }
-        document.getElementById('checkin-value').value = pre.value || '';
-        document.getElementById('checkin-desc').value = pre.description || '';
-        this.showAlert(`Prealerta cargada: <strong>${pre.tracking}</strong>. Completa el peso y dimensiones.`, 'info');
-        document.getElementById('checkin-weight').focus();
+
+        // Existing file
+        const fileCurrentDiv = document.getElementById('mci-file-current');
+        if (pre.invoiceFileData) {
+            fileCurrentDiv.innerHTML = `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte actual'}</a>`;
+        } else {
+            fileCurrentDiv.textContent = 'Sin soporte adjunto';
+        }
+        document.getElementById('mci-file').value = '';
+
+        // Clear physical measurements
+        ['mci-weight', 'mci-length', 'mci-width', 'mci-height'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+
+        this.openModal('modal-checkin-confirm');
+        setTimeout(() => document.getElementById('mci-weight').focus(), 200);
+    },
+
+    handleCheckinConfirm: async function() {
+        const preId = document.getElementById('mci-prealert-id').value;
+        const pre = (state.prealerts || []).find(p => p.id === preId);
+        if (!pre) { this.showAlert('No se encontró la prealerta. Recarga la página.', 'danger'); return; }
+
+        const tracking = document.getElementById('mci-tracking').value.trim();
+        const store = document.getElementById('mci-store').value.trim();
+        const carrier = resolveCarrier('mci-carrier', 'mci-carrier-other');
+        if (!carrier) return;
+        const value = parseFloat(document.getElementById('mci-value').value);
+        const description = document.getElementById('mci-desc').value.trim();
+        const deliveryCity = document.getElementById('mci-city').value;
+        const weightLbs = parseFloat(document.getElementById('mci-weight').value);
+        const lengthIn = parseInt(document.getElementById('mci-length').value);
+        const widthIn = parseInt(document.getElementById('mci-width').value);
+        const heightIn = parseInt(document.getElementById('mci-height').value);
+
+        // Handle optional new file upload
+        let invoiceFileName = pre.invoiceFileName || '';
+        let invoiceFileData = pre.invoiceFileData || '';
+        const fileInput = document.getElementById('mci-file');
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 3 * 1024 * 1024) {
+                this.showAlert('El archivo supera el límite de 3 MB.', 'warning');
+                return;
+            }
+            invoiceFileName = file.name;
+            invoiceFileData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Check duplicate package
+        const pkgExists = state.packages.some(p => p.tracking.toLowerCase() === tracking.toLowerCase());
+        if (pkgExists) {
+            this.showAlert('Este tracking ya está registrado como paquete en bodega.', 'danger');
+            return;
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const newPkg = {
+            id: `pkg_${Date.now()}`,
+            tracking,
+            lockerCode: pre.lockerCode,
+            carrier,
+            weightLbs,
+            widthIn,
+            heightIn,
+            lengthIn,
+            value,
+            description,
+            status: 'En Bodega Miami',
+            dateReceived: todayStr,
+            invoiceStatus: 'Pendiente'
+        };
+
+        const updatedPre = { store, carrier, value, description, deliveryCity, invoiceFileName, invoiceFileData };
+
+        if (useSupabase) {
+            try {
+                const { error: errPkg } = await supabaseClient.from('packages').insert([newPkg]);
+                if (errPkg) throw errPkg;
+                await supabaseClient.from('prealerts').update({ status: 'Recibido', ...updatedPre }).eq('id', preId);
+            } catch (err) {
+                this.showAlert(`Error al registrar en Supabase: ${err.message}`, 'danger');
+                return;
+            }
+        } else {
+            state.packages.push(newPkg);
+            const idx = state.prealerts.findIndex(p => p.id === preId);
+            if (idx !== -1) Object.assign(state.prealerts[idx], { status: 'Recibido', ...updatedPre });
+            saveStateLocal();
+        }
+
+        await loadState();
+        this.closeModal('modal-checkin-confirm');
+        this.showAlert(`Paquete <strong>${tracking}</strong> registrado en Bodega Miami. Liquidación calculada.`, 'success');
+        this.renderAll();
     },
 
     renderBillingList: function() {
@@ -1108,104 +1201,6 @@ const app = {
 
         this.renderPrealertsList();
         this.renderMetrics();
-    },
-
-    handleSearchPrealert: function() {
-        const tracking = document.getElementById('checkin-tracking').value.trim();
-        if (!tracking) {
-            this.showAlert('Por favor ingresa un número de tracking para buscar.', 'warning');
-            return;
-        }
-        
-        const pre = state.prealerts.find(p => p.tracking.toLowerCase() === tracking.toLowerCase());
-        if (pre) {
-            // Auto fill form
-            document.getElementById('checkin-locker').value = pre.lockerCode;
-            document.getElementById('checkin-carrier').value = pre.carrier;
-            document.getElementById('checkin-value').value = pre.value;
-            document.getElementById('checkin-desc').value = pre.description;
-            
-            this.showAlert(`¡Prealerta encontrada! Datos importados para el casillero <strong>${pre.lockerCode}</strong>.`, 'info');
-        } else {
-            this.showAlert('No se encontró ninguna prealerta con este número de tracking. Deberás asignar el casillero y declarar los valores de forma manual.', 'warning');
-        }
-    },
-
-    handleCheckinPackage: async function() {
-        const tracking = document.getElementById('checkin-tracking').value.trim();
-        const lockerCode = document.getElementById('checkin-locker').value;
-        const carrier = resolveCarrier('checkin-carrier', 'checkin-carrier-other');
-        if (!carrier) return;
-        const weightLbs = parseFloat(document.getElementById('checkin-weight').value);
-        const lengthIn = parseInt(document.getElementById('checkin-length').value);
-        const widthIn = parseInt(document.getElementById('checkin-width').value);
-        const heightIn = parseInt(document.getElementById('checkin-height').value);
-        const value = parseFloat(document.getElementById('checkin-value').value);
-        const description = document.getElementById('checkin-desc').value.trim();
-        
-        if (!lockerCode) {
-            this.showAlert('Por favor asocia el paquete a un casillero.', 'warning');
-            return;
-        }
-
-        // Check if package already registered
-        const pkgExists = state.packages.some(p => p.tracking.toLowerCase() === tracking.toLowerCase());
-        if (pkgExists) {
-            this.showAlert('Este paquete ya está registrado en el inventario.', 'danger');
-            return;
-        }
-
-        const todayStr = new Date().toISOString().split('T')[0];
-        
-        const newPkg = {
-            id: `pkg_${Date.now()}`,
-            tracking,
-            lockerCode,
-            carrier,
-            weightLbs,
-            widthIn,
-            heightIn,
-            lengthIn,
-            value,
-            description,
-            status: "En Bodega Miami",
-            dateReceived: todayStr,
-            invoiceStatus: "Pendiente"
-        };
-        
-        if (useSupabase) {
-            try {
-                // 1. Guardar paquete
-                const { error: errPkg } = await supabaseClient.from('packages').insert([newPkg]);
-                if (errPkg) throw errPkg;
-
-                // 2. Si hay prealerta, actualizar su estado a 'Recibido'
-                const pre = state.prealerts.find(p => p.tracking.toLowerCase() === tracking.toLowerCase());
-                if (pre) {
-                    const { error: errPre } = await supabaseClient.from('prealerts').update({ status: 'Recibido' }).eq('id', pre.id);
-                    if (errPre) throw errPre;
-                }
-            } catch (err) {
-                this.showAlert(`Error al guardar recepción en Supabase: ${err.message}`, 'danger');
-                return;
-            }
-        } else {
-            state.packages.push(newPkg);
-            const preIndex = state.prealerts.findIndex(p => p.tracking.toLowerCase() === tracking.toLowerCase());
-            if (preIndex !== -1) {
-                state.prealerts[preIndex].status = "Recibido";
-            }
-            saveStateLocal();
-        }
-        
-        await loadState();
-        this.showAlert(`Paquete con tracking <strong>${tracking}</strong> recibido con éxito en Bodega Miami. Liquidación calculada.`, 'success');
-        
-        // Clean Form
-        document.getElementById('form-checkin-package').reset();
-        
-        // Re-render
-        this.renderAll();
     },
 
     handleSaveConfig: async function() {
