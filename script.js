@@ -721,6 +721,10 @@ const app = {
             card.style.padding = '1rem';
             card.style.borderLeft = `4px solid ${pre.status === 'Pendiente' ? 'var(--warning)' : 'var(--success)'}`;
             
+            const fileLink = pre.invoiceFileData
+                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte'}</a>`
+                : '<span style="color:var(--text-muted);">Sin soporte adjunto</span>';
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
                     <div>
@@ -731,9 +735,12 @@ const app = {
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted);">
                     <p style="margin-bottom:0.25rem;"><strong>Cliente:</strong> ${userName}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Detalle:</strong> ${pre.description}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Valor:</strong> $${pre.value.toFixed(2)} USD | <strong>Transporte:</strong> ${pre.carrier}</p>
-                    <p style="font-size:0.75rem; margin-top:0.5rem; text-align:right;">Creado: ${pre.dateCreated}</p>
+                    <p style="margin-bottom:0.25rem;"><strong>Tienda:</strong> ${pre.store || '—'} &nbsp;|&nbsp; <strong>Transporte:</strong> ${pre.carrier}</p>
+                    <p style="margin-bottom:0.25rem;"><strong>Producto:</strong> ${pre.description}</p>
+                    <p style="margin-bottom:0.25rem;"><strong>Valor:</strong> $${parseFloat(pre.value||0).toFixed(2)} USD &nbsp;|&nbsp; <strong>Peso est.:</strong> ${pre.weightLbs ? pre.weightLbs + ' Lbs' : '—'}</p>
+                    <p style="margin-bottom:0.25rem;"><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'}</p>
+                    <p style="margin-bottom:0.35rem;"><strong>Soporte:</strong> ${fileLink}</p>
+                    <p style="font-size:0.75rem; margin-top:0.25rem; text-align:right;">Creado: ${pre.dateCreated}</p>
                 </div>
             `;
             container.appendChild(card);
@@ -871,7 +878,7 @@ const app = {
         countEl.textContent = `${pending.length} pendiente${pending.length !== 1 ? 's' : ''}`;
 
         if (pending.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">No hay prealertas pendientes de recepción.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:1rem;">No hay prealertas pendientes de recepción.</td></tr>`;
             return;
         }
 
@@ -879,15 +886,20 @@ const app = {
         pending.forEach(pre => {
             const user = (state.users || []).find(u => u.lockerCode === pre.lockerCode);
             const clientName = user ? user.name : '—';
+            const fileLink = pre.invoiceFileData
+                ? `<a href="${pre.invoiceFileData}" target="_blank" title="${pre.invoiceFileName || 'Ver soporte'}" style="color:var(--primary);">📎 Ver</a>`
+                : '—';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong style="color:var(--primary);">${pre.lockerCode}</strong></td>
                 <td style="font-size:0.85rem;">${clientName}</td>
                 <td style="font-family:monospace; font-size:0.8rem;">${pre.tracking}</td>
+                <td style="font-size:0.85rem;">${pre.store || '—'}</td>
                 <td>${pre.carrier || '—'}</td>
                 <td style="font-size:0.85rem;">${pre.description}</td>
                 <td>$${parseFloat(pre.value || 0).toFixed(2)}</td>
-                <td style="font-size:0.8rem; color:var(--text-muted);">${pre.dateCreated || '—'}</td>
+                <td style="font-size:0.85rem;">${pre.deliveryCity || '—'}</td>
+                <td>${fileLink}</td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="app.loadPrealertIntoCheckin('${pre.id}')">
                         ↙ Cargar
@@ -1021,19 +1033,39 @@ const app = {
     handleRegisterPrealert: async function() {
         const lockerCode = document.getElementById('prealert-locker').value;
         const tracking = document.getElementById('prealert-tracking').value.trim();
+        const store = document.getElementById('prealert-store').value.trim();
         const carrier = resolveCarrier('prealert-carrier', 'prealert-carrier-other');
         if (!carrier) return;
         const value = parseFloat(document.getElementById('prealert-value').value);
+        const weightLbs = parseFloat(document.getElementById('prealert-weight').value) || null;
         const description = document.getElementById('prealert-desc').value.trim();
-        
+        const deliveryCity = document.getElementById('prealert-city').value;
+
         if (!lockerCode) {
             this.showAlert('Por favor selecciona un casillero válido.', 'warning');
             return;
         }
 
+        // Handle file upload (convert to base64)
+        let invoiceFileName = '';
+        let invoiceFileData = '';
+        const fileInput = document.getElementById('prealert-file');
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 3 * 1024 * 1024) {
+                this.showAlert('El archivo supera el límite de 3 MB. Elige un archivo más pequeño.', 'warning');
+                return;
+            }
+            invoiceFileName = file.name;
+            invoiceFileData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
         const todayStr = new Date().toISOString().split('T')[0];
-        
-        // Check if prealert already exists with that tracking
+
         const exists = state.prealerts.some(p => p.tracking.toLowerCase() === tracking.toLowerCase());
         if (exists) {
             this.showAlert('Ya existe una prealerta registrada con este número de tracking.', 'danger');
@@ -1044,14 +1076,18 @@ const app = {
             id: `pre_${Date.now()}`,
             lockerCode,
             tracking,
+            store,
             carrier,
             value,
+            weightLbs,
             description,
-            invoiceName: "invoice_uploaded.pdf",
+            deliveryCity,
+            invoiceFileName,
+            invoiceFileData,
             status: "Pendiente",
             dateCreated: todayStr
         };
-        
+
         if (useSupabase) {
             try {
                 const { error } = await supabaseClient.from('prealerts').insert([newPre]);
@@ -1064,11 +1100,12 @@ const app = {
             state.prealerts.push(newPre);
             saveStateLocal();
         }
-        
+
         await loadState();
         this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> registrada con éxito.`, 'success');
         document.getElementById('form-register-prealert').reset();
-        
+        toggleCarrierOther('prealert-carrier', 'prealert-carrier-other');
+
         this.renderPrealertsList();
         this.renderMetrics();
     },

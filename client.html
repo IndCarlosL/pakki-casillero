@@ -244,6 +244,10 @@ Cargando dirección...
                                     <input type="text" id="cprealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
                                 </div>
                                 <div class="form-group">
+                                    <label for="cprealert-store">Tienda de Compra *</label>
+                                    <input type="text" id="cprealert-store" required placeholder="Ej. Amazon, Shein, Nike, eBay…">
+                                </div>
+                                <div class="form-group">
                                     <label for="cprealert-carrier">Transportadora *</label>
                                     <select id="cprealert-carrier" required onchange="toggleClientCarrierOther(this)">
                                         <option value="">-- Selecciona --</option>
@@ -261,8 +265,99 @@ Cargando dirección...
                                     <input type="number" id="cprealert-value" required min="1" step="0.01" placeholder="Ej. 120.00">
                                 </div>
                                 <div class="form-group">
-                                    <label for="cprealert-desc">Descripción del Contenido *</label>
+                                    <label for="cprealert-weight">Peso Estimado (Lbs)</label>
+                                    <input type="number" id="cprealert-weight" min="0.1" step="0.1" placeholder="Ej. 2.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cprealert-desc">Descripción del Producto *</label>
                                     <textarea id="cprealert-desc" required placeholder="Ej. Ropa de gimnasio, 2 camisetas, 1 pantaloneta."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cprealert-city">Ciudad de Entrega *</label>
+                                    <select id="cprealert-city" required>
+                                        <option value="">-- Selecciona ciudad --</option>
+                                        <optgroup label="Principales ciudades">
+                                            <option>Bogotá D.C.</option>
+                                            <option>Medellín</option>
+                                            <option>Cali</option>
+                                            <option>Barranquilla</option>
+                                            <option>Cartagena de Indias</option>
+                                            <option>Cúcuta</option>
+                                            <option>Bucaramanga</option>
+                                            <option>Pereira</option>
+                                            <option>Santa Marta</option>
+                                            <option>Ibagué</option>
+                                            <option>Manizales</option>
+                                            <option>Pasto</option>
+                                            <option>Neiva</option>
+                                            <option>Armenia</option>
+                                            <option>Villavicencio</option>
+                                            <option>Montería</option>
+                                            <option>Sincelejo</option>
+                                            <option>Valledupar</option>
+                                            <option>Popayán</option>
+                                            <option>Tunja</option>
+                                        </optgroup>
+                                        <optgroup label="Otras ciudades">
+                                            <option>Apartadó</option>
+                                            <option>Arauca</option>
+                                            <option>Barrancabermeja</option>
+                                            <option>Bello</option>
+                                            <option>Buenaventura</option>
+                                            <option>Caldas (Ant.)</option>
+                                            <option>Caucasia</option>
+                                            <option>Cereté</option>
+                                            <option>Chaparral</option>
+                                            <option>Ciénaga</option>
+                                            <option>Dosquebradas</option>
+                                            <option>Duitama</option>
+                                            <option>Envigado</option>
+                                            <option>Espinal</option>
+                                            <option>Florencia</option>
+                                            <option>Floridablanca</option>
+                                            <option>Fundación</option>
+                                            <option>Garzón</option>
+                                            <option>Girardot</option>
+                                            <option>Girón</option>
+                                            <option>Honda</option>
+                                            <option>Inírida</option>
+                                            <option>Ipiales</option>
+                                            <option>Itagüí</option>
+                                            <option>La Dorada</option>
+                                            <option>La Estrella</option>
+                                            <option>Leticia</option>
+                                            <option>Lorica</option>
+                                            <option>Maicao</option>
+                                            <option>Melgar</option>
+                                            <option>Mitú</option>
+                                            <option>Mocoa</option>
+                                            <option>Ocaña</option>
+                                            <option>Palmira</option>
+                                            <option>Pamplona</option>
+                                            <option>Piedecuesta</option>
+                                            <option>Pitalito</option>
+                                            <option>Puerto Carreño</option>
+                                            <option>Quibdó</option>
+                                            <option>Riohacha</option>
+                                            <option>Rionegro</option>
+                                            <option>Sabaneta</option>
+                                            <option>San Andrés</option>
+                                            <option>San José del Guaviare</option>
+                                            <option>Soacha</option>
+                                            <option>Sogamoso</option>
+                                            <option>Soledad</option>
+                                            <option>Tumaco</option>
+                                            <option>Tuluá</option>
+                                            <option>Turbo</option>
+                                            <option>Yopal</option>
+                                            <option>Zipaquirá</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cprealert-file">Soporte de Compra (PNG, JPG o PDF — máx. 3 MB)</label>
+                                    <input type="file" id="cprealert-file" accept=".png,.jpg,.jpeg,.pdf" style="border: 1px dashed var(--border-color); padding: 0.5rem; border-radius: 6px; width:100%; cursor:pointer;">
+                                    <span style="font-size:0.75rem; color:var(--text-muted);">Adjunta la factura o captura de pantalla de la compra.</span>
                                 </div>
                                 <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Registrar Prealerta</button>
                             </div>

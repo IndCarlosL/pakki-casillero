@@ -429,15 +429,22 @@ Tel: +1 (305) 555-0199
             card.style.padding = '1rem';
             card.style.borderLeft = `4px solid ${pre.status === 'Pendiente' ? 'var(--warning)' : 'var(--success)'}`;
             
+            const fileLink = pre.invoiceFileData
+                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte'}</a>`
+                : '<span style="color:var(--text-muted);">Sin soporte</span>';
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                     <span class="badge ${statusBadge}">${pre.status}</span>
                     <span style="font-size:0.75rem; color:var(--text-muted);">${pre.dateCreated}</span>
                 </div>
-                <h4 style="font-size:0.9rem; font-family:var(--font-heading); margin-bottom:0.25rem;">Tracking: ${pre.tracking}</h4>
-                <div style="font-size:0.8rem; color:var(--text-muted);">
-                    <p><strong>Mercancía:</strong> ${pre.description}</p>
-                    <p><strong>Valor:</strong> $${pre.value.toFixed(2)} USD | <strong>Transporte:</strong> ${pre.carrier}</p>
+                <h4 style="font-size:0.9rem; font-family:var(--font-heading); margin-bottom:0.4rem;">Tracking: ${pre.tracking}</h4>
+                <div style="font-size:0.8rem; color:var(--text-muted); display:flex; flex-direction:column; gap:0.2rem;">
+                    <p><strong>Tienda:</strong> ${pre.store || '—'} &nbsp;|&nbsp; <strong>Transporte:</strong> ${pre.carrier}</p>
+                    <p><strong>Producto:</strong> ${pre.description}</p>
+                    <p><strong>Valor declarado:</strong> $${parseFloat(pre.value||0).toFixed(2)} USD &nbsp;|&nbsp; <strong>Peso est.:</strong> ${pre.weightLbs ? pre.weightLbs + ' Lbs' : '—'}</p>
+                    <p><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'}</p>
+                    <p><strong>Soporte:</strong> ${fileLink}</p>
                 </div>
             `;
             container.appendChild(card);
@@ -446,6 +453,7 @@ Tel: +1 (305) 555-0199
 
     handleRegisterPrealert: async function() {
         const tracking = document.getElementById('cprealert-tracking').value.trim();
+        const store = document.getElementById('cprealert-store').value.trim();
         const carrierSel = document.getElementById('cprealert-carrier');
         const carrierOther = document.getElementById('cprealert-carrier-other');
         const carrier = carrierSel.value === 'Otro'
@@ -453,7 +461,27 @@ Tel: +1 (305) 555-0199
             : carrierSel.value;
         if (!carrier) return;
         const value = parseFloat(document.getElementById('cprealert-value').value);
+        const weightLbs = parseFloat(document.getElementById('cprealert-weight').value) || null;
         const description = document.getElementById('cprealert-desc').value.trim();
+        const deliveryCity = document.getElementById('cprealert-city').value;
+
+        // Handle file upload (convert to base64)
+        let invoiceFileName = '';
+        let invoiceFileData = '';
+        const fileInput = document.getElementById('cprealert-file');
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 3 * 1024 * 1024) {
+                this.showAlert('El archivo supera el límite de 3 MB. Elige un archivo más pequeño.', 'warning');
+                return;
+            }
+            invoiceFileName = file.name;
+            invoiceFileData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
 
         // Reload from Supabase before checking duplicates
         await loadGlobalState();
@@ -470,10 +498,14 @@ Tel: +1 (305) 555-0199
             id: `pre_${Date.now()}`,
             lockerCode: loggedUser.lockerCode,
             tracking,
+            store,
             carrier,
             value,
+            weightLbs,
             description,
-            invoiceName: "invoice_customer.pdf",
+            deliveryCity,
+            invoiceFileName,
+            invoiceFileData,
             status: "Pendiente",
             dateCreated: todayStr
         };
@@ -484,7 +516,6 @@ Tel: +1 (305) 555-0199
                 this.showAlert(`Error al guardar la prealerta: ${error.message}`, 'danger');
                 return;
             }
-            // Reload so state reflects the new row
             await loadGlobalState();
         } else {
             state.prealerts.push(newPre);
@@ -493,7 +524,7 @@ Tel: +1 (305) 555-0199
 
         this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> creada con éxito.`, 'success');
         document.getElementById('form-client-prealert').reset();
-        toggleClientCarrierOther(carrierSel); // reset the "Otra" input
+        toggleClientCarrierOther(carrierSel);
 
         this.renderPrealerts();
         this.renderDashboard();
