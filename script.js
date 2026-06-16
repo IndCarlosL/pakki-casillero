@@ -288,6 +288,7 @@ const app = {
             } else if (tabId === 'tab-bodega') {
                 headerTitle.textContent = "Bodega de Miami (Recepción)";
                 headerSub.textContent = "Check-in de paquetes recibidos, peso, medidas e historial de estado.";
+                this.renderPendingPrealertsList();
             } else if (tabId === 'tab-prefacturacion') {
                 headerTitle.textContent = "Prefacturación y Lógica";
                 headerSub.textContent = "Liquidaciones automáticas de fletes e impuestos e ingresos de caja.";
@@ -369,6 +370,11 @@ const app = {
         document.getElementById('filter-pr-status').addEventListener('change', () => {
             this.renderPurchaseRequestsList();
         });
+
+        // Search prealert input: enter key triggers search
+        document.getElementById('checkin-tracking').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); this.handleSearchPrealert(); }
+        });
     },
 
     // Show dynamic notification alerts
@@ -439,6 +445,7 @@ const app = {
         this.renderLockersList();
         this.renderPrealertsList();
         this.renderPackagesList();
+        this.renderPendingPrealertsList();
         this.renderBillingList();
         this.renderConfigInputs();
         this.renderCotizadorConfig();
@@ -601,37 +608,39 @@ const app = {
     renderPackagesList: function() {
         const tbody = document.getElementById('table-packages-body');
         tbody.innerHTML = '';
-        
+
         const searchVal = document.getElementById('search-packages').value.trim().toLowerCase();
         const statusVal = document.getElementById('filter-packages-status').value;
-        
+
         const filtered = state.packages.filter(pkg => {
-            const matchesSearch = pkg.tracking.toLowerCase().includes(searchVal) || 
+            const matchesSearch = pkg.tracking.toLowerCase().includes(searchVal) ||
                                   pkg.lockerCode.toLowerCase().includes(searchVal) ||
                                   pkg.description.toLowerCase().includes(searchVal);
-            
             const matchesStatus = statusVal === 'all' || pkg.status === statusVal;
-            
             return matchesSearch && matchesStatus;
         });
-        
+
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted);">No se encontraron paquetes registrados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:var(--text-muted);">No se encontraron paquetes registrados.</td></tr>`;
+            this.updateBulkBar();
             return;
         }
-        
+
         filtered.forEach(pkg => {
             const calc = this.calculatePackageInvoicing(pkg);
-            
+
             let badgeClass = 'badge-neutral';
             if (pkg.status === 'En Bodega Miami') badgeClass = 'badge-warning';
             if (pkg.status === 'En Tránsito a Colombia') badgeClass = 'badge-info';
             if (pkg.status === 'Nacionalización') badgeClass = 'badge-danger';
             if (pkg.status === 'Listo para Entrega') badgeClass = 'badge-success';
             if (pkg.status === 'Entregado') badgeClass = 'badge-success';
-            
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td style="text-align:center;">
+                    <input type="checkbox" class="pkg-checkbox" data-id="${pkg.id}" style="cursor:pointer;" onchange="app.updateBulkBar()">
+                </td>
                 <td>${pkg.dateReceived}</td>
                 <td><strong style="color:var(--primary);">${pkg.lockerCode}</strong></td>
                 <td>
@@ -646,17 +655,124 @@ const app = {
                 <td><span class="badge ${badgeClass}">${pkg.status}</span></td>
                 <td>
                     <div style="display:flex; gap:0.25rem;">
-                        <button class="btn btn-secondary btn-sm" onclick="app.openChangeStatusModal('${pkg.id}')" title="Cambiar Estado">
-                            ⚙️
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="app.viewInvoiceDetail('${pkg.id}')" title="Ver Prefactura">
-                            💵
-                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.openChangeStatusModal('${pkg.id}')" title="Cambiar Estado">⚙️</button>
+                        <button class="btn btn-primary btn-sm" onclick="app.viewInvoiceDetail('${pkg.id}')" title="Ver Prefactura">💵</button>
                     </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Wire up select-all checkbox
+        const selectAll = document.getElementById('select-all-packages');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.onchange = () => {
+                document.querySelectorAll('.pkg-checkbox').forEach(cb => cb.checked = selectAll.checked);
+                this.updateBulkBar();
+            };
+        }
+        this.updateBulkBar();
+    },
+
+    updateBulkBar: function() {
+        const checked = document.querySelectorAll('.pkg-checkbox:checked');
+        const bar = document.getElementById('bulk-action-bar');
+        const countEl = document.getElementById('bulk-selected-count');
+        if (!bar) return;
+        if (checked.length > 0) {
+            bar.style.display = 'flex';
+            countEl.textContent = `${checked.length} paquete${checked.length > 1 ? 's' : ''} seleccionado${checked.length > 1 ? 's' : ''}`;
+        } else {
+            bar.style.display = 'none';
+            document.getElementById('bulk-status-select').value = '';
+        }
+    },
+
+    clearBulkSelection: function() {
+        document.querySelectorAll('.pkg-checkbox').forEach(cb => cb.checked = false);
+        const selectAll = document.getElementById('select-all-packages');
+        if (selectAll) selectAll.checked = false;
+        this.updateBulkBar();
+    },
+
+    handleBulkStatusChange: async function() {
+        const newStatus = document.getElementById('bulk-status-select').value;
+        if (!newStatus) {
+            this.showAlert('Selecciona un estado antes de aplicar.', 'warning');
+            return;
+        }
+        const checked = document.querySelectorAll('.pkg-checkbox:checked');
+        if (checked.length === 0) return;
+
+        const ids = Array.from(checked).map(cb => cb.dataset.id);
+
+        if (useSupabase) {
+            for (const id of ids) {
+                await supabaseClient.from('packages').update({ status: newStatus }).eq('id', id);
+            }
+            await loadState();
+        } else {
+            ids.forEach(id => {
+                const pkg = state.packages.find(p => p.id === id);
+                if (pkg) pkg.status = newStatus;
+            });
+            saveStateLocal();
+        }
+
+        this.showAlert(`Estado actualizado a <strong>${newStatus}</strong> en ${ids.length} paquete${ids.length > 1 ? 's' : ''}.`, 'success');
+        this.clearBulkSelection();
+        this.renderPackagesList();
+        this.renderMetrics();
+    },
+
+    renderPendingPrealertsList: function() {
+        const tbody = document.getElementById('table-pending-prealerts-body');
+        const countEl = document.getElementById('pending-prealerts-count');
+        if (!tbody) return;
+
+        const pending = (state.prealerts || []).filter(p => p.status === 'Pendiente');
+
+        countEl.textContent = `${pending.length} pendiente${pending.length !== 1 ? 's' : ''}`;
+
+        if (pending.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">No hay prealertas pendientes de recepción.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        pending.forEach(pre => {
+            const user = (state.users || []).find(u => u.lockerCode === pre.lockerCode);
+            const clientName = user ? user.name : '—';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong style="color:var(--primary);">${pre.lockerCode}</strong></td>
+                <td style="font-size:0.85rem;">${clientName}</td>
+                <td style="font-family:monospace; font-size:0.8rem;">${pre.tracking}</td>
+                <td>${pre.carrier || '—'}</td>
+                <td style="font-size:0.85rem;">${pre.description}</td>
+                <td>$${parseFloat(pre.value || 0).toFixed(2)}</td>
+                <td style="font-size:0.8rem; color:var(--text-muted);">${pre.dateCreated || '—'}</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm" onclick="app.loadPrealertIntoCheckin('${pre.id}')">
+                        ↙ Cargar
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    loadPrealertIntoCheckin: function(preId) {
+        const pre = (state.prealerts || []).find(p => p.id === preId);
+        if (!pre) return;
+        document.getElementById('checkin-tracking').value = pre.tracking;
+        document.getElementById('checkin-locker').value = pre.lockerCode;
+        document.getElementById('checkin-carrier').value = pre.carrier || '';
+        document.getElementById('checkin-value').value = pre.value || '';
+        document.getElementById('checkin-desc').value = pre.description || '';
+        this.showAlert(`Prealerta cargada: <strong>${pre.tracking}</strong>. Completa el peso y dimensiones.`, 'info');
+        document.getElementById('checkin-weight').focus();
     },
 
     renderBillingList: function() {

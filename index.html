@@ -393,6 +393,35 @@ Tel: +1 (305) 555-0199
                     </div>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Usa este panel para registrar los paquetes cuando ingresen físicamente a la bodega de Miami. Si el cliente prealertó el tracking, se cargarán los datos automáticamente.</p>
                     
+                    <!-- Listado de prealertas pendientes -->
+                    <div id="pending-prealerts-panel" style="margin-bottom:1.5rem;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                            <h3 style="font-size:0.95rem; font-weight:600; color:var(--text-primary); margin:0;">
+                                Prealertas Pendientes de Clientes
+                            </h3>
+                            <span id="pending-prealerts-count" style="font-size:0.8rem; color:var(--text-muted);"></span>
+                        </div>
+                        <div class="table-container" style="max-height:220px; overflow-y:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Casillero</th>
+                                        <th>Cliente</th>
+                                        <th>Tracking</th>
+                                        <th>Carrier</th>
+                                        <th>Descripción</th>
+                                        <th>Valor USD</th>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-pending-prealerts-body">
+                                    <tr><td colspan="8" style="text-align:center;color:var(--text-muted);">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <form id="form-checkin-package">
                         <div class="form-grid">
                             <div class="form-group">
@@ -470,10 +499,28 @@ Tel: +1 (305) 555-0199
                         </div>
                     </div>
 
+                    <!-- Barra de acción masiva (oculta hasta seleccionar) -->
+                    <div id="bulk-action-bar" style="display:none; align-items:center; gap:1rem; padding:0.75rem 1rem; background:var(--secondary-light, #eff6ff); border:1px solid var(--secondary); border-radius:8px; margin-bottom:1rem;">
+                        <span id="bulk-selected-count" style="font-weight:600; font-size:0.9rem; color:var(--secondary); white-space:nowrap;"></span>
+                        <select id="bulk-status-select" style="padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color); flex:1; max-width:260px;">
+                            <option value="">-- Cambiar estado a... --</option>
+                            <option value="En Bodega Miami">En Bodega Miami</option>
+                            <option value="En Tránsito a Colombia">En Tránsito a Colombia</option>
+                            <option value="Nacionalización">Aduana / DIAN</option>
+                            <option value="Listo para Entrega">Listo para Entrega</option>
+                            <option value="Entregado">Entregado</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="app.handleBulkStatusChange()">Aplicar a Seleccionados</button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.clearBulkSelection()">Cancelar</button>
+                    </div>
+
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
+                                    <th style="width:36px; text-align:center;">
+                                        <input type="checkbox" id="select-all-packages" title="Seleccionar todos" style="cursor:pointer;">
+                                    </th>
                                     <th>Fecha Reg.</th>
                                     <th>Casillero</th>
                                     <th>Tracking / Carrier</th>
