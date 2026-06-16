@@ -338,7 +338,7 @@ Tel: +1 (305) 555-0199
                                 </div>
                                 <div class="form-group">
                                     <label for="prealert-carrier">Transportadora *</label>
-                                    <select id="prealert-carrier" required>
+                                    <select id="prealert-carrier" required onchange="toggleCarrierOther('prealert-carrier', 'prealert-carrier-other')">
                                         <option value="">-- Selecciona transportadora --</option>
                                         <option value="Amazon Log">Amazon Logistics</option>
                                         <option value="UPS">UPS</option>
@@ -347,6 +347,7 @@ Tel: +1 (305) 555-0199
                                         <option value="DHL">DHL Express</option>
                                         <option value="Otro">Otra / Desconocida</option>
                                     </select>
+                                    <input type="text" id="prealert-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;" oninput="this.setCustomValidity('')">
                                 </div>
                                 <div class="form-group">
                                     <label for="prealert-value">Valor Declarado (USD) *</label>
@@ -440,7 +441,7 @@ Tel: +1 (305) 555-0199
                             </div>
                             <div class="form-group">
                                 <label for="checkin-carrier">Transportadora *</label>
-                                <select id="checkin-carrier" required>
+                                <select id="checkin-carrier" required onchange="toggleCarrierOther('checkin-carrier', 'checkin-carrier-other')">
                                     <option value="">-- Seleccionar --</option>
                                     <option value="Amazon Log">Amazon Logistics</option>
                                     <option value="UPS">UPS</option>
@@ -449,6 +450,7 @@ Tel: +1 (305) 555-0199
                                     <option value="DHL">DHL Express</option>
                                     <option value="Otro">Otra</option>
                                 </select>
+                                <input type="text" id="checkin-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;" oninput="this.setCustomValidity('')">
                             </div>
                             <div class="form-group">
                                 <label for="checkin-weight">Peso Físico Real (Lbs) *</label>

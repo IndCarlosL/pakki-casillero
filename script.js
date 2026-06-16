@@ -1,3 +1,27 @@
+// Muestra/oculta el campo de texto cuando se selecciona "Otro" en transportadora
+function toggleCarrierOther(selectId, inputId) {
+    const sel = document.getElementById(selectId);
+    const inp = document.getElementById(inputId);
+    if (!sel || !inp) return;
+    const isOther = sel.value === 'Otro';
+    inp.style.display = isOther ? 'block' : 'none';
+    inp.required = isOther;
+    if (!isOther) inp.value = '';
+}
+
+// Devuelve el valor real de transportadora (texto libre si eligió "Otro")
+function resolveCarrier(selectId, inputId) {
+    const sel = document.getElementById(selectId);
+    const inp = document.getElementById(inputId);
+    if (sel && sel.value === 'Otro' && inp) {
+        const custom = inp.value.trim();
+        if (!custom) { inp.setCustomValidity('Ingresa el nombre de la transportadora.'); inp.reportValidity(); return null; }
+        inp.setCustomValidity('');
+        return custom;
+    }
+    return sel ? sel.value : '';
+}
+
 // ── EMAILJS: Notificaciones por correo ──────────────────────────────────────
 // Crea tu cuenta en https://www.emailjs.com y completa estos tres valores.
 // Ver instrucciones en: README del proyecto.
@@ -768,7 +792,17 @@ const app = {
         if (!pre) return;
         document.getElementById('checkin-tracking').value = pre.tracking;
         document.getElementById('checkin-locker').value = pre.lockerCode;
-        document.getElementById('checkin-carrier').value = pre.carrier || '';
+        const knownCarriers = ['Amazon Log', 'UPS', 'FedEx', 'USPS', 'DHL'];
+        const carrierVal = pre.carrier || '';
+        if (knownCarriers.includes(carrierVal)) {
+            document.getElementById('checkin-carrier').value = carrierVal;
+            toggleCarrierOther('checkin-carrier', 'checkin-carrier-other');
+        } else {
+            document.getElementById('checkin-carrier').value = 'Otro';
+            document.getElementById('checkin-carrier-other').style.display = 'block';
+            document.getElementById('checkin-carrier-other').required = true;
+            document.getElementById('checkin-carrier-other').value = carrierVal;
+        }
         document.getElementById('checkin-value').value = pre.value || '';
         document.getElementById('checkin-desc').value = pre.description || '';
         this.showAlert(`Prealerta cargada: <strong>${pre.tracking}</strong>. Completa el peso y dimensiones.`, 'info');
@@ -875,7 +909,8 @@ const app = {
     handleRegisterPrealert: async function() {
         const lockerCode = document.getElementById('prealert-locker').value;
         const tracking = document.getElementById('prealert-tracking').value.trim();
-        const carrier = document.getElementById('prealert-carrier').value;
+        const carrier = resolveCarrier('prealert-carrier', 'prealert-carrier-other');
+        if (!carrier) return;
         const value = parseFloat(document.getElementById('prealert-value').value);
         const description = document.getElementById('prealert-desc').value.trim();
         
@@ -950,7 +985,8 @@ const app = {
     handleCheckinPackage: async function() {
         const tracking = document.getElementById('checkin-tracking').value.trim();
         const lockerCode = document.getElementById('checkin-locker').value;
-        const carrier = document.getElementById('checkin-carrier').value;
+        const carrier = resolveCarrier('checkin-carrier', 'checkin-carrier-other');
+        if (!carrier) return;
         const weightLbs = parseFloat(document.getElementById('checkin-weight').value);
         const lengthIn = parseInt(document.getElementById('checkin-length').value);
         const widthIn = parseInt(document.getElementById('checkin-width').value);
