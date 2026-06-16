@@ -96,10 +96,12 @@ let state = {
         cotizFletePrimeraLb: 5,
         cotizFleteAdicionalLb: 3.50,
         cotizIvaPercent: 19,
+        cotizArancelPercent: 10,
         cotizSeguroPercent: 2,
         cotizDomicilioUsd: 4,
-        cotizArancelPercent: 5,
-        cotizServicioCompraPercent: 5
+        cotizServicioCompraPercent: 5,
+        cotizCorpLbUsd: 8,
+        cotizCorpMinLbs: 10
     }
 };
 
@@ -1508,10 +1510,12 @@ const app = {
         document.getElementById('cot-flete-primera-lb').value = s.cotizFletePrimeraLb || 5;
         document.getElementById('cot-flete-adicional-lb').value = s.cotizFleteAdicionalLb || 3.50;
         document.getElementById('cot-iva-pct').value = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
+        document.getElementById('cot-arancel-pct').value = s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
         document.getElementById('cot-seguro-pct').value = s.cotizSeguroPercent || 2;
         document.getElementById('cot-domicilio-usd').value = s.cotizDomicilioUsd || 4;
-        document.getElementById('cot-arancel-pct').value = s.cotizArancelPercent || 5;
         document.getElementById('cot-servicio-pct').value = s.cotizServicioCompraPercent || 5;
+        document.getElementById('cot-corp-lb-usd').value = s.cotizCorpLbUsd || 8;
+        document.getElementById('cot-corp-min-lbs').value = s.cotizCorpMinLbs || 10;
     },
 
     handleSaveCotizadorConfig: async function() {
@@ -1520,10 +1524,12 @@ const app = {
             cotizFletePrimeraLb: parseFloat(document.getElementById('cot-flete-primera-lb').value),
             cotizFleteAdicionalLb: parseFloat(document.getElementById('cot-flete-adicional-lb').value),
             cotizIvaPercent: parseFloat(document.getElementById('cot-iva-pct').value),
+            cotizArancelPercent: parseFloat(document.getElementById('cot-arancel-pct').value),
             cotizSeguroPercent: parseFloat(document.getElementById('cot-seguro-pct').value),
             cotizDomicilioUsd: parseFloat(document.getElementById('cot-domicilio-usd').value),
-            cotizArancelPercent: parseFloat(document.getElementById('cot-arancel-pct').value),
             cotizServicioCompraPercent: parseFloat(document.getElementById('cot-servicio-pct').value),
+            cotizCorpLbUsd: parseFloat(document.getElementById('cot-corp-lb-usd').value),
+            cotizCorpMinLbs: parseInt(document.getElementById('cot-corp-min-lbs').value),
         };
 
         state.settings = { ...state.settings, ...updates };
@@ -1543,88 +1549,123 @@ const app = {
         this.showAlert('Tarifas del cotizador actualizadas correctamente.', 'success');
     },
 
-    calcularCotizacion: function() {
+    _cotizMode: 'natural',
+
+    setCotizMode: function(mode) {
+        this._cotizMode = mode;
+        const isNatural = mode === 'natural';
+        document.getElementById('btn-mode-natural').style.background = isNatural ? 'var(--primary)' : 'var(--bg-secondary)';
+        document.getElementById('btn-mode-natural').style.color = isNatural ? '#fff' : 'var(--text-muted)';
+        document.getElementById('btn-mode-corp').style.background = !isNatural ? 'var(--secondary)' : 'var(--bg-secondary)';
+        document.getElementById('btn-mode-corp').style.color = !isNatural ? '#fff' : 'var(--text-muted)';
+
+        const s = state.settings;
+        const infoEl = document.getElementById('cot-mode-info');
+        if (isNatural) {
+            infoEl.style.background = '#eff6ff'; infoEl.style.color = '#1e40af'; infoEl.style.borderColor = '#bfdbfe';
+            infoEl.innerHTML = `<strong>Persona Natural:</strong> 1ª libra $${(s.cotizFletePrimeraLb||5).toFixed(2)} USD + adicionales $${(s.cotizFleteAdicionalLb||3.50).toFixed(2)} USD. Si el valor declarado supera los <strong>$200 USD</strong> se aplican automáticamente IVA ${s.cotizIvaPercent||19}% + Arancel ${s.cotizArancelPercent||10}%.`;
+        } else {
+            infoEl.style.background = '#f0fdf4'; infoEl.style.color = '#166534'; infoEl.style.borderColor = '#bbf7d0';
+            infoEl.innerHTML = `<strong>Corporativo:</strong> Mínimo ${s.cotizCorpMinLbs||10} libras facturables a $${(s.cotizCorpLbUsd||8).toFixed(2)} USD por libra. <strong>Sin IVA ni Arancel</strong>.`;
+        }
+        document.getElementById('cot-results-card').style.display = 'none';
+    },
+
+    _buildCotizData: function() {
         const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
         const pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
         const otrosCargos = parseFloat(document.getElementById('cot-otros-cargos').value) || 0;
+        const incluyeSeguro = document.getElementById('cot-chk-seguro').checked;
+        const incluyeDomicilio = document.getElementById('cot-chk-domicilio').checked;
+        const incluyeServicio = document.getElementById('cot-chk-servicio').checked;
+        const s = state.settings;
+        const trm = s.trm || 4000;
+        const seguroPercent = s.cotizSeguroPercent || 2;
+        const domicilioUsd = s.cotizDomicilioUsd || 4;
+        const servicioPercent = s.cotizServicioCompraPercent || 5;
 
+        let flete, fleteLabel, iva = 0, arancel = 0, modoTexto;
+
+        if (this._cotizMode === 'corporativo') {
+            const lbUsd = s.cotizCorpLbUsd || 8;
+            const minLbs = s.cotizCorpMinLbs || 10;
+            const pesoFacturable = Math.max(Math.ceil(pesoLbs), minLbs);
+            flete = pesoFacturable * lbUsd;
+            const minNota = pesoLbs < minLbs ? ` &mdash; mínimo ${minLbs} Lbs aplicado` : (pesoFacturable !== pesoLbs ? ` &mdash; redondeado de ${pesoLbs} Lbs` : '');
+            fleteLabel = `Flete Corporativo (${pesoFacturable} Lbs &times; $${lbUsd.toFixed(2)}${minNota})`;
+            modoTexto = 'Corporativo';
+        } else {
+            const fletePrimera = s.cotizFletePrimeraLb || 5;
+            const fleteAdicional = s.cotizFleteAdicionalLb || 3.50;
+            const ivaPercent = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
+            const arancelPercent = s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
+            const pesoFacturable = pesoLbs > 0 ? Math.ceil(pesoLbs) : 0;
+            flete = pesoFacturable <= 0 ? 0 : pesoFacturable <= 1 ? fletePrimera : fletePrimera + (pesoFacturable - 1) * fleteAdicional;
+            const redNota = pesoFacturable !== pesoLbs ? ` &mdash; redondeado de ${pesoLbs} Lbs` : '';
+            fleteLabel = pesoFacturable <= 1
+                ? `Flete (${pesoFacturable} Lb &mdash; 1ª libra${redNota})`
+                : `Flete (1&ordf; Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable-1} Lbs &times; $${fleteAdicional.toFixed(2)}${redNota})`;
+            const aplicaImpuestos = valorUsd > 200;
+            iva = aplicaImpuestos ? valorUsd * (ivaPercent / 100) : 0;
+            arancel = aplicaImpuestos ? valorUsd * (arancelPercent / 100) : 0;
+            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor ≤ $200 USD — sin impuestos)' : ` (valor > $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)` }`;
+        }
+
+        const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
+        const domicilio = incluyeDomicilio ? domicilioUsd : 0;
+        const servicio = incluyeServicio ? valorUsd * (servicioPercent / 100) : 0;
+        const totalUsd = flete + iva + arancel + seguro + domicilio + servicio + otrosCargos;
+
+        return { valorUsd, pesoLbs, otrosCargos, trm, flete, fleteLabel, iva, arancel, seguro, seguroPercent, domicilio, domicilioUsd, servicio, servicioPercent, totalUsd, modoTexto, incluyeSeguro, incluyeDomicilio, incluyeServicio };
+    },
+
+    calcularCotizacion: function() {
+        const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
+        const pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
         if (valorUsd <= 0 && pesoLbs <= 0) {
             this.showAlert('Ingresa al menos el valor declarado o el peso para calcular.', 'warning');
             return;
         }
 
-        const s = state.settings;
-        const trm = s.trm || 4000;
-        const fletePrimera = s.cotizFletePrimeraLb || 5;
-        const fleteAdicional = s.cotizFleteAdicionalLb || 3.50;
-        const ivaPercent = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
-        const seguroPercent = s.cotizSeguroPercent || 2;
-        const domicilioUsd = s.cotizDomicilioUsd || 4;
-        const arancelPercent = s.cotizArancelPercent || 5;
-        const servicioPercent = s.cotizServicioCompraPercent || 5;
-
-        const incluyeSeguro = document.getElementById('cot-chk-seguro').checked;
-        const incluyeDomicilio = document.getElementById('cot-chk-domicilio').checked;
-        const incluyeServicio = document.getElementById('cot-chk-servicio').checked;
-        const incluyeArancel = document.getElementById('cot-chk-arancel').checked;
-
-        const pesoFacturable = pesoLbs > 0 ? Math.ceil(pesoLbs) : 0;
-        const flete = pesoFacturable <= 0 ? 0 : pesoFacturable <= 1 ? fletePrimera : fletePrimera + (pesoFacturable - 1) * fleteAdicional;
-        const redondeado = pesoFacturable !== pesoLbs ? ` &mdash; redondeado de ${pesoLbs} Lbs` : '';
-        const fleteLabel = pesoFacturable <= 1
-            ? `Flete (${pesoFacturable} Lb &mdash; tarifa primera libra${redondeado})`
-            : `Flete (1&ordf; Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable - 1} Lbs &times; $${fleteAdicional.toFixed(2)}${redondeado})`;
-        const iva = valorUsd * (ivaPercent / 100);
-        const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
-        const domicilio = incluyeDomicilio ? domicilioUsd : 0;
-        const servicio = incluyeServicio ? valorUsd * (servicioPercent / 100) : 0;
-        const arancel = incluyeArancel ? valorUsd * (arancelPercent / 100) : 0;
-        const totalUsd = flete + iva + seguro + domicilio + servicio + arancel + otrosCargos;
-        const totalCop = totalUsd * trm;
-
+        const d = this._buildCotizData();
+        const trm = d.trm;
         const fmtUsd = (v) => `$${v.toFixed(2)} USD`;
         const fmtCop = (v) => `$${Math.round(v * trm).toLocaleString('es-CO')} COP`;
 
         const filas = [
-            { label: fleteLabel, usd: flete, mostrar: true },
-            { label: `IVA (${ivaPercent}% del valor declarado)`, usd: iva, mostrar: true },
-            { label: `Arancel (${arancelPercent}% del valor declarado)`, usd: arancel, mostrar: incluyeArancel },
-            { label: `Seguro (${seguroPercent}% del valor declarado)`, usd: seguro, mostrar: incluyeSeguro },
-            { label: `Servicio de Compra (${servicioPercent}%)`, usd: servicio, mostrar: incluyeServicio },
-            { label: 'Domicilio (cargo fijo)', usd: domicilio, mostrar: incluyeDomicilio },
-            { label: 'Otros Cargos', usd: otrosCargos, mostrar: otrosCargos > 0 },
+            { label: d.fleteLabel, usd: d.flete, mostrar: true },
+            { label: `IVA (${state.settings.cotizIvaPercent||19}% del valor declarado)`, usd: d.iva, mostrar: d.iva > 0 },
+            { label: `Arancel (${state.settings.cotizArancelPercent||10}% del valor declarado)`, usd: d.arancel, mostrar: d.arancel > 0 },
+            { label: `Seguro (${d.seguroPercent}% del valor declarado)`, usd: d.seguro, mostrar: d.incluyeSeguro },
+            { label: `Servicio de Compra (${d.servicioPercent}%)`, usd: d.servicio, mostrar: d.incluyeServicio },
+            { label: `Domicilio (cargo fijo $${d.domicilioUsd.toFixed(2)} USD)`, usd: d.domicilio, mostrar: d.incluyeDomicilio },
+            { label: 'Otros Cargos', usd: d.otrosCargos, mostrar: d.otrosCargos > 0 },
         ];
 
         let html = `
+            <div style="font-size:0.78rem; margin-bottom:0.75rem; padding:0.4rem 0.5rem; background:var(--bg-app); border-radius:6px; color:var(--text-muted);">
+                Modalidad: <strong style="color:var(--text-primary);">${d.modoTexto}</strong>
+            </div>
             <div class="invoice-total-section">
                 <div class="cot-total-row header">
-                    <span>Concepto</span>
-                    <span>USD</span>
+                    <span>Concepto</span><span>USD</span>
                     <span>COP &nbsp;(TRM: ${trm.toLocaleString('es-CO')})</span>
-                </div>
-        `;
+                </div>`;
 
         filas.filter(f => f.mostrar).forEach(f => {
-            html += `
-                <div class="cot-total-row">
-                    <span>${f.label}</span>
-                    <span>${fmtUsd(f.usd)}</span>
-                    <span>${fmtCop(f.usd)}</span>
-                </div>
-            `;
+            html += `<div class="cot-total-row"><span>${f.label}</span><span>${fmtUsd(f.usd)}</span><span>${fmtCop(f.usd)}</span></div>`;
         });
 
         html += `
                 <div class="cot-total-row grand-total">
                     <span>TOTAL ESTIMADO</span>
-                    <span>$${totalUsd.toFixed(2)} USD</span>
-                    <span>$${Math.round(totalCop).toLocaleString('es-CO')} COP</span>
+                    <span>$${d.totalUsd.toFixed(2)} USD</span>
+                    <span>$${Math.round(d.totalUsd * trm).toLocaleString('es-CO')} COP</span>
                 </div>
             </div>
             <p style="font-size:0.75rem; color:var(--text-muted); margin-top:1rem; padding:0 0.5rem;">
-                * Estimado basado en valor declarado de <strong>$${valorUsd.toFixed(2)} USD</strong> y peso de <strong>${pesoLbs} Lbs</strong>. Los valores finales pueden variar según normativa aduanera y peso real.
-            </p>
-        `;
+                * Estimado basado en valor declarado de <strong>$${d.valorUsd.toFixed(2)} USD</strong> y peso de <strong>${d.pesoLbs} Lbs</strong>. Los valores finales pueden variar.
+            </p>`;
 
         document.getElementById('cot-breakdown-content').innerHTML = html;
         document.getElementById('cot-fecha-resultado').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -1636,67 +1677,35 @@ const app = {
         document.getElementById('cot-valor').value = '';
         document.getElementById('cot-peso').value = '';
         document.getElementById('cot-otros-cargos').value = '0';
-        ['cot-chk-seguro', 'cot-chk-domicilio', 'cot-chk-servicio', 'cot-chk-arancel'].forEach(id => {
+        ['cot-chk-seguro', 'cot-chk-domicilio', 'cot-chk-servicio'].forEach(id => {
             document.getElementById(id).checked = false;
         });
         document.getElementById('cot-results-card').style.display = 'none';
         document.getElementById('cot-breakdown-content').innerHTML = '';
+        this.setCotizMode('natural');
     },
 
     imprimirCotizacion: function() {
-        const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
-        const pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
-        const otrosCargos = parseFloat(document.getElementById('cot-otros-cargos').value) || 0;
-        const s = state.settings;
-        const trm = s.trm || 4000;
-        const fletePrimera = s.cotizFletePrimeraLb || 5;
-        const fleteAdicional = s.cotizFleteAdicionalLb || 3.50;
-        const ivaPercent = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
-        const seguroPercent = s.cotizSeguroPercent || 2;
-        const domicilioUsd = s.cotizDomicilioUsd || 4;
-        const arancelPercent = s.cotizArancelPercent || 5;
-        const servicioPercent = s.cotizServicioCompraPercent || 5;
-
-        const incluyeSeguro = document.getElementById('cot-chk-seguro').checked;
-        const incluyeDomicilio = document.getElementById('cot-chk-domicilio').checked;
-        const incluyeServicio = document.getElementById('cot-chk-servicio').checked;
-        const incluyeArancel = document.getElementById('cot-chk-arancel').checked;
-
-        const pesoFacturable = pesoLbs > 0 ? Math.ceil(pesoLbs) : 0;
-        const flete = pesoFacturable <= 0 ? 0 : pesoFacturable <= 1 ? fletePrimera : fletePrimera + (pesoFacturable - 1) * fleteAdicional;
-        const redondeado = pesoFacturable !== pesoLbs ? ` — redondeado de ${pesoLbs} Lbs` : '';
-        const fleteLabel = pesoFacturable <= 1
-            ? `Flete (${pesoFacturable} Lb — tarifa primera libra${redondeado})`
-            : `Flete (1ª Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable - 1} Lbs × $${fleteAdicional.toFixed(2)}${redondeado})`;
-        const iva = valorUsd * (ivaPercent / 100);
-        const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
-        const domicilio = incluyeDomicilio ? domicilioUsd : 0;
-        const servicio = incluyeServicio ? valorUsd * (servicioPercent / 100) : 0;
-        const arancel = incluyeArancel ? valorUsd * (arancelPercent / 100) : 0;
-        const totalUsd = flete + iva + seguro + domicilio + servicio + arancel + otrosCargos;
-        const totalCop = totalUsd * trm;
-
+        const d = this._buildCotizData();
         const fmt = (v) => v.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const trm = d.trm;
 
         const filas = [
-            { label: fleteLabel, usd: flete, mostrar: true },
-            { label: `IVA (${ivaPercent}%)`, usd: iva, mostrar: true },
-            { label: `Arancel (${arancelPercent}%)`, usd: arancel, mostrar: incluyeArancel },
-            { label: `Seguro (${seguroPercent}%)`, usd: seguro, mostrar: incluyeSeguro },
-            { label: `Servicio de Compra (${servicioPercent}%)`, usd: servicio, mostrar: incluyeServicio },
-            { label: 'Domicilio (cargo fijo)', usd: domicilio, mostrar: incluyeDomicilio },
-            { label: 'Otros Cargos', usd: otrosCargos, mostrar: otrosCargos > 0 },
+            { label: d.fleteLabel.replace(/&mdash;/g, '—').replace(/&ordf;/g, 'ª').replace(/&times;/g, '×'), usd: d.flete, mostrar: true },
+            { label: `IVA (${state.settings.cotizIvaPercent||19}% del valor declarado)`, usd: d.iva, mostrar: d.iva > 0 },
+            { label: `Arancel (${state.settings.cotizArancelPercent||10}% del valor declarado)`, usd: d.arancel, mostrar: d.arancel > 0 },
+            { label: `Seguro (${d.seguroPercent}% del valor declarado)`, usd: d.seguro, mostrar: d.incluyeSeguro },
+            { label: `Servicio de Compra (${d.servicioPercent}%)`, usd: d.servicio, mostrar: d.incluyeServicio },
+            { label: `Domicilio (cargo fijo)`, usd: d.domicilio, mostrar: d.incluyeDomicilio },
+            { label: 'Otros Cargos', usd: d.otrosCargos, mostrar: d.otrosCargos > 0 },
         ].filter(f => f.mostrar);
 
         const filasHtml = filas.map(f => `
-            <tr>
-                <td>${f.label}</td>
-                <td>$${f.usd.toFixed(2)}</td>
-                <td>$${fmt(Math.round(f.usd * trm))}</td>
-            </tr>
+            <tr><td>${f.label}</td><td>$${f.usd.toFixed(2)}</td><td>$${fmt(Math.round(f.usd * trm))}</td></tr>
         `).join('');
 
         const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const modoTexto = d.modoTexto.replace(/[≤>]/g, m => m === '≤' ? '≤' : '>');
 
         const html = `<!DOCTYPE html>
 <html lang="es">
@@ -1722,8 +1731,9 @@ const app = {
     <h1>Pakki Internacional — Cotización de Envío</h1>
     <p class="subtitle">Generada: ${fecha}</p>
     <div class="info-box">
-        <p><strong>Valor declarado:</strong> $${valorUsd.toFixed(2)} USD</p>
-        <p><strong>Peso:</strong> ${pesoLbs} Libras</p>
+        <p><strong>Modalidad:</strong> ${modoTexto}</p>
+        <p><strong>Valor declarado:</strong> $${d.valorUsd.toFixed(2)} USD</p>
+        <p><strong>Peso:</strong> ${d.pesoLbs} Libras</p>
         <p><strong>TRM aplicada:</strong> $${fmt(trm)} COP/USD</p>
     </div>
     <table>
@@ -1734,8 +1744,8 @@ const app = {
             ${filasHtml}
             <tr class="total">
                 <td>TOTAL ESTIMADO</td>
-                <td>$${totalUsd.toFixed(2)} USD</td>
-                <td>$${fmt(Math.round(totalCop))} COP</td>
+                <td>$${d.totalUsd.toFixed(2)} USD</td>
+                <td>$${fmt(Math.round(d.totalUsd * trm))} COP</td>
             </tr>
         </tbody>
     </table>

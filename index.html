@@ -689,6 +689,8 @@ Tel: +1 (305) 555-0199
                                 <input type="number" id="cot-trm" min="1000" step="1">
                                 <span style="font-size:0.75rem; color:var(--text-muted);">Tasa representativa del mercado.</span>
                             </div>
+
+                            <p style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin:0.25rem 0 -0.25rem;">Persona Natural</p>
                             <div class="form-group">
                                 <label for="cot-flete-primera-lb">Primera Libra (USD)</label>
                                 <input type="number" id="cot-flete-primera-lb" min="0" step="0.01">
@@ -698,9 +700,25 @@ Tel: +1 (305) 555-0199
                                 <input type="number" id="cot-flete-adicional-lb" min="0" step="0.01">
                             </div>
                             <div class="form-group">
-                                <label for="cot-iva-pct">IVA (%)</label>
+                                <label for="cot-iva-pct">IVA aplicable sobre $200 USD (%)</label>
                                 <input type="number" id="cot-iva-pct" min="0" step="1" max="100">
                             </div>
+                            <div class="form-group">
+                                <label for="cot-arancel-pct">Arancel aplicable sobre $200 USD (%)</label>
+                                <input type="number" id="cot-arancel-pct" min="0" step="0.1">
+                            </div>
+
+                            <p style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin:0.25rem 0 -0.25rem;">Corporativo</p>
+                            <div class="form-group">
+                                <label for="cot-corp-lb-usd">Precio por Libra Corporativo (USD)</label>
+                                <input type="number" id="cot-corp-lb-usd" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="cot-corp-min-lbs">Mínimo de Libras Facturables</label>
+                                <input type="number" id="cot-corp-min-lbs" min="1" step="1">
+                            </div>
+
+                            <p style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin:0.25rem 0 -0.25rem;">Cargos Opcionales</p>
                             <div class="form-group">
                                 <label for="cot-seguro-pct">Seguro (% del valor declarado)</label>
                                 <input type="number" id="cot-seguro-pct" min="0" step="0.1">
@@ -708,10 +726,6 @@ Tel: +1 (305) 555-0199
                             <div class="form-group">
                                 <label for="cot-domicilio-usd">Domicilio (USD fijo)</label>
                                 <input type="number" id="cot-domicilio-usd" min="0" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label for="cot-arancel-pct">Arancel (% del valor declarado)</label>
-                                <input type="number" id="cot-arancel-pct" min="0" step="0.1">
                             </div>
                             <div class="form-group">
                                 <label for="cot-servicio-pct">Servicio de Compra (%)</label>
@@ -729,6 +743,25 @@ Tel: +1 (305) 555-0199
                             <div class="section-card-header">
                                 <h2>Nueva Cotización</h2>
                                 <span style="font-size:0.8rem; color:var(--text-muted);">* Cotización válida por hoy</span>
+                            </div>
+
+                            <!-- Selector de modalidad -->
+                            <div style="display:flex; gap:0; margin-top:1rem; border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; width:fit-content;">
+                                <button id="btn-mode-natural" type="button"
+                                    onclick="app.setCotizMode('natural')"
+                                    style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--primary); color:#fff; transition:background 0.15s;">
+                                    👤 Persona Natural
+                                </button>
+                                <button id="btn-mode-corp" type="button"
+                                    onclick="app.setCotizMode('corporativo')"
+                                    style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); transition:background 0.15s;">
+                                    🏢 Corporativo
+                                </button>
+                            </div>
+
+                            <!-- Info de la modalidad seleccionada -->
+                            <div id="cot-mode-info" style="margin-top:0.75rem; padding:0.65rem 1rem; border-radius:var(--radius-md); font-size:0.82rem; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;">
+                                <strong>Persona Natural:</strong> 1ª libra $5 USD + adicionales $3.50 USD. Si el valor declarado supera los $200 USD se aplican automáticamente IVA y Arancel.
                             </div>
 
                             <div class="form-grid" style="margin-top: 1rem;">
@@ -758,10 +791,6 @@ Tel: +1 (305) 555-0199
                                 <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
                                     <input type="checkbox" id="cot-chk-servicio" style="width:16px;height:16px;accent-color:var(--primary);">
                                     Servicio de Compra
-                                </label>
-                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
-                                    <input type="checkbox" id="cot-chk-arancel" style="width:16px;height:16px;accent-color:var(--primary);">
-                                    Cobro Arancel
                                 </label>
                             </div>
 
