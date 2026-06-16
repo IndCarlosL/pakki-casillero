@@ -498,6 +498,106 @@ const app = {
         document.getElementById('metric-revenue').textContent = `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
     },
 
+    openRevenueChart: function() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const monthName = now.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+
+        // Build per-day buckets
+        const countByDay = Array(daysInMonth).fill(0);
+        const revenueByDay = Array(daysInMonth).fill(0);
+
+        state.packages.forEach(pkg => {
+            const d = new Date(pkg.dateReceived + 'T00:00:00');
+            if (d.getFullYear() === year && d.getMonth() === month) {
+                const dayIdx = d.getDate() - 1;
+                countByDay[dayIdx]++;
+                revenueByDay[dayIdx] += this.calculatePackageInvoicing(pkg).total;
+            }
+        });
+
+        const totalPkgs = countByDay.reduce((a, b) => a + b, 0);
+        const totalRev = revenueByDay.reduce((a, b) => a + b, 0);
+        const peakDay = countByDay.indexOf(Math.max(...countByDay)) + 1;
+        const labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
+
+        document.getElementById('revenue-chart-title').textContent = `Ingresos de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+        document.getElementById('chart-stat-pkgs').textContent = totalPkgs;
+        document.getElementById('chart-stat-revenue').textContent = `$${totalRev.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+        document.getElementById('chart-stat-peak').textContent = totalPkgs > 0 ? `Día ${peakDay}` : '—';
+
+        this.openModal('modal-revenue-chart');
+
+        // Destroy previous chart instance if exists
+        if (this._revenueChart) { this._revenueChart.destroy(); this._revenueChart = null; }
+
+        const ctx = document.getElementById('revenue-chart-canvas').getContext('2d');
+        this._revenueChart = new Chart(ctx, {
+            data: {
+                labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Paquetes recibidos',
+                        data: countByDay,
+                        backgroundColor: 'rgba(99,102,241,0.75)',
+                        borderRadius: 4,
+                        yAxisID: 'yCount',
+                        order: 2
+                    },
+                    {
+                        type: 'line',
+                        label: 'Valor facturado (USD)',
+                        data: revenueByDay,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981',
+                        fill: true,
+                        tension: 0.35,
+                        yAxisID: 'yRevenue',
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ctx.dataset.label.includes('USD')
+                                ? ` $${ctx.raw.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`
+                                : ` ${ctx.raw} paquete${ctx.raw !== 1 ? 's' : ''}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                    yCount: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: 'Paquetes', font: { size: 11 } },
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    yRevenue: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'USD', font: { size: 11 } },
+                        ticks: { callback: v => `$${v}` },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    },
+
     renderDashboardRecent: function() {
         const tbody = document.getElementById('dashboard-recent-packages');
         tbody.innerHTML = '';

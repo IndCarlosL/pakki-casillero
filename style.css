@@ -298,6 +298,33 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+}
+
+.metric-card-cta {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-card-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+}
+
+.metric-cta-hint {
+    position: absolute;
+    bottom: 0.6rem;
+    right: 0.9rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.metric-card-cta:hover .metric-cta-hint {
+    opacity: 1;
 }
 
 .metric-data h3 {
