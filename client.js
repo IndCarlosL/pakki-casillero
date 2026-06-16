@@ -438,7 +438,7 @@ Tel: +1 (305) 555-0199
         });
     },
 
-    handleRegisterPrealert: function() {
+    handleRegisterPrealert: async function() {
         const tracking = document.getElementById('cprealert-tracking').value.trim();
         const carrierSel = document.getElementById('cprealert-carrier');
         const carrierOther = document.getElementById('cprealert-carrier-other');
@@ -448,8 +448,9 @@ Tel: +1 (305) 555-0199
         if (!carrier) return;
         const value = parseFloat(document.getElementById('cprealert-value').value);
         const description = document.getElementById('cprealert-desc').value.trim();
-        
-        loadGlobalState();
+
+        // Reload from Supabase before checking duplicates
+        await loadGlobalState();
 
         const exists = state.prealerts.some(p => p.tracking.toLowerCase() === tracking.toLowerCase());
         if (exists) {
@@ -458,7 +459,7 @@ Tel: +1 (305) 555-0199
         }
 
         const todayStr = new Date().toISOString().split('T')[0];
-        
+
         const newPre = {
             id: `pre_${Date.now()}`,
             lockerCode: loggedUser.lockerCode,
@@ -471,12 +472,23 @@ Tel: +1 (305) 555-0199
             dateCreated: todayStr
         };
 
-        state.prealerts.push(newPre);
-        saveGlobalState();
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('prealerts').insert([newPre]);
+            if (error) {
+                this.showAlert(`Error al guardar la prealerta: ${error.message}`, 'danger');
+                return;
+            }
+            // Reload so state reflects the new row
+            await loadGlobalState();
+        } else {
+            state.prealerts.push(newPre);
+            saveGlobalState();
+        }
 
         this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> creada con éxito.`, 'success');
         document.getElementById('form-client-prealert').reset();
-        
+        toggleClientCarrierOther(carrierSel); // reset the "Otra" input
+
         this.renderPrealerts();
         this.renderDashboard();
     },
