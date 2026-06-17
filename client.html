@@ -51,6 +51,16 @@
         </div>
     </div>
 
+    <!-- Mobile top bar (visible only on ≤900px) -->
+    <div class="mobile-topbar" id="mobile-topbar" style="display:none;">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menú" onclick="toggleMobileMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="brand-logo">P</div>
+        <span class="brand-name" style="color:#fff;">Pakki</span>
+    </div>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
+
     <!-- MAIN APP DASHBOARD SECTION (Hidden by default, shown on successful login) -->
     <div id="app-section" class="app-container" style="display:none;">
         

@@ -2082,3 +2082,29 @@ const app = {
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
+
+// ── Mobile menu ──
+function toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    const btn     = document.getElementById('hamburger-btn');
+    const isOpen  = sidebar.classList.contains('open');
+    if (isOpen) { closeMobileMenu(); return; }
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    btn.classList.add('open');
+}
+
+function closeMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    const btn     = document.getElementById('hamburger-btn');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    btn.classList.remove('open');
+}
+
+// Close sidebar when a menu item is clicked on mobile
+document.querySelectorAll('.menu-item a').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth <= 900) closeMobileMenu(); });
+});

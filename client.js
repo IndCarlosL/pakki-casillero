@@ -224,12 +224,14 @@ const clientApp = {
         document.getElementById('login-section').style.display = 'flex';
         document.getElementById('app-section').style.display = 'none';
         document.body.className = 'login-body';
+        hideMobileTopbar();
     },
 
     showDashboard: function() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('app-section').style.display = 'grid';
-        document.body.className = ''; // Reset body class to avoid dark theme of login
+        document.body.className = '';
+        if (window.innerWidth <= 900) showMobileTopbar();
         
         // Populate profile info
         document.getElementById('client-name').textContent = loggedUser.name;
@@ -1027,4 +1029,39 @@ Tel: +1 (305) 555-0199
 // Start customer portal
 document.addEventListener('DOMContentLoaded', () => {
     clientApp.init();
+});
+
+// ── Mobile menu ──
+function toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    const btn     = document.getElementById('hamburger-btn');
+    const isOpen  = sidebar.classList.contains('open');
+    if (isOpen) { closeMobileMenu(); return; }
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    btn.classList.add('open');
+}
+
+function closeMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    const btn     = document.getElementById('hamburger-btn');
+    if (!sidebar || !overlay || !btn) return;
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    btn.classList.remove('open');
+}
+
+// Show mobile topbar when user logs in, hide on logout
+const _origShowApp = clientApp.showApp?.bind(clientApp);
+const _origLogout  = clientApp.logout?.bind(clientApp);
+
+// Expose helpers for login/logout hooks in client.js showApp / logout
+function showMobileTopbar()  { const t = document.getElementById('mobile-topbar'); if (t) t.style.display = 'flex'; }
+function hideMobileTopbar()  { const t = document.getElementById('mobile-topbar'); if (t) t.style.display = 'none'; closeMobileMenu(); }
+
+// Close sidebar when a menu item is clicked on mobile
+document.querySelectorAll('.menu-item a').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth <= 900) closeMobileMenu(); });
 });
