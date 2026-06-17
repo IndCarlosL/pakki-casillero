@@ -405,8 +405,11 @@ const clientApp = {
         }
 
         // Éxito — mostrar casillero asignado
-        const nameParts = name.trim().split(/\s+/);
-        const firstName = nameParts[0] || '';
+        const nameParts  = name.trim().split(/\s+/);
+        const firstName  = nameParts[0] || '';
+        const shortName  = nameParts.length >= 3
+            ? `${nameParts[0]} ${nameParts[Math.ceil(nameParts.length / 2)]}`
+            : nameParts.length === 2 ? `${nameParts[0]} ${nameParts[1]}` : firstName;
         document.getElementById('form-register').innerHTML = `
             <div style="text-align:center; padding:1.5rem 1rem;">
                 <div style="font-size:2.5rem; margin-bottom:0.5rem;">🎉</div>
@@ -428,7 +431,7 @@ const clientApp = {
                 <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px;
                             padding:0.7rem 1rem; font-size:0.78rem; color:#166534; text-align:left; margin-bottom:1.25rem;">
                     📍 <strong>Tu dirección en Miami:</strong><br>
-                    ${firstName} / ${lockerCode}<br>
+                    ${shortName} / ${lockerCode}<br>
                     8400 NW 25th Street, Suite 100 · Doral, FL 33198 · Tel: +1 (305) 555-0199
                 </div>
 
@@ -506,8 +509,11 @@ const clientApp = {
         document.getElementById('welcome-city').textContent = loggedUser.city;
 
         // Custom Address display — primer nombre + primer apellido + código casillero
+        // Para nombres colombianos (N1 N2 A1 A2): words[0] + words[ceil(len/2)] = N1 + A1
         const nameParts = (loggedUser.name || '').trim().split(/\s+/);
-        const shortName = nameParts.length >= 2
+        const shortName = nameParts.length >= 3
+            ? `${nameParts[0]} ${nameParts[Math.ceil(nameParts.length / 2)]}`
+            : nameParts.length === 2
             ? `${nameParts[0]} ${nameParts[1]}`
             : nameParts[0] || '';
         const addressBlock = document.getElementById('client-miami-address-block');
