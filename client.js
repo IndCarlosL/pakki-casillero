@@ -392,8 +392,6 @@ const clientApp = {
             email,
             phone,
             city,
-            notes,
-            docType,
             lockerCode,
             dateCreated: today
         };
