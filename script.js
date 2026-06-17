@@ -22,6 +22,66 @@ function resolveCarrier(selectId, inputId) {
     return sel ? sel.value : '';
 }
 
+// Muestra popup informativo al seleccionar tipo de envío en Miami
+function showShippingTypeInfo(type) {
+    if (!type) return;
+
+    const SHIPPING_INFO = {
+        'Persona Natural': {
+            title: 'Casillero Persona Natural',
+            color: '#6366f1',
+            icon: '🏠',
+            items: [
+                'Máximo <strong>6 artículos de la misma referencia</strong> por envío.',
+                'Peso total del paquete <strong>menor a 110 libras (50 kg)</strong>.',
+                'Ninguna arista (lado) del paquete puede superar <strong>150 cm</strong>.',
+                'El valor total de los artículos <strong>no debe superar los $2,000 USD</strong>.',
+            ],
+            note: 'Ideal para compras personales y uso doméstico.'
+        },
+        'Corporativo': {
+            title: 'Casillero Corporativo',
+            color: '#f97316',
+            icon: '🏢',
+            items: [
+                'Diseñado para <strong>emprendedores y comerciantes</strong>.',
+                'Permite <strong>consolidación de mercancía</strong> de múltiples proveedores.',
+                '<strong>Sin límite de peso ni dimensiones</strong>.',
+                'Tarifa especial: <strong>mínimo 10 libras a $8 USD por libra</strong>.',
+                'Sin aplicación de IVA ni arancel adicional.',
+            ],
+            note: 'Ideal para negocios, reventas y compras al por mayor.'
+        }
+    };
+
+    const info = SHIPPING_INFO[type];
+    if (!info) return;
+
+    const titleEl = document.getElementById('msti-title');
+    const bodyEl  = document.getElementById('msti-body');
+    if (!titleEl || !bodyEl) return;
+
+    titleEl.innerHTML = `${info.icon} ${info.title}`;
+
+    const itemsHtml = info.items.map(i =>
+        `<li style="margin-bottom:0.5rem; line-height:1.5;">${i}</li>`
+    ).join('');
+
+    bodyEl.innerHTML = `
+        <div style="border-left:4px solid ${info.color}; padding:0.75rem 1rem; background:var(--bg-app); border-radius:0 8px 8px 0; margin-bottom:1rem;">
+            <p style="font-size:0.85rem; font-weight:600; color:${info.color}; margin-bottom:0.5rem;">Condiciones del servicio</p>
+            <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem; color:var(--text-primary);">
+                ${itemsHtml}
+            </ul>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">${info.note}</p>
+    `;
+
+    // Compatibilidad: funciona tanto para admin (app) como para cliente (clientApp)
+    const appObj = typeof app !== 'undefined' ? app : (typeof clientApp !== 'undefined' ? clientApp : null);
+    if (appObj) appObj.openModal('modal-shipping-type-info');
+}
+
 // Formatea un valor USD a COP usando la TRM configurada
 function fmtCOP(usdVal) {
     const trm = (state && state.settings && state.settings.trm) || 4000;
@@ -713,7 +773,7 @@ const app = {
                     <p style="margin-bottom:0.25rem;"><strong>Tienda:</strong> ${pre.store || '—'} &nbsp;|&nbsp; <strong>Transporte:</strong> ${pre.carrier}</p>
                     <p style="margin-bottom:0.25rem;"><strong>Producto:</strong> ${pre.description}</p>
                     <p style="margin-bottom:0.25rem;"><strong>Valor:</strong> $${parseFloat(pre.value||0).toFixed(2)} USD &nbsp;|&nbsp; <strong>Peso est.:</strong> ${pre.weightLbs ? pre.weightLbs + ' Lbs' : '—'}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'}</p>
+                    <p style="margin-bottom:0.25rem;"><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'} &nbsp;|&nbsp; <strong>Tipo envío:</strong> ${pre.shippingType ? `<span style="color:${pre.shippingType==='Corporativo'?'var(--secondary)':'var(--primary)'}; font-weight:600;">${pre.shippingType}</span>` : '—'}</p>
                     <p style="margin-bottom:0.35rem;"><strong>Soporte:</strong> ${fileLink}</p>
                     <p style="font-size:0.75rem; margin-top:0.25rem; text-align:right;">Creado: ${pre.dateCreated}</p>
                 </div>
@@ -1133,6 +1193,7 @@ const app = {
         const weightLbs = parseFloat(document.getElementById('prealert-weight').value) || null;
         const description = document.getElementById('prealert-desc').value.trim();
         const deliveryCity = document.getElementById('prealert-city').value;
+        const shippingType = document.getElementById('prealert-shipping-type').value;
 
         if (!lockerCode) {
             this.showAlert('Por favor selecciona un casillero válido.', 'warning');
@@ -1175,6 +1236,7 @@ const app = {
             weightLbs,
             description,
             deliveryCity,
+            shippingType,
             invoiceFileName,
             invoiceFileData,
             status: "Pendiente",

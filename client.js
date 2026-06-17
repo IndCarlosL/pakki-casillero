@@ -1,3 +1,47 @@
+// Muestra popup informativo al seleccionar tipo de envío en Miami
+function showShippingTypeInfo(type) {
+    if (!type) return;
+    const SHIPPING_INFO = {
+        'Persona Natural': {
+            title: '🏠 Casillero Persona Natural',
+            color: '#6366f1',
+            items: [
+                'Máximo <strong>6 artículos de la misma referencia</strong> por envío.',
+                'Peso total del paquete <strong>menor a 110 libras (50 kg)</strong>.',
+                'Ninguna arista (lado) del paquete puede superar <strong>150 cm</strong>.',
+                'El valor total de los artículos <strong>no debe superar los $2,000 USD</strong>.',
+            ],
+            note: 'Ideal para compras personales y uso doméstico.'
+        },
+        'Corporativo': {
+            title: '🏢 Casillero Corporativo',
+            color: '#f97316',
+            items: [
+                'Diseñado para <strong>emprendedores y comerciantes</strong>.',
+                'Permite <strong>consolidación de mercancía</strong> de múltiples proveedores.',
+                '<strong>Sin límite de peso ni dimensiones</strong>.',
+                'Tarifa especial: <strong>mínimo 10 libras a $8 USD por libra</strong>.',
+                'Sin aplicación de IVA ni arancel adicional.',
+            ],
+            note: 'Ideal para negocios, reventas y compras al por mayor.'
+        }
+    };
+    const info = SHIPPING_INFO[type];
+    if (!info) return;
+    document.getElementById('msti-title').innerHTML = info.title;
+    const itemsHtml = info.items.map(i =>
+        `<li style="margin-bottom:0.5rem; line-height:1.5;">${i}</li>`
+    ).join('');
+    document.getElementById('msti-body').innerHTML = `
+        <div style="border-left:4px solid ${info.color}; padding:0.75rem 1rem; background:var(--bg-app); border-radius:0 8px 8px 0; margin-bottom:1rem;">
+            <p style="font-size:0.85rem; font-weight:600; color:${info.color}; margin-bottom:0.5rem;">Condiciones del servicio</p>
+            <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem; color:var(--text-primary);">${itemsHtml}</ul>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">${info.note}</p>
+    `;
+    clientApp.openModal('modal-shipping-type-info');
+}
+
 function fmtCOP(usdVal) {
     const trm = (state && state.settings && state.settings.trm) || 4000;
     return `$${Math.round(usdVal * trm).toLocaleString('es-CO')} COP`;
@@ -447,7 +491,7 @@ Tel: +1 (305) 555-0199
                     <p><strong>Tienda:</strong> ${pre.store || '—'} &nbsp;|&nbsp; <strong>Transporte:</strong> ${pre.carrier}</p>
                     <p><strong>Producto:</strong> ${pre.description}</p>
                     <p><strong>Valor declarado:</strong> $${parseFloat(pre.value||0).toFixed(2)} USD &nbsp;|&nbsp; <strong>Peso est.:</strong> ${pre.weightLbs ? pre.weightLbs + ' Lbs' : '—'}</p>
-                    <p><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'}</p>
+                    <p><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'} &nbsp;|&nbsp; <strong>Tipo envío:</strong> ${pre.shippingType ? `<span style="color:${pre.shippingType==='Corporativo'?'var(--secondary)':'var(--primary)'}; font-weight:600;">${pre.shippingType}</span>` : '—'}</p>
                     <p><strong>Soporte:</strong> ${fileLink}</p>
                 </div>
             `;
@@ -468,6 +512,7 @@ Tel: +1 (305) 555-0199
         const weightLbs = parseFloat(document.getElementById('cprealert-weight').value) || null;
         const description = document.getElementById('cprealert-desc').value.trim();
         const deliveryCity = document.getElementById('cprealert-city').value;
+        const shippingType = document.getElementById('cprealert-shipping-type').value;
 
         // Handle file upload (convert to base64)
         let invoiceFileName = '';
@@ -508,6 +553,7 @@ Tel: +1 (305) 555-0199
             weightLbs,
             description,
             deliveryCity,
+            shippingType,
             invoiceFileName,
             invoiceFileData,
             status: "Pendiente",

@@ -359,6 +359,15 @@ Cargando dirección...
                                     <input type="file" id="cprealert-file" accept=".png,.jpg,.jpeg,.pdf" style="border: 1px dashed var(--border-color); padding: 0.5rem; border-radius: 6px; width:100%; cursor:pointer;">
                                     <span style="font-size:0.75rem; color:var(--text-muted);">Adjunta la factura o captura de pantalla de la compra.</span>
                                 </div>
+                                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                                    <label for="cprealert-shipping-type">Dirección de Envío en Miami *</label>
+                                    <select id="cprealert-shipping-type" required onchange="showShippingTypeInfo(this.value)">
+                                        <option value="">-- Selecciona tipo de envío --</option>
+                                        <option value="Persona Natural">Persona Natural</option>
+                                        <option value="Corporativo">Corporativo</option>
+                                    </select>
+                                    <span style="font-size:0.75rem; color:var(--text-muted);">Al seleccionar, se mostrará la información y restricciones del tipo de envío.</span>
+                                </div>
                                 <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Registrar Prealerta</button>
                             </div>
                         </form>
@@ -496,6 +505,20 @@ Cargando dirección...
             </section>
 
         </main>
+    </div>
+
+    <!-- Modal: Info tipo de envío (Persona Natural / Corporativo) -->
+    <div class="modal-overlay" id="modal-shipping-type-info">
+        <div class="modal-container" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="msti-title">Tipo de Envío</h3>
+                <button class="modal-close" onclick="clientApp.closeModal('modal-shipping-type-info')">&times;</button>
+            </div>
+            <div class="modal-body" id="msti-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="clientApp.closeModal('modal-shipping-type-info')">Entendido</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal: Detalle de Prefacturación (Liquidación de Envío para el Cliente) -->
