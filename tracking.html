@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreo de Paquetes | Pakki Casillero</title>
+    <meta name="description" content="Rastrea tu paquete internacional Pakki o recupera tu código de casillero.">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Página de rastreo ── */
+        body { background: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column; }
+
+        .track-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .track-header-brand { display: flex; align-items: center; gap: 0.75rem; }
+        .track-header-brand .brand-logo {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--primary); color: #fff;
+            font-weight: 800; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .track-header-brand .brand-name { font-weight: 700; font-size: 1.1rem; color: var(--text-primary); }
+        .track-header-brand .brand-tag  { font-size: 0.7rem; color: var(--text-muted); }
+        .track-header-links { display: flex; gap: 0.75rem; }
+        .track-header-links a {
+            font-size: 0.8rem; color: var(--text-muted); text-decoration: none;
+            padding: 0.35rem 0.7rem; border-radius: 6px; border: 1px solid var(--border-color);
+            transition: all 0.15s;
+        }
+        .track-header-links a:hover { color: var(--primary); border-color: var(--primary); }
+
+        .track-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            color: #fff;
+            text-align: center;
+            padding: 2.5rem 1.5rem 3.5rem;
+        }
+        .track-hero h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.4rem; }
+        .track-hero p  { font-size: 0.9rem; opacity: 0.85; }
+
+        .track-main {
+            max-width: 820px;
+            margin: -1.5rem auto 2rem;
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        .track-tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 12px 12px 0 0;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            overflow: hidden;
+        }
+        .track-tab {
+            flex: 1; padding: 0.85rem 1rem;
+            text-align: center; font-size: 0.85rem; font-weight: 600;
+            color: var(--text-muted); cursor: pointer;
+            border-bottom: 3px solid transparent;
+            background: none; border-top: none; border-left: none; border-right: none;
+            transition: all 0.15s;
+        }
+        .track-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f5f3ff; }
+        .track-tab:hover:not(.active) { color: var(--text-primary); background: var(--bg-app); }
+
+        .track-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 12px 12px;
+            padding: 1.75rem;
+        }
+
+        .track-input-row { display: flex; gap: 0.6rem; }
+        .track-input-row input {
+            flex: 1; padding: 0.7rem 1rem;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            font-size: 0.9rem; background: var(--bg-app); color: var(--text-primary);
+            outline: none;
+        }
+        .track-input-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+        .track-input-row button { white-space: nowrap; }
+
+        /* ── Resultado de rastreo ── */
+        #track-result, #locker-result {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .result-card {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .result-card-header {
+            padding: 0.9rem 1.25rem;
+            background: var(--bg-app);
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .result-card-header h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+        .result-card-body { padding: 1.25rem; }
+
+        /* Línea de tiempo */
+        .timeline { display: flex; flex-direction: column; gap: 0; }
+        .tl-step {
+            display: flex; align-items: flex-start; gap: 1rem;
+            position: relative; padding-bottom: 1.25rem;
+        }
+        .tl-step:last-child { padding-bottom: 0; }
+        .tl-step:last-child .tl-line { display: none; }
+
+        .tl-icon-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .tl-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+            background: var(--bg-app); border: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .tl-icon.done  { background: #dcfce7; border-color: #16a34a; color: #16a34a; }
+        .tl-icon.active{ background: #ede9fe; border-color: var(--primary); color: var(--primary); }
+        .tl-line { flex: 1; width: 2px; background: var(--border-color); min-height: 24px; margin: 2px 0; }
+        .tl-line.done { background: #16a34a; }
+
+        .tl-content { padding-top: 0.4rem; }
+        .tl-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        .tl-label.done   { color: #16a34a; }
+        .tl-label.active { color: var(--primary); font-weight: 700; }
+        .tl-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+        /* Info grid */
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem;
+            margin-top: 1rem;
+        }
+        @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+        .info-item label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; }
+        .info-item span  { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+
+        /* Casillero result */
+        .locker-box {
+            text-align: center; padding: 1.5rem 1rem;
+        }
+        .locker-box .locker-avatar {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--primary); color: #fff;
+            font-size: 1.5rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .locker-box .locker-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+        .locker-box .locker-code {
+            font-size: 1.6rem; font-weight: 800; color: var(--primary);
+            letter-spacing: 0.05em; margin: 0.5rem 0;
+        }
+        .locker-box .locker-hint { font-size: 0.78rem; color: var(--text-muted); }
+
+        .track-empty {
+            text-align: center; padding: 1.5rem;
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+        .track-empty .track-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .track-panel-hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="track-header">
+        <div class="track-header-brand">
+            <div class="brand-logo">P</div>
+            <div>
+                <div class="brand-name">Pakki Casillero</div>
+                <div class="brand-tag">Rastreo & Consultas</div>
+            </div>
+        </div>
+        <div class="track-header-links">
+            <a href="client.html">Mi Portal</a>
+            <a href="index.html">Admin</a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <div class="track-hero">
+        <h1>Rastrea tu Paquete</h1>
+        <p>Consulta el estado de tu envío o recupera tu código de casillero</p>
+    </div>
+
+    <!-- Main content -->
+    <main class="track-main">
+
+        <!-- Tabs -->
+        <div class="track-tabs">
+            <button class="track-tab active" onclick="switchTab('tracking')">📦 Rastrear Paquete</button>
+            <button class="track-tab" onclick="switchTab('locker')">🔍 Recuperar mi Casillero</button>
+        </div>
+
+        <!-- Panel: Rastrear -->
+        <div class="track-panel" id="panel-tracking">
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">
+                Ingresa el número de guía del transportista (tracking) o el código de paquete asignado por Pakki.
+            </p>
+            <div class="track-input-row">
+                <input type="text" id="track-input" placeholder="Ej. 1Z999AA10123456784 o PKG-20250601-001"
+                       oninput="this.value=this.value.toUpperCase()"
+                       onkeydown="if(event.key==='Enter') searchPackage()">
+                <button class="btn btn-primary" onclick="searchPackage()">Rastrear</button>
+            </div>
+
+            <div id="track-result">
+                <!-- filled dynamically -->
+            </div>
+        </div>
+
+        <!-- Panel: Casillero -->
+        <div class="track-panel track-panel-hidden" id="panel-locker">
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">
+                Ingresa tu número de documento (cédula o pasaporte) para recuperar tu código de casillero Pakki.
+            </p>
+            <div class="track-input-row">
+                <input type="text" id="locker-input" placeholder="Ej. 1017283948"
+                       onkeydown="if(event.key==='Enter') searchLocker()">
+                <button class="btn btn-primary" onclick="searchLocker()">Consultar</button>
+            </div>
+
+            <div id="locker-result">
+                <!-- filled dynamically -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="text-align:center; padding:1.5rem; font-size:0.75rem; color:var(--text-muted); margin-top:auto;">
+        © 2025 Pakki Casillero · Servicio de casillero internacional · administrativo@yotraigo.com
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="tracking.js"></script>
+</body>
+</html>
