@@ -338,8 +338,8 @@ const clientApp = {
     },
 
     handleRegisterRequest: async function() {
-        const msgEl  = document.getElementById('register-msg');
-        const btn    = document.getElementById('btn-register-submit');
+        const msgEl   = document.getElementById('register-msg');
+        const btn     = document.getElementById('btn-register-submit');
         const origTxt = btn.textContent;
 
         const showMsg = (text, ok) => {
@@ -359,53 +359,84 @@ const clientApp = {
         const notes   = document.getElementById('reg-notes').value.trim();
 
         btn.disabled = true;
-        btn.textContent = 'Enviando…';
+        btn.textContent = 'Creando casillero…';
         msgEl.style.display = 'none';
 
-        // Verificar que el documento no esté ya registrado
-        if (useSupabase) {
-            const { data: existing } = await supabaseClient.from('users').select('id').eq('doc', doc);
-            if (existing && existing.length > 0) {
-                showMsg('Este número de documento ya tiene un casillero registrado. Usa "Recuperar mi casillero" si olvidaste tu código.', false);
-                btn.disabled = false; btn.textContent = origTxt;
-                return;
-            }
-
-            const newUser = {
-                id:         `user_${Date.now()}`,
-                name,
-                doc,
-                email,
-                phone,
-                city,
-                notes,
-                lockerCode: 'PENDIENTE',
-                docType,
-                status:     'Pendiente'
-            };
-
-            const { error } = await supabaseClient.from('users').insert([newUser]);
-            if (error) {
-                console.error('Register error:', error);
-                showMsg(`Error al enviar la solicitud: ${error.message}. Intenta de nuevo o contáctanos.`, false);
-                btn.disabled = false; btn.textContent = origTxt;
-                return;
-            }
+        if (!useSupabase) {
+            showMsg('No hay conexión con la base de datos. Intenta más tarde.', false);
+            btn.disabled = false; btn.textContent = origTxt;
+            return;
         }
 
-        // Éxito
+        // Verificar documento duplicado
+        const { data: existing } = await supabaseClient.from('users').select('id, lockerCode').eq('doc', doc);
+        if (existing && existing.length > 0) {
+            showMsg('Este número de documento ya tiene un casillero registrado. Usa <strong>"Recuperar mi casillero"</strong> si olvidaste tu código.', false);
+            btn.disabled = false; btn.textContent = origTxt;
+            return;
+        }
+
+        // Generar código de casillero: buscar el mayor número PK-XXXX-US existente e incrementar
+        const { data: allUsers } = await supabaseClient.from('users').select('lockerCode');
+        const maxNum = (allUsers || []).reduce((max, u) => {
+            const m = (u.lockerCode || '').match(/PK-(\d+)-US/i);
+            return m ? Math.max(max, parseInt(m[1])) : max;
+        }, 5000);
+        const lockerCode = `PK-${maxNum + 1}-US`;
+        const today = new Date().toISOString().split('T')[0];
+
+        const newUser = {
+            id:          `user_${Date.now()}`,
+            name,
+            doc,
+            email,
+            phone,
+            city,
+            notes,
+            docType,
+            lockerCode,
+            dateCreated: today
+        };
+
+        const { error } = await supabaseClient.from('users').insert([newUser]);
+        if (error) {
+            console.error('Register error:', error);
+            showMsg(`Error al crear el casillero: ${error.message}. Intenta de nuevo o contáctanos.`, false);
+            btn.disabled = false; btn.textContent = origTxt;
+            return;
+        }
+
+        // Éxito — mostrar casillero asignado
+        const nameParts = name.trim().split(/\s+/);
+        const firstName = nameParts[0] || '';
         document.getElementById('form-register').innerHTML = `
             <div style="text-align:center; padding:1.5rem 1rem;">
-                <div style="font-size:3rem; margin-bottom:0.75rem;">✅</div>
-                <h4 style="color:var(--text-primary); margin:0 0 0.5rem;">¡Solicitud enviada!</h4>
-                <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 1.25rem;">
-                    El equipo de Pakki revisará tus datos y enviará tu código de casillero
-                    a <strong>${email}</strong> en un plazo de <strong>24 horas hábiles</strong>.
-                </p>
-                <button class="btn btn-primary"
-                        onclick="document.getElementById('modal-register').style.display='none'">
-                    Cerrar
-                </button>
+                <div style="font-size:2.5rem; margin-bottom:0.5rem;">🎉</div>
+                <h4 style="color:var(--text-primary); margin:0 0 0.25rem;">¡Bienvenido, ${firstName}!</h4>
+                <p style="color:var(--text-muted); font-size:0.82rem; margin:0 0 1.25rem;">Tu casillero fue creado. Guarda estos datos para ingresar:</p>
+
+                <div style="background:var(--bg-app); border:2px solid var(--primary); border-radius:10px;
+                            padding:1rem 1.25rem; margin-bottom:1.25rem; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                        <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Código de Casillero</span>
+                        <strong style="font-size:1.3rem; color:var(--primary); letter-spacing:0.05em;">${lockerCode}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Contraseña (N° Documento)</span>
+                        <strong style="font-size:1rem; color:var(--text-primary);">${doc}</strong>
+                    </div>
+                </div>
+
+                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px;
+                            padding:0.7rem 1rem; font-size:0.78rem; color:#166534; text-align:left; margin-bottom:1.25rem;">
+                    📍 <strong>Tu dirección en Miami:</strong><br>
+                    ${firstName} / ${lockerCode}<br>
+                    8400 NW 25th Street, Suite 100 · Doral, FL 33198 · Tel: +1 (305) 555-0199
+                </div>
+
+                <a href="client.html" class="btn btn-primary" style="width:100%; display:block;">
+                    Ingresar a mi Portal →
+                </a>
             </div>`;
     },
 
