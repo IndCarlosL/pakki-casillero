@@ -1364,13 +1364,13 @@ const app = {
         // Set dynamic action for the "Mark as Paid" button in modal footer
         const payBtn = document.getElementById('btn-mark-paid');
         if (pkg.invoiceStatus === 'Pagado') {
-            payBtn.textContent = 'Marcar como Pendiente';
+            payBtn.textContent = 'Revertir a Pendiente';
             payBtn.className = 'btn btn-secondary';
-            payBtn.onclick = () => this.toggleInvoicePayment(pkg.id, 'Pendiente');
+            payBtn.onclick = () => this.toggleInvoicePayment(pkg.id, 'Pendiente', null, null);
         } else {
             payBtn.textContent = 'Marcar como Pagado / Cobrado';
             payBtn.className = 'btn btn-primary';
-            payBtn.onclick = () => this.toggleInvoicePayment(pkg.id, 'Pagado');
+            payBtn.onclick = () => this.openPaymentModal(pkg.id);
         }
         
         body.innerHTML = `
@@ -1382,7 +1382,9 @@ const app = {
                     </div>
                     <div class="invoice-header-right">
                         <span class="badge ${pkg.invoiceStatus === 'Pagado' ? 'badge-success' : 'badge-warning'}">${pkg.invoiceStatus || 'Pendiente'}</span>
-                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Fecha: ${pkg.dateReceived}</p>
+                        ${pkg.invoiceStatus === 'Pagado' && pkg.paymentProofFileData
+                            ? `<p style="margin-top:0.35rem;"><a href="${pkg.paymentProofFileData}" target="_blank" style="font-size:0.75rem; color:var(--success); font-weight:600;">📎 Ver soporte de pago</a></p>`
+                            : `<p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Fecha: ${pkg.dateReceived}</p>`}
                     </div>
                 </div>
                 
@@ -1553,10 +1555,51 @@ const app = {
         this.renderAll();
     },
 
-    toggleInvoicePayment: async function(pkgId, newStatus) {
+    openPaymentModal: function(pkgId) {
+        document.getElementById('payment-pkg-id').value = pkgId;
+        document.getElementById('payment-proof-file').value = '';
+        this.openModal('modal-payment-proof');
+    },
+
+    handleConfirmPayment: async function() {
+        const pkgId = document.getElementById('payment-pkg-id').value;
+        const fileInput = document.getElementById('payment-proof-file');
+
+        let paymentProofFileName = '';
+        let paymentProofFileData = '';
+
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 3 * 1024 * 1024) {
+                this.showAlert('El archivo supera el límite de 3 MB.', 'warning');
+                return;
+            }
+            paymentProofFileName = file.name;
+            paymentProofFileData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        this.closeModal('modal-payment-proof');
+        await this.toggleInvoicePayment(pkgId, 'Pagado', paymentProofFileName, paymentProofFileData);
+    },
+
+    toggleInvoicePayment: async function(pkgId, newStatus, paymentProofFileName, paymentProofFileData) {
+        const updateData = { invoiceStatus: newStatus };
+        if (newStatus === 'Pagado') {
+            updateData.paymentProofFileName = paymentProofFileName || '';
+            updateData.paymentProofFileData = paymentProofFileData || '';
+        } else {
+            // Al revertir a Pendiente se borra el comprobante anterior
+            updateData.paymentProofFileName = '';
+            updateData.paymentProofFileData = '';
+        }
+
         if (useSupabase) {
             try {
-                const { error } = await supabaseClient.from('packages').update({ invoiceStatus: newStatus }).eq('id', pkgId);
+                const { error } = await supabaseClient.from('packages').update(updateData).eq('id', pkgId);
                 if (error) throw error;
             } catch (err) {
                 this.showAlert(`Error al cambiar estado de factura en Supabase: ${err.message}`, 'danger');
@@ -1564,12 +1607,10 @@ const app = {
             }
         } else {
             const idx = state.packages.findIndex(p => p.id === pkgId);
-            if (idx !== -1) {
-                state.packages[idx].invoiceStatus = newStatus;
-                saveStateLocal();
-            }
+            if (idx !== -1) Object.assign(state.packages[idx], updateData);
+            saveStateLocal();
         }
-        
+
         await loadState();
         this.showAlert(`Estado de pago cambiado a: <strong>${newStatus}</strong>`, 'success');
         this.closeModal('modal-invoice-detail');

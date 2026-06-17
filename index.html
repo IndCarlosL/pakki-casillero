@@ -1028,6 +1028,35 @@ Tel: +1 (305) 555-0199
         </div>
     </div>
 
+    <!-- Modal: Soporte de pago -->
+    <div class="modal-overlay" id="modal-payment-proof">
+        <div class="modal-container" style="max-width:460px;">
+            <div class="modal-header">
+                <h3>Confirmar Pago</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-payment-proof')">&times;</button>
+            </div>
+            <form id="form-payment-proof" onsubmit="event.preventDefault(); app.handleConfirmPayment();">
+                <div class="modal-body" style="display:flex; flex-direction:column; gap:1rem;">
+                    <input type="hidden" id="payment-pkg-id">
+                    <p style="font-size:0.85rem; color:var(--text-muted);">
+                        Vas a marcar este paquete como <strong style="color:var(--success);">Pagado / Cobrado</strong>.
+                        Adjunta el comprobante de pago para tener el soporte registrado.
+                    </p>
+                    <div class="form-group">
+                        <label for="payment-proof-file">Soporte de Pago (JPG, PNG o PDF — máx. 3 MB)</label>
+                        <input type="file" id="payment-proof-file" accept=".jpg,.jpeg,.png,.pdf"
+                               style="border:1px dashed var(--border-color); padding:0.5rem; border-radius:6px; width:100%; cursor:pointer;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Opcional — recibo, transferencia, captura de pago, etc.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-payment-proof')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">✔ Confirmar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Editar datos del paquete -->
     <div class="modal-overlay" id="modal-edit-package">
         <div class="modal-container" style="max-width:680px; width:95%;">
