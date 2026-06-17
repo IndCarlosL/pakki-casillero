@@ -1595,12 +1595,24 @@ const app = {
             if (e2) console.warn('Override columns not yet in table:', e2.message);
         }
 
-        // Actualizar state en memoria sin esperar un loadState completo
+        // Refrescar solo este paquete desde Supabase para que los cálculos usen datos reales
         const idx = state.packages.findIndex(p => p.id === pkgId);
-        if (idx !== -1) {
-            Object.assign(state.packages[idx], coreUpdates, overrideUpdates);
+        if (useSupabase) {
+            const { data: fresh } = await supabaseClient.from('packages').select('*').eq('id', pkgId).single();
+            if (fresh && idx !== -1) {
+                // Merge: aplicar también overrides en memoria si las columnas aún no existen en Supabase
+                state.packages[idx] = Object.assign({}, fresh, {
+                    freightOverride:   overrideUpdates.freightOverride,
+                    handlingOverride:  overrideUpdates.handlingOverride,
+                    insuranceOverride: overrideUpdates.insuranceOverride,
+                    fuelOverride:      overrideUpdates.fuelOverride,
+                    taxOverride:       overrideUpdates.taxOverride
+                });
+            }
+        } else {
+            if (idx !== -1) Object.assign(state.packages[idx], coreUpdates, overrideUpdates);
+            saveStateLocal();
         }
-        if (!useSupabase) saveStateLocal();
 
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; }
         this.closeModal('modal-edit-package');
