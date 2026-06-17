@@ -224,14 +224,12 @@ const clientApp = {
         document.getElementById('login-section').style.display = 'flex';
         document.getElementById('app-section').style.display = 'none';
         document.body.className = 'login-body';
-        hideMobileTopbar();
     },
 
     showDashboard: function() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('app-section').style.display = 'grid';
         document.body.className = '';
-        if (window.innerWidth <= 900) showMobileTopbar();
         
         // Populate profile info
         document.getElementById('client-name').textContent = loggedUser.name;

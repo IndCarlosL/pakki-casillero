@@ -900,7 +900,7 @@ tr:hover td {
     gap: 1.5rem;
 }
 
-/* ── Mobile top bar ── */
+/* ── Mobile top bar (hidden during login via body.login-body) ── */
 .mobile-topbar {
     display: none;
     position: fixed;
@@ -963,6 +963,7 @@ tr:hover td {
 @media (max-width: 900px) {
 
     .mobile-topbar { display: flex; }
+    body.login-body .mobile-topbar { display: none; }
 
     .app-container {
         grid-template-columns: 1fr;
