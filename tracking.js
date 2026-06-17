@@ -176,7 +176,7 @@ async function searchLocker() {
     resultEl.style.display = 'block';
     resultEl.innerHTML = '<div class="track-empty"><div class="track-empty-icon">⏳</div>Buscando...</div>';
 
-    const { data: rows } = await db.from('users').select('name, lockerCode').eq('document', raw);
+    const { data: rows } = await db.from('users').select('name, lockerCode').eq('doc', raw);
 
     if (!rows || rows.length === 0) {
         resultEl.innerHTML = `

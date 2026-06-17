@@ -364,7 +364,7 @@ const clientApp = {
 
         // Verificar que el documento no esté ya registrado
         if (useSupabase) {
-            const { data: existing } = await supabaseClient.from('users').select('id').eq('document', doc);
+            const { data: existing } = await supabaseClient.from('users').select('id').eq('doc', doc);
             if (existing && existing.length > 0) {
                 showMsg('Este número de documento ya tiene un casillero registrado. Usa "Recuperar mi casillero" si olvidaste tu código.', false);
                 btn.disabled = false; btn.textContent = origTxt;
@@ -374,13 +374,13 @@ const clientApp = {
             const newUser = {
                 id:         `user_${Date.now()}`,
                 name,
-                document:   doc,
+                doc,
                 email,
-                phone:      phone,
-                city:       city,
-                notes:      notes,
+                phone,
+                city,
+                notes,
                 lockerCode: 'PENDIENTE',
-                docType:    docType,
+                docType,
                 status:     'Pendiente'
             };
 
