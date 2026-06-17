@@ -478,41 +478,40 @@ const app = {
     // BUSINESS LOGIC: Calculate Invoicing details for a package
     calculatePackageInvoicing: function(pkg) {
         const s = state.settings;
-        
-        // 1. Calculate Volumetric Weight: (L x W x H) / 166 (US Standard Air cargo factor)
-        const volWeight = (pkg.lengthIn * pkg.widthIn * pkg.heightIn) / 166;
-        const volWeightRounded = parseFloat(volWeight.toFixed(2));
-        
-        // 2. Chargeable Weight is the greater of actual physical weight and volumetric weight
-        const chargeableWeight = Math.max(pkg.weightLbs, volWeightRounded);
-        
-        // 3. Freight Cost = chargeable weight * base shipping rate per lb
-        const freightCost = chargeableWeight * s.baseRatePerLb;
-        
-        // 4. Insurance = Declared Value * Insurance %
-        const insuranceCost = pkg.value * (s.insurancePercent / 100);
-        
-        // 5. Fuel Surcharge = Freight Cost * Fuel Surcharge %
-        const fuelSurchargeCost = freightCost * (s.fuelSurchargePercent / 100);
-        
-        // 6. Taxes: If value exceeds VAT Threshold, apply VAT (19% for DIAN / Colombia)
-        const taxCost = pkg.value > s.vatThresholdUsd ? (pkg.value * (s.vatPercent / 100)) : 0;
-        
-        // 7. Handling Fee
-        const handlingFee = s.handlingFee;
-        
-        // Total Cost
-        const grandTotal = freightCost + insuranceCost + fuelSurchargeCost + taxCost + handlingFee;
-        
+
+        const volWeight = parseFloat(((pkg.lengthIn * pkg.widthIn * pkg.heightIn) / 166).toFixed(2));
+        const chargeableWeight = parseFloat(Math.max(pkg.weightLbs, volWeight).toFixed(2));
+
+        // Base auto-calculations
+        const freightCalc   = chargeableWeight * s.baseRatePerLb;
+        const insuranceCalc = pkg.value * (s.insurancePercent / 100);
+        const fuelCalc      = freightCalc * (s.fuelSurchargePercent / 100);
+        const taxCalc       = pkg.value > s.vatThresholdUsd ? (pkg.value * (s.vatPercent / 100)) : 0;
+        const handlingCalc  = s.handlingFee;
+
+        // Use override if explicitly saved on the package, otherwise use auto-calc
+        const freight  = pkg.freightOverride  != null ? pkg.freightOverride  : parseFloat(freightCalc.toFixed(2));
+        const insurance= pkg.insuranceOverride!= null ? pkg.insuranceOverride: parseFloat(insuranceCalc.toFixed(2));
+        const fuel     = pkg.fuelOverride     != null ? pkg.fuelOverride     : parseFloat(fuelCalc.toFixed(2));
+        const tax      = pkg.taxOverride      != null ? pkg.taxOverride      : parseFloat(taxCalc.toFixed(2));
+        const handling = pkg.handlingOverride != null ? pkg.handlingOverride : parseFloat(handlingCalc.toFixed(2));
+
+        const grandTotal = freight + insurance + fuel + tax + handling;
+
         return {
-            volWeight: volWeightRounded,
-            chargeableWeight: parseFloat(chargeableWeight.toFixed(2)),
-            freight: parseFloat(freightCost.toFixed(2)),
-            insurance: parseFloat(insuranceCost.toFixed(2)),
-            fuel: parseFloat(fuelSurchargeCost.toFixed(2)),
-            tax: parseFloat(taxCost.toFixed(2)),
-            handling: parseFloat(handlingFee.toFixed(2)),
-            total: parseFloat(grandTotal.toFixed(2))
+            volWeight, chargeableWeight,
+            freight:   parseFloat(freight.toFixed(2)),
+            insurance: parseFloat(insurance.toFixed(2)),
+            fuel:      parseFloat(fuel.toFixed(2)),
+            tax:       parseFloat(tax.toFixed(2)),
+            handling:  parseFloat(handling.toFixed(2)),
+            total:     parseFloat(grandTotal.toFixed(2)),
+            // expose auto-calcs so the UI can show "calculated" placeholders
+            freightCalc:   parseFloat(freightCalc.toFixed(2)),
+            insuranceCalc: parseFloat(insuranceCalc.toFixed(2)),
+            fuelCalc:      parseFloat(fuelCalc.toFixed(2)),
+            taxCalc:       parseFloat(taxCalc.toFixed(2)),
+            handlingCalc:  parseFloat(handlingCalc.toFixed(2))
         };
     },
 
@@ -1436,23 +1435,23 @@ const app = {
                     <h5 class="invoice-section-title">Cálculos Logísticos</h5>
                     <div class="invoice-total-section">
                         <div class="invoice-total-row">
-                            <span>Flete Base (${calc.chargeableWeight} Lbs &times; $${s.baseRatePerLb.toFixed(2)} USD):</span>
+                            <span>Flete Base (${calc.chargeableWeight} Lbs &times; $${s.baseRatePerLb.toFixed(2)} USD)${pkg.freightOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.freight.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.freight)}</small></span>
                         </div>
                         <div class="invoice-total-row">
-                            <span>Cargo de Manejo Bodega:</span>
+                            <span>Cargo de Manejo Bodega${pkg.handlingOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
                         </div>
                         <div class="invoice-total-row">
-                            <span>Seguro Comercial (${s.insurancePercent}% del Valor):</span>
+                            <span>Seguro Comercial (${s.insurancePercent}% del Valor)${pkg.insuranceOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.insurance.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.insurance)}</small></span>
                         </div>
                         <div class="invoice-total-row">
-                            <span>Recargo Combustible (${s.fuelSurchargePercent}% del Flete):</span>
+                            <span>Recargo Combustible (${s.fuelSurchargePercent}% del Flete)${pkg.fuelOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.fuel.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.fuel)}</small></span>
                         </div>
                         <div class="invoice-total-row">
-                            <span>Impuestos Aduana (IVA ${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200 USD' : 'Exento < $200 USD'}):</span>
+                            <span>Impuestos Aduana (IVA ${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200 USD' : 'Exento < $200 USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         <div class="invoice-total-row grand-total">
@@ -1492,6 +1491,20 @@ const app = {
         document.getElementById('edit-pkg-height').value = pkg.heightIn || '';
         document.getElementById('edit-pkg-status').value = pkg.status || 'En Bodega Miami';
 
+        // Cargos logísticos: mostrar override si existe, si no dejar vacío (placeholder = Auto)
+        const calc = this.calculatePackageInvoicing(pkg);
+        document.getElementById('edit-pkg-freight').value   = pkg.freightOverride   != null ? pkg.freightOverride   : '';
+        document.getElementById('edit-pkg-handling').value  = pkg.handlingOverride  != null ? pkg.handlingOverride  : '';
+        document.getElementById('edit-pkg-insurance').value = pkg.insuranceOverride != null ? pkg.insuranceOverride : '';
+        document.getElementById('edit-pkg-fuel').value      = pkg.fuelOverride      != null ? pkg.fuelOverride      : '';
+        document.getElementById('edit-pkg-tax').value       = pkg.taxOverride       != null ? pkg.taxOverride       : '';
+        // Update placeholders with the current auto-calculated values
+        document.getElementById('edit-pkg-freight').placeholder   = `Auto (${calc.freightCalc})`;
+        document.getElementById('edit-pkg-handling').placeholder  = `Auto (${calc.handlingCalc})`;
+        document.getElementById('edit-pkg-insurance').placeholder = `Auto (${calc.insuranceCalc})`;
+        document.getElementById('edit-pkg-fuel').placeholder      = `Auto (${calc.fuelCalc})`;
+        document.getElementById('edit-pkg-tax').placeholder       = `Auto (${calc.taxCalc})`;
+
         // Transportadora
         const knownCarriers = ['Amazon Log', 'UPS', 'FedEx', 'USPS', 'DHL'];
         const sel = document.getElementById('edit-pkg-carrier');
@@ -1521,6 +1534,12 @@ const app = {
         const carrier = resolveCarrier('edit-pkg-carrier', 'edit-pkg-carrier-other');
         if (!carrier) return;
 
+        // Helper: parse override — empty string means "restore auto-calc" (null)
+        const parseOverride = id => {
+            const v = document.getElementById(id).value;
+            return v === '' ? null : parseFloat(v);
+        };
+
         const updates = {
             tracking:    document.getElementById('edit-pkg-tracking').value.trim(),
             carrier,
@@ -1530,7 +1549,12 @@ const app = {
             lengthIn:    parseInt(document.getElementById('edit-pkg-length').value),
             widthIn:     parseInt(document.getElementById('edit-pkg-width').value),
             heightIn:    parseInt(document.getElementById('edit-pkg-height').value),
-            status:      document.getElementById('edit-pkg-status').value
+            status:          document.getElementById('edit-pkg-status').value,
+            freightOverride:  parseOverride('edit-pkg-freight'),
+            handlingOverride: parseOverride('edit-pkg-handling'),
+            insuranceOverride:parseOverride('edit-pkg-insurance'),
+            fuelOverride:     parseOverride('edit-pkg-fuel'),
+            taxOverride:      parseOverride('edit-pkg-tax')
         };
 
         if (useSupabase) {
