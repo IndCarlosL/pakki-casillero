@@ -1529,10 +1529,23 @@ const app = {
         this.openModal('modal-edit-package');
     },
 
+    _editPkgMsg: function(text, type) {
+        const el = document.getElementById('edit-pkg-msg');
+        if (!el) return;
+        el.style.display = 'block';
+        el.style.background = type === 'error' ? '#fee2e2' : type === 'warn' ? '#fef9c3' : '#dcfce7';
+        el.style.color     = type === 'error' ? '#991b1b' : type === 'warn' ? '#854d0e' : '#166534';
+        el.style.border    = `1px solid ${type === 'error' ? '#fca5a5' : type === 'warn' ? '#fde047' : '#86efac'}`;
+        el.innerHTML = text;
+    },
+
     handleSavePackageEdit: async function() {
+        const msgEl = document.getElementById('edit-pkg-msg');
+        if (msgEl) msgEl.style.display = 'none';
+
         const pkgId = document.getElementById('edit-pkg-id').value;
         const carrier = resolveCarrier('edit-pkg-carrier', 'edit-pkg-carrier-other');
-        if (!carrier) return;
+        if (!carrier) { this._editPkgMsg('Selecciona la transportadora.', 'error'); return; }
 
         // Helper: parse override — empty string means "restore auto-calc" (null)
         const parseOverride = id => {
@@ -1562,24 +1575,25 @@ const app = {
             taxOverride:       parseOverride('edit-pkg-tax')
         };
 
+        // Feedback inmediato en el botón
+        const saveBtn = document.querySelector('#form-edit-package button[type="submit"]');
+        const origText = saveBtn ? saveBtn.textContent : '';
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Guardando…'; }
+
         if (useSupabase) {
-            // Step 1: save core fields
+            // Step 1: campos que siempre existen en la tabla
             const { error: e1 } = await supabaseClient.from('packages').update(coreUpdates).eq('id', pkgId);
             if (e1) {
                 console.error('Supabase error (core):', e1);
-                this.showAlert(`Error al guardar datos principales: ${e1.message || e1.details || JSON.stringify(e1)}`, 'danger');
+                this._editPkgMsg(`Error al guardar: ${e1.message || e1.details || JSON.stringify(e1)}`, 'error');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; }
                 return;
             }
 
-            // Step 2: save override fields (columns may need ALTER TABLE)
+            // Step 2: columnas nuevas (requieren ALTER TABLE — falla silencioso si no existen)
             const { error: e2 } = await supabaseClient.from('packages').update(overrideUpdates).eq('id', pkgId);
             if (e2) {
-                console.warn('Supabase error (overrides):', e2);
-                this.showAlert(
-                    `Datos guardados, pero los ajustes de cargos logísticos requieren ejecutar el ALTER TABLE en Supabase.<br>
-                     <small style="font-family:monospace;">${e2.message || e2.details || JSON.stringify(e2)}</small>`,
-                    'warning'
-                );
+                console.warn('Supabase override columns missing:', e2.message);
             }
         } else {
             const idx = state.packages.findIndex(p => p.id === pkgId);
@@ -1588,9 +1602,9 @@ const app = {
         }
 
         await loadState();
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; }
         this.closeModal('modal-edit-package');
-        this.showAlert('Datos del paquete actualizados. La liquidación se ha recalculado.', 'success');
-        // Reabrir la factura con los datos actualizados
+        this.showAlert('✔ Datos del paquete actualizados correctamente.', 'success');
         this.viewInvoiceDetail(pkgId);
         this.renderAll();
     },
