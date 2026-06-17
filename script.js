@@ -715,15 +715,21 @@ const app = {
         }
         
         filtered.forEach(u => {
+            const isPending = (u.lockerCode || '').toUpperCase() === 'PENDIENTE';
             const tr = document.createElement('tr');
+            if (isPending) tr.style.background = '#fefce8';
             tr.innerHTML = `
-                <td><strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong></td>
+                <td>
+                    ${isPending
+                        ? `<span class="badge badge-warning" style="font-size:0.8rem;">⏳ Pendiente</span>`
+                        : `<strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong>`}
+                </td>
                 <td><strong>${u.name}</strong></td>
-                <td>${u.doc}</td>
+                <td>${u.document || u.doc || '—'}</td>
                 <td>${u.email}</td>
-                <td>${u.phone}</td>
-                <td>${u.city}</td>
-                <td>${u.dateCreated}</td>
+                <td>${u.phone || '—'}</td>
+                <td>${u.city || '—'}</td>
+                <td>${u.dateCreated || '—'}</td>
             `;
             tbody.appendChild(tr);
         });

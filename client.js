@@ -290,6 +290,12 @@ const clientApp = {
     },
 
     setupEventListeners: function() {
+        // Registration form submit
+        document.getElementById('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleRegisterRequest();
+        });
+
         // Login form submit
         document.getElementById('form-login-client').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -329,6 +335,78 @@ const clientApp = {
             alert.style.transition = 'opacity 0.5s ease';
             setTimeout(() => alert.remove(), 500);
         }, 5000);
+    },
+
+    handleRegisterRequest: async function() {
+        const msgEl  = document.getElementById('register-msg');
+        const btn    = document.getElementById('btn-register-submit');
+        const origTxt = btn.textContent;
+
+        const showMsg = (text, ok) => {
+            msgEl.style.display = 'block';
+            msgEl.style.background = ok ? '#dcfce7' : '#fee2e2';
+            msgEl.style.color      = ok ? '#166534' : '#991b1b';
+            msgEl.style.border     = `1px solid ${ok ? '#86efac' : '#fca5a5'}`;
+            msgEl.innerHTML = text;
+        };
+
+        const name    = document.getElementById('reg-name').value.trim();
+        const docType = document.getElementById('reg-doc-type').value;
+        const doc     = document.getElementById('reg-doc').value.trim();
+        const email   = document.getElementById('reg-email').value.trim();
+        const phone   = document.getElementById('reg-phone').value.trim();
+        const city    = document.getElementById('reg-city').value.trim();
+        const notes   = document.getElementById('reg-notes').value.trim();
+
+        btn.disabled = true;
+        btn.textContent = 'Enviando…';
+        msgEl.style.display = 'none';
+
+        // Verificar que el documento no esté ya registrado
+        if (useSupabase) {
+            const { data: existing } = await supabaseClient.from('users').select('id').eq('document', doc);
+            if (existing && existing.length > 0) {
+                showMsg('Este número de documento ya tiene un casillero registrado. Usa "Recuperar mi casillero" si olvidaste tu código.', false);
+                btn.disabled = false; btn.textContent = origTxt;
+                return;
+            }
+
+            const newUser = {
+                id:         `user_${Date.now()}`,
+                name,
+                document:   doc,
+                email,
+                phone:      phone,
+                city:       city,
+                notes:      notes,
+                lockerCode: 'PENDIENTE',
+                docType:    docType,
+                status:     'Pendiente'
+            };
+
+            const { error } = await supabaseClient.from('users').insert([newUser]);
+            if (error) {
+                console.error('Register error:', error);
+                showMsg(`Error al enviar la solicitud: ${error.message}. Intenta de nuevo o contáctanos.`, false);
+                btn.disabled = false; btn.textContent = origTxt;
+                return;
+            }
+        }
+
+        // Éxito
+        document.getElementById('form-register').innerHTML = `
+            <div style="text-align:center; padding:1.5rem 1rem;">
+                <div style="font-size:3rem; margin-bottom:0.75rem;">✅</div>
+                <h4 style="color:var(--text-primary); margin:0 0 0.5rem;">¡Solicitud enviada!</h4>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 1.25rem;">
+                    El equipo de Pakki revisará tus datos y enviará tu código de casillero
+                    a <strong>${email}</strong> en un plazo de <strong>24 horas hábiles</strong>.
+                </p>
+                <button class="btn btn-primary"
+                        onclick="document.getElementById('modal-register').style.display='none'">
+                    Cerrar
+                </button>
+            </div>`;
     },
 
     handleLogin: function() {
