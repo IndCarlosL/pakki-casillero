@@ -1022,8 +1022,93 @@ Tel: +1 (305) 555-0199
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="app.printInvoice()">Imprimir Recibo</button>
+                <button class="btn btn-secondary" id="btn-edit-package" onclick="app.openEditPackage()">✏️ Editar Datos</button>
                 <button class="btn btn-primary" id="btn-mark-paid">Marcar como Cobrado / Pagado</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar datos del paquete -->
+    <div class="modal-overlay" id="modal-edit-package">
+        <div class="modal-container" style="max-width:680px; width:95%;">
+            <div class="modal-header">
+                <h3>✏️ Editar Datos del Paquete</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-edit-package')">&times;</button>
+            </div>
+            <form id="form-edit-package" onsubmit="event.preventDefault(); app.handleSavePackageEdit();">
+                <div class="modal-body" style="max-height:72vh; overflow-y:auto; display:flex; flex-direction:column; gap:1rem;">
+                    <input type="hidden" id="edit-pkg-id">
+
+                    <!-- Identificación (solo lectura) -->
+                    <div style="background:var(--bg-app); border-radius:8px; padding:0.65rem 1rem; font-size:0.85rem; display:flex; gap:1.5rem; flex-wrap:wrap;">
+                        <span>Casillero: <strong id="edit-pkg-locker" style="color:var(--primary);">—</strong></span>
+                        <span>Fecha recepción: <strong id="edit-pkg-date" style="color:var(--text-muted);">—</strong></span>
+                    </div>
+
+                    <h5 class="invoice-section-title">Datos de la Guía</h5>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit-pkg-tracking">Tracking *</label>
+                            <input type="text" id="edit-pkg-tracking" required placeholder="Número de tracking">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-pkg-carrier">Transportadora *</label>
+                            <select id="edit-pkg-carrier" required onchange="toggleCarrierOther('edit-pkg-carrier','edit-pkg-carrier-other')">
+                                <option value="">-- Seleccionar --</option>
+                                <option value="Amazon Log">Amazon Logistics</option>
+                                <option value="UPS">UPS</option>
+                                <option value="FedEx">FedEx</option>
+                                <option value="USPS">USPS</option>
+                                <option value="DHL">DHL Express</option>
+                                <option value="Otro">Otra</option>
+                            </select>
+                            <input type="text" id="edit-pkg-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;" oninput="this.setCustomValidity('')">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-pkg-value">Valor Declarado (USD) *</label>
+                            <input type="number" id="edit-pkg-value" required min="0.01" step="0.01" placeholder="Ej. 149.99">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-pkg-status">Estado del Paquete *</label>
+                            <select id="edit-pkg-status" required>
+                                <option value="En Bodega Miami">En Bodega Miami</option>
+                                <option value="En Tránsito a Colombia">En Tránsito a Colombia</option>
+                                <option value="Nacionalización">Aduana / DIAN</option>
+                                <option value="Listo para Entrega">Listo para Entrega</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit-pkg-desc">Descripción del Contenido *</label>
+                            <input type="text" id="edit-pkg-desc" required placeholder="Ej. Zapatos Nike Air Max, talla 42">
+                        </div>
+                    </div>
+
+                    <h5 class="invoice-section-title">Medidas Físicas</h5>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit-pkg-weight">Peso Físico Real (Lbs) *</label>
+                            <input type="number" id="edit-pkg-weight" required min="0.1" step="0.1" placeholder="Ej. 4.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Dimensiones — Largo × Ancho × Alto (pulgadas) *</label>
+                            <div style="display:flex; gap:0.5rem;">
+                                <input type="number" id="edit-pkg-length" required min="1" placeholder="Largo" style="width:33%;">
+                                <input type="number" id="edit-pkg-width"  required min="1" placeholder="Ancho" style="width:33%;">
+                                <input type="number" id="edit-pkg-height" required min="1" placeholder="Alto"  style="width:33%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="font-size:0.78rem; color:var(--text-muted); padding:0.5rem 0.75rem; background:var(--bg-app); border-radius:6px;">
+                        Los valores de flete, impuestos y total se recalcularán automáticamente al guardar.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-edit-package')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -1463,7 +1463,94 @@ const app = {
             </div>
         `;
 
+        this._currentInvoicePkgId = pkgId;
         this.openModal('modal-invoice-detail');
+    },
+
+    // Guarda el pkgId activo para que "Editar Datos" sepa qué paquete modificar
+    _currentInvoicePkgId: null,
+
+    openEditPackage: function() {
+        const pkgId = this._currentInvoicePkgId;
+        const pkg = pkgId ? state.packages.find(p => p.id === pkgId) : null;
+        if (!pkg) { this.showAlert('No se pudo identificar el paquete.', 'danger'); return; }
+
+        // Identificación
+        document.getElementById('edit-pkg-id').value = pkg.id;
+        document.getElementById('edit-pkg-locker').textContent = pkg.lockerCode;
+        document.getElementById('edit-pkg-date').textContent = pkg.dateReceived || '—';
+
+        // Campos editables
+        document.getElementById('edit-pkg-tracking').value = pkg.tracking || '';
+        document.getElementById('edit-pkg-value').value = pkg.value || '';
+        document.getElementById('edit-pkg-desc').value = pkg.description || '';
+        document.getElementById('edit-pkg-weight').value = pkg.weightLbs || '';
+        document.getElementById('edit-pkg-length').value = pkg.lengthIn || '';
+        document.getElementById('edit-pkg-width').value = pkg.widthIn || '';
+        document.getElementById('edit-pkg-height').value = pkg.heightIn || '';
+        document.getElementById('edit-pkg-status').value = pkg.status || 'En Bodega Miami';
+
+        // Transportadora
+        const knownCarriers = ['Amazon Log', 'UPS', 'FedEx', 'USPS', 'DHL'];
+        const sel = document.getElementById('edit-pkg-carrier');
+        const selOther = document.getElementById('edit-pkg-carrier-other');
+        const carrierVal = pkg.carrier || '';
+        if (knownCarriers.includes(carrierVal)) {
+            sel.value = carrierVal;
+            selOther.style.display = 'none';
+            selOther.required = false;
+            selOther.value = '';
+        } else if (carrierVal) {
+            sel.value = 'Otro';
+            selOther.style.display = 'block';
+            selOther.required = true;
+            selOther.value = carrierVal;
+        } else {
+            sel.value = '';
+            selOther.style.display = 'none';
+            selOther.required = false;
+        }
+
+        this.openModal('modal-edit-package');
+    },
+
+    handleSavePackageEdit: async function() {
+        const pkgId = document.getElementById('edit-pkg-id').value;
+        const carrier = resolveCarrier('edit-pkg-carrier', 'edit-pkg-carrier-other');
+        if (!carrier) return;
+
+        const updates = {
+            tracking:    document.getElementById('edit-pkg-tracking').value.trim(),
+            carrier,
+            value:       parseFloat(document.getElementById('edit-pkg-value').value),
+            description: document.getElementById('edit-pkg-desc').value.trim(),
+            weightLbs:   parseFloat(document.getElementById('edit-pkg-weight').value),
+            lengthIn:    parseInt(document.getElementById('edit-pkg-length').value),
+            widthIn:     parseInt(document.getElementById('edit-pkg-width').value),
+            heightIn:    parseInt(document.getElementById('edit-pkg-height').value),
+            status:      document.getElementById('edit-pkg-status').value
+        };
+
+        if (useSupabase) {
+            try {
+                const { error } = await supabaseClient.from('packages').update(updates).eq('id', pkgId);
+                if (error) throw error;
+            } catch (err) {
+                this.showAlert(`Error al guardar cambios: ${err.message}`, 'danger');
+                return;
+            }
+        } else {
+            const idx = state.packages.findIndex(p => p.id === pkgId);
+            if (idx !== -1) Object.assign(state.packages[idx], updates);
+            saveStateLocal();
+        }
+
+        await loadState();
+        this.closeModal('modal-edit-package');
+        this.showAlert('Datos del paquete actualizados. La liquidación se ha recalculado.', 'success');
+        // Reabrir la factura con los datos actualizados
+        this.viewInvoiceDetail(pkgId);
+        this.renderAll();
     },
 
     toggleInvoicePayment: async function(pkgId, newStatus) {
