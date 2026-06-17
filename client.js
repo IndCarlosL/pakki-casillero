@@ -354,10 +354,14 @@ const clientApp = {
         document.getElementById('welcome-locker').textContent = loggedUser.lockerCode;
         document.getElementById('welcome-city').textContent = loggedUser.city;
 
-        // Custom Address display
+        // Custom Address display — primer nombre + primer apellido + código casillero
+        const nameParts = (loggedUser.name || '').trim().split(/\s+/);
+        const shortName = nameParts.length >= 2
+            ? `${nameParts[0]} ${nameParts[1]}`
+            : nameParts[0] || '';
         const addressBlock = document.getElementById('client-miami-address-block');
         addressBlock.innerHTML = `
-<strong>${loggedUser.name} ${loggedUser.lockerCode}</strong>
+<strong>${shortName} ${loggedUser.lockerCode}</strong>
 8400 NW 25th Street, Suite 100
 Doral, FL 33198
 Tel: +1 (305) 555-0199
