@@ -1581,7 +1581,7 @@ const app = {
         if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Guardando…'; }
 
         if (useSupabase) {
-            // Step 1: campos que siempre existen en la tabla
+            // Step 1: campos base (siempre existen en la tabla)
             const { error: e1 } = await supabaseClient.from('packages').update(coreUpdates).eq('id', pkgId);
             if (e1) {
                 console.error('Supabase error (core):', e1);
@@ -1590,18 +1590,18 @@ const app = {
                 return;
             }
 
-            // Step 2: columnas nuevas (requieren ALTER TABLE — falla silencioso si no existen)
+            // Step 2: columnas nuevas — falla silencioso si no se ha corrido el ALTER TABLE
             const { error: e2 } = await supabaseClient.from('packages').update(overrideUpdates).eq('id', pkgId);
-            if (e2) {
-                console.warn('Supabase override columns missing:', e2.message);
-            }
-        } else {
-            const idx = state.packages.findIndex(p => p.id === pkgId);
-            if (idx !== -1) Object.assign(state.packages[idx], coreUpdates, overrideUpdates);
-            saveStateLocal();
+            if (e2) console.warn('Override columns not yet in table:', e2.message);
         }
 
-        await loadState();
+        // Actualizar state en memoria sin esperar un loadState completo
+        const idx = state.packages.findIndex(p => p.id === pkgId);
+        if (idx !== -1) {
+            Object.assign(state.packages[idx], coreUpdates, overrideUpdates);
+        }
+        if (!useSupabase) saveStateLocal();
+
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; }
         this.closeModal('modal-edit-package');
         this.showAlert('✔ Datos del paquete actualizados correctamente.', 'success');
