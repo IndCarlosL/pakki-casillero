@@ -1540,7 +1540,8 @@ const app = {
             return v === '' ? null : parseFloat(v);
         };
 
-        const updates = {
+        // Core fields (columns that always exist in the table)
+        const coreUpdates = {
             tracking:    document.getElementById('edit-pkg-tracking').value.trim(),
             carrier,
             value:       parseFloat(document.getElementById('edit-pkg-value').value),
@@ -1549,25 +1550,40 @@ const app = {
             lengthIn:    parseInt(document.getElementById('edit-pkg-length').value),
             widthIn:     parseInt(document.getElementById('edit-pkg-width').value),
             heightIn:    parseInt(document.getElementById('edit-pkg-height').value),
-            status:          document.getElementById('edit-pkg-status').value,
-            freightOverride:  parseOverride('edit-pkg-freight'),
-            handlingOverride: parseOverride('edit-pkg-handling'),
-            insuranceOverride:parseOverride('edit-pkg-insurance'),
-            fuelOverride:     parseOverride('edit-pkg-fuel'),
-            taxOverride:      parseOverride('edit-pkg-tax')
+            status:      document.getElementById('edit-pkg-status').value
+        };
+
+        // Override fields (require ALTER TABLE — columns added separately)
+        const overrideUpdates = {
+            freightOverride:   parseOverride('edit-pkg-freight'),
+            handlingOverride:  parseOverride('edit-pkg-handling'),
+            insuranceOverride: parseOverride('edit-pkg-insurance'),
+            fuelOverride:      parseOverride('edit-pkg-fuel'),
+            taxOverride:       parseOverride('edit-pkg-tax')
         };
 
         if (useSupabase) {
-            try {
-                const { error } = await supabaseClient.from('packages').update(updates).eq('id', pkgId);
-                if (error) throw error;
-            } catch (err) {
-                this.showAlert(`Error al guardar cambios: ${err.message}`, 'danger');
+            // Step 1: save core fields
+            const { error: e1 } = await supabaseClient.from('packages').update(coreUpdates).eq('id', pkgId);
+            if (e1) {
+                console.error('Supabase error (core):', e1);
+                this.showAlert(`Error al guardar datos principales: ${e1.message || e1.details || JSON.stringify(e1)}`, 'danger');
                 return;
+            }
+
+            // Step 2: save override fields (columns may need ALTER TABLE)
+            const { error: e2 } = await supabaseClient.from('packages').update(overrideUpdates).eq('id', pkgId);
+            if (e2) {
+                console.warn('Supabase error (overrides):', e2);
+                this.showAlert(
+                    `Datos guardados, pero los ajustes de cargos logísticos requieren ejecutar el ALTER TABLE en Supabase.<br>
+                     <small style="font-family:monospace;">${e2.message || e2.details || JSON.stringify(e2)}</small>`,
+                    'warning'
+                );
             }
         } else {
             const idx = state.packages.findIndex(p => p.id === pkgId);
-            if (idx !== -1) Object.assign(state.packages[idx], updates);
+            if (idx !== -1) Object.assign(state.packages[idx], coreUpdates, overrideUpdates);
             saveStateLocal();
         }
 
@@ -1611,27 +1627,40 @@ const app = {
     },
 
     toggleInvoicePayment: async function(pkgId, newStatus, paymentProofFileName, paymentProofFileData) {
-        const updateData = { invoiceStatus: newStatus };
-        if (newStatus === 'Pagado') {
-            updateData.paymentProofFileName = paymentProofFileName || '';
-            updateData.paymentProofFileData = paymentProofFileData || '';
-        } else {
-            // Al revertir a Pendiente se borra el comprobante anterior
-            updateData.paymentProofFileName = '';
-            updateData.paymentProofFileData = '';
-        }
-
         if (useSupabase) {
-            try {
-                const { error } = await supabaseClient.from('packages').update(updateData).eq('id', pkgId);
-                if (error) throw error;
-            } catch (err) {
-                this.showAlert(`Error al cambiar estado de factura en Supabase: ${err.message}`, 'danger');
+            // Step 1: update invoiceStatus (column always exists)
+            const { error: e1 } = await supabaseClient.from('packages').update({ invoiceStatus: newStatus }).eq('id', pkgId);
+            if (e1) {
+                console.error('Supabase error (invoiceStatus):', e1);
+                this.showAlert(`Error al cambiar estado de pago: ${e1.message || JSON.stringify(e1)}`, 'danger');
+                return;
+            }
+
+            // Step 2: save proof columns (require ALTER TABLE)
+            const proofData = newStatus === 'Pagado'
+                ? { paymentProofFileName: paymentProofFileName || '', paymentProofFileData: paymentProofFileData || '' }
+                : { paymentProofFileName: '', paymentProofFileData: '' };
+
+            const { error: e2 } = await supabaseClient.from('packages').update(proofData).eq('id', pkgId);
+            if (e2) {
+                console.warn('Supabase error (proof columns):', e2);
+                // Estado ya guardado; solo avisa sobre las columnas
+                this.showAlert(
+                    `Pago marcado como <strong>${newStatus}</strong>, pero el soporte de pago requiere ejecutar el ALTER TABLE en Supabase.<br>
+                     <small style="font-family:monospace;">${e2.message || JSON.stringify(e2)}</small>`,
+                    'warning'
+                );
+                await loadState();
+                this.closeModal('modal-invoice-detail');
+                this.renderAll();
                 return;
             }
         } else {
+            const proofData = newStatus === 'Pagado'
+                ? { paymentProofFileName: paymentProofFileName || '', paymentProofFileData: paymentProofFileData || '' }
+                : { paymentProofFileName: '', paymentProofFileData: '' };
             const idx = state.packages.findIndex(p => p.id === pkgId);
-            if (idx !== -1) Object.assign(state.packages[idx], updateData);
+            if (idx !== -1) Object.assign(state.packages[idx], { invoiceStatus: newStatus }, proofData);
             saveStateLocal();
         }
 
