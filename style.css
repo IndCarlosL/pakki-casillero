@@ -88,6 +88,13 @@ body {
     padding: 0.5rem;
 }
 
+.sidebar-logo-img {
+    width: 150px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
 .brand-logo {
     background: linear-gradient(135deg, var(--primary), #fb923c);
     width: 40px;
@@ -968,6 +975,13 @@ tr:hover td {
 
     .brand-name, .brand-tag, .user-info,
     .menu-item a span { display: none; }
+
+    .sidebar-logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        object-position: left center;
+    }
 
     .sidebar-brand {
         flex-direction: column;
