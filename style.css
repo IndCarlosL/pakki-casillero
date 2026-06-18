@@ -900,93 +900,30 @@ tr:hover td {
     gap: 1.5rem;
 }
 
-/* ── Mobile top bar (hidden during login via body.login-body) ── */
-.mobile-topbar {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 54px;
-    background: var(--bg-sidebar);
-    z-index: 300;
-    align-items: center;
-    padding: 0 1rem;
-    gap: 0.75rem;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
+/* Ocultar elementos del hamburger (ya no se usan) */
+.mobile-topbar, .mobile-overlay, .hamburger-btn { display: none !important; }
 
-.mobile-topbar .brand-logo {
-    width: 32px; height: 32px; font-size: 1rem;
-}
-
-.mobile-topbar .brand-name {
-    font-size: 1rem;
-}
-
-.hamburger-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex-shrink: 0;
-}
-
-.hamburger-btn span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: #e2e8f0;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-}
-
-.hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.hamburger-btn.open span:nth-child(2) { opacity: 0; }
-.hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-/* Overlay behind sidebar on mobile */
-.mobile-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: 280;
-    backdrop-filter: blur(2px);
-}
-
-.mobile-overlay.active { display: block; }
-
-/* ── Tablet & Mobile (≤ 900px) ── */
+/* ── Tablet (601px – 900px): sidebar estrecho ── */
 @media (max-width: 900px) {
 
-    .mobile-topbar { display: flex; }
-    body.login-body .mobile-topbar { display: none; }
-
     .app-container {
-        grid-template-columns: 1fr;
-        padding-top: 54px;
+        grid-template-columns: 190px 1fr;
     }
 
-    /* Sidebar becomes a fixed drawer */
     .sidebar {
-        display: flex !important;
-        position: fixed;
-        top: 0; left: 0;
+        position: sticky;
+        width: 190px;
+        padding: 1.25rem 0.75rem;
         height: 100vh;
-        width: 260px;
-        z-index: 290;
-        transform: translateX(-280px);
-        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-        overflow-y: auto;
-        padding-top: 1.5rem;
     }
 
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 6px 0 32px rgba(0,0,0,0.35);
+    .sidebar-brand  { margin-bottom: 1.5rem; }
+    .brand-name     { font-size: 1.1rem; }
+
+    .menu-item a {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.82rem;
+        gap: 0.5rem;
     }
 
     .main-content {
@@ -997,107 +934,108 @@ tr:hover td {
     .content-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.6rem;
-        margin-bottom: 1.25rem;
-    }
-
-    .header-title h1 { font-size: 1.4rem; }
-
-    .header-actions {
-        width: 100%;
-        flex-wrap: wrap;
         gap: 0.5rem;
+        margin-bottom: 1rem;
     }
 
-    .date-badge { display: none; }
+    .header-title h1 { font-size: 1.3rem; }
+    .date-badge      { display: none; }
 
-    .dashboard-split {
-        grid-template-columns: 1fr;
-    }
-
-    .metrics-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .modal-footer {
-        flex-wrap: wrap;
-    }
-
-    .modal-footer .btn {
-        flex: 1;
-        min-width: 100px;
-        text-align: center;
-    }
-
-    .filters-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .client-info-bar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    /* Tables scroll horizontally */
-    .table-container {
-        font-size: 0.82rem;
-    }
+    .header-actions  { width: 100%; flex-wrap: wrap; gap: 0.5rem; }
+    .dashboard-split { grid-template-columns: 1fr; }
+    .metrics-grid    { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .form-grid       { grid-template-columns: 1fr; }
+    .client-info-bar { flex-direction: column; align-items: flex-start; }
+    .filters-bar     { flex-direction: column; align-items: stretch; }
+    .table-container { font-size: 0.82rem; }
+    .modal-footer    { flex-wrap: wrap; }
+    .modal-footer .btn { flex: 1; min-width: 100px; }
 }
 
-/* ── Small phones (≤ 480px) ── */
-@media (max-width: 480px) {
+/* ── Móvil (≤ 600px): sidebar de solo iconos ── */
+@media (max-width: 600px) {
 
-    .metrics-grid {
-        grid-template-columns: 1fr;
+    .app-container {
+        grid-template-columns: 52px 1fr;
     }
 
-    .metric-data .value {
-        font-size: 1.4rem;
+    .sidebar {
+        width: 52px;
+        padding: 1rem 0.4rem;
+        align-items: center;
+        overflow: hidden;
     }
 
-    td, th {
-        padding: 0.65rem 0.75rem;
-        font-size: 0.78rem;
+    .brand-name, .brand-tag, .user-info,
+    .menu-item a span { display: none; }
+
+    .sidebar-brand {
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        padding: 0;
+        justify-content: center;
     }
 
-    .btn {
-        font-size: 0.82rem;
-        padding: 0.65rem 1rem;
+    .brand-logo { width: 34px; height: 34px; font-size: 0.9rem; }
+
+    .menu-item a {
+        justify-content: center;
+        padding: 0.7rem 0;
+        gap: 0;
+        border-radius: 10px;
     }
+
+    .menu-item svg  { width: 22px; height: 22px; }
+
+    .sidebar-footer { flex-direction: column; gap: 0.4rem; padding-top: 0.75rem; }
+    .user-avatar    { width: 30px; height: 30px; font-size: 0.75rem; }
+
+    /* Tooltip al hacer hover */
+    .menu-item { position: relative; }
+    .menu-item a::after {
+        content: attr(data-label);
+        position: absolute;
+        left: 58px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1e293b;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s;
+        z-index: 500;
+        box-shadow: var(--shadow-md);
+    }
+    .menu-item a:hover::after { opacity: 1; }
+
+    .main-content { padding: 0.75rem; }
+
+    .metrics-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+    .metric-data .value { font-size: 1.35rem; }
+
+    td, th { padding: 0.55rem 0.6rem; font-size: 0.76rem; }
+    .btn   { font-size: 0.8rem; padding: 0.6rem 0.9rem; }
+
+    .header-title h1 { font-size: 1.15rem; }
 
     .modal-container {
-        max-height: 95vh;
+        max-height: 92vh;
         border-radius: var(--radius-md) var(--radius-md) 0 0;
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
+        bottom: 0; left: 0; right: 0;
+        width: 100%; max-width: 100%;
     }
+    .modal-overlay   { align-items: flex-end; }
 
-    .modal-overlay {
-        align-items: flex-end;
-    }
-
-    .invoice-header {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .invoice-header-right {
-        text-align: left;
-    }
-
-    .invoice-grid {
-        grid-template-columns: 1fr;
-    }
+    .invoice-header       { flex-direction: column; gap: 0.5rem; }
+    .invoice-header-right { text-align: left; }
+    .invoice-grid         { grid-template-columns: 1fr; }
 }
 
 /* ==========================================================================
