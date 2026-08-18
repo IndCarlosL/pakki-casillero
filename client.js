@@ -297,9 +297,9 @@ const clientApp = {
         });
 
         // Login form submit
-        document.getElementById('form-login-client').addEventListener('submit', (e) => {
+        document.getElementById('form-login-client').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.handleLogin();
+            await this.handleLogin();
         });
 
         // Logout button
@@ -368,10 +368,16 @@ const clientApp = {
             return;
         }
 
-        // Verificar documento duplicado
-        const { data: existing } = await supabaseClient.from('users').select('id, lockerCode').eq('doc', doc);
-        if (existing && existing.length > 0) {
-            showMsg('Este número de documento ya tiene un casillero registrado. Usa <strong>"Recuperar mi casillero"</strong> si olvidaste tu código.', false);
+        // Verificar duplicado por documento O por correo
+        const { data: byDoc }   = await supabaseClient.from('users').select('id, lockerCode').eq('doc', doc);
+        const { data: byEmail } = await supabaseClient.from('users').select('id, lockerCode').ilike('email', email);
+
+        if ((byDoc && byDoc.length > 0) || (byEmail && byEmail.length > 0)) {
+            showMsg(
+                'Ya existe un casillero con ese documento o correo. ' +
+                '<br><a href="tracking.html#locker" style="color:#1d4ed8; font-weight:600;">🔍 Recuperar mi casillero</a>',
+                false
+            );
             btn.disabled = false; btn.textContent = origTxt;
             return;
         }
@@ -441,21 +447,43 @@ const clientApp = {
             </div>`;
     },
 
-    handleLogin: function() {
-        const lockerInput = document.getElementById('login-locker').value.trim().toUpperCase();
-        const docInput = document.getElementById('login-doc').value.trim();
-        
-        loadGlobalState();
-        
-        const user = state.users.find(u => u.lockerCode.toUpperCase() === lockerInput && u.doc === docInput);
+    handleLogin: async function() {
+        const emailInput = document.getElementById('login-email').value.trim().toLowerCase();
+        const docInput   = document.getElementById('login-doc').value.trim();
+        const errorEl    = document.getElementById('login-error');
+        const btn        = document.querySelector('#form-login-client button[type="submit"]');
+
+        btn.disabled = true;
+        btn.textContent = 'Verificando…';
+        errorEl.style.display = 'none';
+
+        let user = null;
+
+        if (useSupabase) {
+            const { data } = await supabaseClient
+                .from('users')
+                .select('*')
+                .ilike('email', emailInput)
+                .eq('doc', docInput);
+            if (data && data.length > 0) user = data[0];
+        } else {
+            user = state.users.find(u =>
+                (u.email || '').toLowerCase() === emailInput && u.doc === docInput
+            );
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Iniciar Sesión';
+
         if (user) {
             loggedUser = user;
             sessionStorage.setItem('pakki_logged_user', JSON.stringify(user));
-            document.getElementById('login-error').style.display = 'none';
+            errorEl.style.display = 'none';
             this.showDashboard();
             this.showAlert(`¡Bienvenido de nuevo, <strong>${user.name}</strong>!`, 'success');
         } else {
-            document.getElementById('login-error').style.display = 'block';
+            errorEl.textContent = 'Correo o contraseña incorrectos. Verifica tus datos.';
+            errorEl.style.display = 'block';
         }
     },
 
