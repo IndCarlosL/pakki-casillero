@@ -1135,18 +1135,16 @@ const app = {
         const city = document.getElementById('user-city').value.trim();
         const address = document.getElementById('user-address').value.trim();
         
-        // Auto-generate locker code (PK-XXXX-US)
-        let maxSequence = 5015; // seed max
+        // Auto-generate locker code: buscar el mayor número PAKKIXXXXX e incrementar
+        let maxSequence = 50191; // seed basado en el último código importado
         state.users.forEach(u => {
-            const match = u.lockerCode.match(/PK-(\d+)-US/);
+            const match = (u.lockerCode || '').match(/PAKKI(\d+)/i);
             if (match) {
                 const seq = parseInt(match[1]);
                 if (seq > maxSequence) maxSequence = seq;
             }
         });
-        
-        const newSequence = maxSequence + 1;
-        const lockerCode = `PK-${newSequence}-US`;
+        const lockerCode = `PAKKI${maxSequence + 1}`;
         const todayStr = new Date().toISOString().split('T')[0];
         
         const newUser = {

@@ -376,13 +376,13 @@ const clientApp = {
             return;
         }
 
-        // Generar código de casillero: buscar el mayor número PK-XXXX-US existente e incrementar
+        // Generar código de casillero: buscar el mayor número PAKKIXXXXX existente e incrementar
         const { data: allUsers } = await supabaseClient.from('users').select('lockerCode');
         const maxNum = (allUsers || []).reduce((max, u) => {
-            const m = (u.lockerCode || '').match(/PK-(\d+)-US/i);
+            const m = (u.lockerCode || '').match(/PAKKI(\d+)/i);
             return m ? Math.max(max, parseInt(m[1])) : max;
-        }, 5000);
-        const lockerCode = `PK-${maxNum + 1}-US`;
+        }, 50191);
+        const lockerCode = `PAKKI${maxNum + 1}`;
         const today = new Date().toISOString().split('T')[0];
 
         const newUser = {
