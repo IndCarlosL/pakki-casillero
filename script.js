@@ -321,6 +321,9 @@ const app = {
         // Show current date formatted
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-ES', options);
+
+        // Load official TRM
+        loadTRM('trm-display');
     },
 
     renderSupabaseStatusBanner: function() {
@@ -2086,3 +2089,25 @@ document.querySelectorAll('.menu-item a').forEach(link => {
     const span = link.querySelector('span');
     if (span) link.setAttribute('data-label', span.textContent.trim());
 });
+
+async function loadTRM(spanId) {
+    const el = document.getElementById(spanId);
+    if (!el) return;
+    try {
+        const res = await fetch(
+            'https://www.datos.gov.co/resource/32sa-8pi3.json?$limit=1&$order=vigenciadesde+DESC',
+            { headers: { 'Accept': 'application/json' } }
+        );
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (data && data.length > 0 && data[0].valor) {
+            const trm = parseFloat(data[0].valor);
+            const trmServicio = trm + 300;
+            el.textContent = 'USD $' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            el.textContent = 'TRM no disponible';
+        }
+    } catch (e) {
+        el.textContent = 'TRM no disponible';
+    }
+}
