@@ -90,7 +90,24 @@
                         <span>Cotizador</span>
                     </a>
                 </li>
-                <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                <li class="menu-item" data-tab="tab-tipos-usuario" style="margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Tipos de Usuario</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-tab="tab-tarifas">
+                    <a>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Tarifas</span>
+                    </a>
+                </li>
+                <li style="margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
                     <a href="client.html" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #f97316; text-decoration: none; font-weight: 600; border-radius: var(--radius-md); transition: var(--transition);">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px; color:#f97316;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -285,6 +302,13 @@ Tel: +1 (305) 555-0199
                                 <input type="text" id="user-address" required placeholder="Ej. Calle 45 # 12-34 Apto 502">
                             </div>
                         </div>
+                        <div class="form-group" style="margin-top: 0.5rem;">
+                            <label for="user-type">Tipo de Usuario *</label>
+                            <select id="user-type" required>
+                                <option value="cliente">Cliente</option>
+                            </select>
+                            <span style="font-size:0.75rem; color:var(--text-muted);">Define las tarifas y privilegios del casillero.</span>
+                        </div>
                         <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
                             <button type="reset" class="btn btn-secondary">Limpiar Formulario</button>
                             <button type="submit" class="btn btn-primary">Registrar y Crear Casillero</button>
@@ -318,6 +342,7 @@ Tel: +1 (305) 555-0199
                                     <th>Correo Electrónico</th>
                                     <th>Teléfono</th>
                                     <th>Ciudad Destino</th>
+                                    <th>Tipo</th>
                                     <th>Fecha Registro</th>
                                 </tr>
                             </thead>
@@ -885,6 +910,106 @@ Tel: +1 (305) 555-0199
                             <div id="cot-breakdown-content" style="margin-top: 1rem;"></div>
                         </div>
 
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Tipos de Usuario -->
+            <section id="tab-tipos-usuario" class="tab-content">
+                <div class="dashboard-split">
+                    <div class="card" style="max-width: 440px;">
+                        <div class="section-card-header">
+                            <h2>Nuevo Tipo de Usuario</h2>
+                        </div>
+                        <form id="form-user-type" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                            <input type="hidden" id="ut-edit-id">
+                            <div class="form-group">
+                                <label for="ut-id">Identificador (sin espacios) *</label>
+                                <input type="text" id="ut-id" required placeholder="ej. emprendedor">
+                                <span style="font-size:0.75rem; color:var(--text-muted);">Clave interna única. No cambiable luego de creado.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="ut-label">Nombre visible *</label>
+                                <input type="text" id="ut-label" required placeholder="ej. Emprendedor">
+                            </div>
+                            <div class="form-group">
+                                <label for="ut-desc">Descripción</label>
+                                <input type="text" id="ut-desc" placeholder="ej. Plan para emprendedores con tarifa especial">
+                            </div>
+                            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="app.resetUserTypeForm()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary" id="btn-ut-submit">Guardar Tipo</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Tipos de Usuario Configurados</h2>
+                        </div>
+                        <div class="table-container" style="margin-top:1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Activo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-user-types-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Tarifas -->
+            <section id="tab-tarifas" class="tab-content">
+                <div class="dashboard-split">
+                    <div class="card" style="max-width: 440px;">
+                        <div class="section-card-header">
+                            <h2>Configurar Tarifa</h2>
+                        </div>
+                        <div class="form-group" style="margin-top:1rem;">
+                            <label for="tariff-type-filter">Tipo de Usuario</label>
+                            <select id="tariff-type-filter" onchange="app.renderTariffsList()">
+                                <option value="">-- Selecciona tipo --</option>
+                            </select>
+                        </div>
+                        <form id="form-tariff" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                            <input type="hidden" id="tf-edit-id">
+                            <div class="form-group">
+                                <label for="tf-concept">Concepto *</label>
+                                <input type="text" id="tf-concept" required placeholder="ej. Precio por libra">
+                            </div>
+                            <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.75rem;">
+                                <div class="form-group">
+                                    <label for="tf-value">Valor *</label>
+                                    <input type="number" id="tf-value" required min="0" step="0.0001" placeholder="ej. 4.50">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tf-unit">Unidad</label>
+                                    <input type="text" id="tf-unit" placeholder="USD/lb">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="tf-desc">Descripción</label>
+                                <input type="text" id="tf-desc" placeholder="ej. Tarifa base por peso">
+                            </div>
+                            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                                <button type="button" class="btn btn-secondary" onclick="app.resetTariffForm()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary" id="btn-tf-submit">Guardar Tarifa</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="section-card-header">
+                            <h2>Tarifas por Tipo de Usuario</h2>
+                        </div>
+                        <div id="tariffs-list-container" style="margin-top:1rem;">
+                            <p style="color:var(--text-muted); text-align:center; padding:2rem;">Selecciona un tipo de usuario para ver sus tarifas.</p>
+                        </div>
                     </div>
                 </div>
             </section>

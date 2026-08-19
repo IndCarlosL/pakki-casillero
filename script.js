@@ -145,12 +145,36 @@ if (SUPABASE_URL !== "PON_AQUI_TU_SUPABASE_URL" && SUPABASE_KEY !== "PON_AQUI_TU
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
+// Datos por defecto para modo local (sin Supabase)
+const DEFAULT_USER_TYPES = [
+    { id: 'cliente',       label: 'Cliente',           description: 'Cliente regular del servicio de casillero', active: true },
+    { id: 'emprendedor',   label: 'Emprendedor',        description: 'Plan para emprendedores con tarifas preferenciales', active: true },
+    { id: 'aliado',        label: 'Aliado Comercial',   description: 'Aliado o revendedor del servicio', active: true },
+    { id: 'administrador', label: 'Administrador',      description: 'Acceso total al panel de administración', active: true }
+];
+const DEFAULT_TARIFFS = [
+    { id: 'tf_c1', user_type_id: 'cliente',       concept: 'Precio por libra',  value: 4.50,  unit: 'USD/lb', description: 'Tarifa estándar' },
+    { id: 'tf_c2', user_type_id: 'cliente',       concept: 'Mínimo de libras',  value: 1.0,   unit: 'lbs',   description: 'Peso mínimo cobrable' },
+    { id: 'tf_c3', user_type_id: 'cliente',       concept: 'Seguro',            value: 2.0,   unit: '%',     description: 'Sobre valor declarado' },
+    { id: 'tf_c4', user_type_id: 'cliente',       concept: 'Costo de manejo',   value: 3.00,  unit: 'USD',   description: 'Cargo fijo por gestión' },
+    { id: 'tf_e1', user_type_id: 'emprendedor',   concept: 'Precio por libra',  value: 3.80,  unit: 'USD/lb', description: 'Tarifa preferencial' },
+    { id: 'tf_e2', user_type_id: 'emprendedor',   concept: 'Mínimo de libras',  value: 10.0,  unit: 'lbs',   description: 'Peso mínimo cobrable' },
+    { id: 'tf_e3', user_type_id: 'emprendedor',   concept: 'Seguro',            value: 1.5,   unit: '%',     description: 'Sobre valor declarado' },
+    { id: 'tf_e4', user_type_id: 'emprendedor',   concept: 'Costo de manejo',   value: 0.00,  unit: 'USD',   description: 'Sin cargo de manejo' },
+    { id: 'tf_a1', user_type_id: 'aliado',        concept: 'Precio por libra',  value: 3.50,  unit: 'USD/lb', description: 'Tarifa especial aliado' },
+    { id: 'tf_a2', user_type_id: 'aliado',        concept: 'Mínimo de libras',  value: 10.0,  unit: 'lbs',   description: 'Peso mínimo cobrable' },
+    { id: 'tf_a3', user_type_id: 'aliado',        concept: 'Seguro',            value: 1.0,   unit: '%',     description: 'Sobre valor declarado' },
+    { id: 'tf_a4', user_type_id: 'aliado',        concept: 'Costo de manejo',   value: 0.00,  unit: 'USD',   description: 'Sin cargo de manejo' }
+];
+
 // Core Application State
 let state = {
     users: [],
     prealerts: [],
     packages: [],
     purchaseRequests: [],
+    userTypes: [],
+    tariffs: [],
     settings: {
         baseRatePerLb: 4.50,
         handlingFee: 3.00,
@@ -262,10 +286,16 @@ async function loadState() {
             // 5. Obtener solicitudes de compra
             const { data: purchaseRequests } = await supabaseClient.from('purchase_requests').select('*');
 
+            // 6. Obtener tipos de usuario y tarifas
+            const { data: userTypes } = await supabaseClient.from('user_types').select('*').order('label');
+            const { data: tariffs }   = await supabaseClient.from('tariffs').select('*');
+
             state.users = users || [];
             state.prealerts = prealerts || [];
             state.packages = packages || [];
             state.purchaseRequests = purchaseRequests || [];
+            state.userTypes = userTypes && userTypes.length ? userTypes : DEFAULT_USER_TYPES;
+            state.tariffs   = tariffs   || [];
             
             if (settings && settings.length > 0) {
                 state.settings = settings.find(s => s.id === 'global') || settings[0];
@@ -298,10 +328,14 @@ async function loadState() {
         if (saved) {
             state = JSON.parse(saved);
             if (!state.purchaseRequests) state.purchaseRequests = [];
+            if (!state.userTypes || !state.userTypes.length) state.userTypes = DEFAULT_USER_TYPES;
+            if (!state.tariffs) state.tariffs = DEFAULT_TARIFFS;
         } else {
             state.users = SEED_USERS;
             state.prealerts = SEED_PREALERTS;
             state.packages = SEED_PACKAGES;
+            state.userTypes = DEFAULT_USER_TYPES;
+            state.tariffs = DEFAULT_TARIFFS;
             saveStateLocal();
         }
     }
@@ -393,8 +427,14 @@ const app = {
             } else if (tabId === 'tab-cotizador') {
                 headerTitle.textContent = "Cotizador de Envíos";
                 headerSub.textContent = "Genera cotizaciones estimadas de costos de importación por casillero.";
+            } else if (tabId === 'tab-tipos-usuario') {
+                headerTitle.textContent = "Tipos de Usuario";
+                headerSub.textContent = "Administra los tipos de cuenta disponibles y sus características.";
+            } else if (tabId === 'tab-tarifas') {
+                headerTitle.textContent = "Tarifas por Tipo de Usuario";
+                headerSub.textContent = "Configura las tarifas aplicadas a cada tipo de cliente. Los cambios aplican en futuros cálculos.";
             }
-            
+
             // Re-sync and Re-render specifically selected tab tables to ensure current calculations
             await loadState();
             this.renderAll();
@@ -457,6 +497,17 @@ const app = {
             this.renderPurchaseRequestsList();
         });
 
+        // Tipos de usuario form
+        document.getElementById('form-user-type').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleSaveUserType();
+        });
+
+        // Tarifas form
+        document.getElementById('form-tariff').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleSaveTariff();
+        });
     },
 
     // Show dynamic notification alerts
@@ -518,6 +569,239 @@ const app = {
         };
     },
 
+    // ─── TIPOS DE USUARIO ────────────────────────────────────────────────────
+    renderUserTypeSelect: function() {
+        const sel = document.getElementById('user-type');
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '';
+        const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+        types.filter(t => t.active !== false).forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.label;
+            if (t.id === current || (!current && t.id === 'cliente')) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    },
+
+    renderUserTypesList: function() {
+        const tbody = document.getElementById('table-user-types-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+        if (!types.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No hay tipos configurados.</td></tr>`;
+            return;
+        }
+        types.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><code style="background:var(--bg-app); padding:2px 8px; border-radius:4px; font-size:0.85rem;">${t.id}</code></td>
+                <td><strong>${t.label}</strong></td>
+                <td style="color:var(--text-muted); font-size:0.85rem;">${t.description || '—'}</td>
+                <td><span class="badge ${t.active !== false ? 'badge-success' : 'badge-secondary'}">${t.active !== false ? 'Sí' : 'No'}</span></td>
+                <td style="white-space:nowrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="app.editUserType('${t.id}')">Editar</button>
+                    <button class="btn btn-sm" style="background:#fee2e2; color:#991b1b; margin-left:4px;" onclick="app.deleteUserType('${t.id}')">Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    handleSaveUserType: async function() {
+        const editId = document.getElementById('ut-edit-id').value.trim();
+        const id = document.getElementById('ut-id').value.trim().toLowerCase().replace(/\s+/g, '-');
+        const label = document.getElementById('ut-label').value.trim();
+        const description = document.getElementById('ut-desc').value.trim();
+        if (!id || !label) return;
+        const record = { id, label, description, active: true };
+        if (useSupabase) {
+            try {
+                if (editId) {
+                    const { error } = await supabaseClient.from('user_types').update({ label, description }).eq('id', editId);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient.from('user_types').insert([record]);
+                    if (error) throw error;
+                }
+            } catch (err) { this.showAlert(`Error: ${err.message}`, 'danger'); return; }
+        } else {
+            if (editId) {
+                const idx = state.userTypes.findIndex(t => t.id === editId);
+                if (idx >= 0) state.userTypes[idx] = { ...state.userTypes[idx], label, description };
+            } else {
+                if (state.userTypes.find(t => t.id === id)) { this.showAlert('Ya existe un tipo con ese ID.', 'warning'); return; }
+                state.userTypes.push(record);
+            }
+            saveStateLocal();
+        }
+        await loadState();
+        this.renderUserTypesList();
+        this.renderUserTypeSelect();
+        this.renderTariffTypeFilterSelect();
+        this.resetUserTypeForm();
+        this.showAlert(`Tipo "${label}" guardado exitosamente.`, 'success');
+    },
+
+    editUserType: function(id) {
+        const t = (state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES).find(t => t.id === id);
+        if (!t) return;
+        document.getElementById('ut-edit-id').value = t.id;
+        document.getElementById('ut-id').value = t.id;
+        document.getElementById('ut-id').disabled = true;
+        document.getElementById('ut-label').value = t.label;
+        document.getElementById('ut-desc').value = t.description || '';
+        document.getElementById('btn-ut-submit').textContent = 'Actualizar Tipo';
+        document.getElementById('tab-tipos-usuario').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    resetUserTypeForm: function() {
+        document.getElementById('form-user-type').reset();
+        document.getElementById('ut-edit-id').value = '';
+        document.getElementById('ut-id').disabled = false;
+        document.getElementById('btn-ut-submit').textContent = 'Guardar Tipo';
+    },
+
+    deleteUserType: async function(id) {
+        if (!confirm(`¿Eliminar el tipo "${id}"? Se eliminarán también sus tarifas asociadas.`)) return;
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('user_types').delete().eq('id', id);
+            if (error) { this.showAlert(`Error: ${error.message}`, 'danger'); return; }
+        } else {
+            state.userTypes = state.userTypes.filter(t => t.id !== id);
+            state.tariffs   = state.tariffs.filter(t => t.user_type_id !== id);
+            saveStateLocal();
+        }
+        await loadState();
+        this.renderUserTypesList();
+        this.renderUserTypeSelect();
+        this.renderTariffTypeFilterSelect();
+        this.showAlert('Tipo de usuario eliminado.', 'success');
+    },
+
+    // ─── TARIFAS ─────────────────────────────────────────────────────────────
+    renderTariffTypeFilterSelect: function() {
+        const sel = document.getElementById('tariff-type-filter');
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">-- Selecciona tipo --</option>';
+        const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+        types.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.label;
+            if (t.id === current) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    },
+
+    renderTariffsList: function() {
+        const container = document.getElementById('tariffs-list-container');
+        if (!container) return;
+        const typeId = document.getElementById('tariff-type-filter').value;
+        if (!typeId) {
+            container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:2rem;">Selecciona un tipo de usuario para ver sus tarifas.</p>`;
+            return;
+        }
+        const tariffs = state.tariffs.filter(t => t.user_type_id === typeId);
+        const typeName = (state.userTypes.find(t => t.id === typeId) || {}).label || typeId;
+        if (!tariffs.length) {
+            container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:2rem;">No hay tarifas para <strong>${typeName}</strong>. Usa el formulario para agregar la primera.</p>`;
+            return;
+        }
+        container.innerHTML = `
+            <div style="margin-bottom:0.75rem; font-size:0.85rem; color:var(--text-muted);">
+                Tarifas para: <strong style="color:var(--primary);">${typeName}</strong>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Concepto</th><th style="text-align:right;">Valor</th><th>Unidad</th><th>Descripción</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                        ${tariffs.map(t => `
+                            <tr>
+                                <td><strong>${t.concept}</strong></td>
+                                <td style="text-align:right; font-weight:600; color:var(--primary);">${parseFloat(t.value).toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                                <td><code style="background:var(--bg-app); padding:2px 6px; border-radius:4px; font-size:0.8rem;">${t.unit || '—'}</code></td>
+                                <td style="color:var(--text-muted); font-size:0.85rem;">${t.description || '—'}</td>
+                                <td style="white-space:nowrap;">
+                                    <button class="btn btn-secondary btn-sm" onclick="app.editTariff('${t.id}')">Editar</button>
+                                    <button class="btn btn-sm" style="background:#fee2e2; color:#991b1b; margin-left:4px;" onclick="app.deleteTariff('${t.id}')">Eliminar</button>
+                                </td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    },
+
+    handleSaveTariff: async function() {
+        const editId    = document.getElementById('tf-edit-id').value.trim();
+        const userTypeId= document.getElementById('tariff-type-filter').value;
+        const concept   = document.getElementById('tf-concept').value.trim();
+        const value     = parseFloat(document.getElementById('tf-value').value);
+        const unit      = document.getElementById('tf-unit').value.trim();
+        const description = document.getElementById('tf-desc').value.trim();
+        if (!userTypeId) { this.showAlert('Selecciona un tipo de usuario primero.', 'warning'); return; }
+        if (!concept || isNaN(value)) { this.showAlert('Completa el concepto y el valor.', 'warning'); return; }
+        if (useSupabase) {
+            try {
+                if (editId) {
+                    const { error } = await supabaseClient.from('tariffs').update({ concept, value, unit, description }).eq('id', editId);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient.from('tariffs').insert([{ user_type_id: userTypeId, concept, value, unit, description }]);
+                    if (error) throw error;
+                }
+            } catch (err) { this.showAlert(`Error: ${err.message}`, 'danger'); return; }
+        } else {
+            if (editId) {
+                const idx = state.tariffs.findIndex(t => t.id === editId);
+                if (idx >= 0) state.tariffs[idx] = { ...state.tariffs[idx], concept, value, unit, description };
+            } else {
+                state.tariffs.push({ id: `tf_${Date.now()}`, user_type_id: userTypeId, concept, value, unit, description });
+            }
+            saveStateLocal();
+        }
+        await loadState();
+        this.renderTariffsList();
+        this.resetTariffForm();
+        this.showAlert(`Tarifa "${concept}" guardada.`, 'success');
+    },
+
+    editTariff: function(id) {
+        const t = state.tariffs.find(t => t.id === id);
+        if (!t) return;
+        document.getElementById('tf-edit-id').value    = t.id;
+        document.getElementById('tariff-type-filter').value = t.user_type_id;
+        document.getElementById('tf-concept').value   = t.concept;
+        document.getElementById('tf-value').value     = t.value;
+        document.getElementById('tf-unit').value      = t.unit || '';
+        document.getElementById('tf-desc').value      = t.description || '';
+        document.getElementById('btn-tf-submit').textContent = 'Actualizar Tarifa';
+        this.renderTariffsList();
+    },
+
+    resetTariffForm: function() {
+        document.getElementById('form-tariff').reset();
+        document.getElementById('tf-edit-id').value = '';
+        document.getElementById('btn-tf-submit').textContent = 'Guardar Tarifa';
+    },
+
+    deleteTariff: async function(id) {
+        if (!confirm('¿Eliminar esta tarifa?')) return;
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('tariffs').delete().eq('id', id);
+            if (error) { this.showAlert(`Error: ${error.message}`, 'danger'); return; }
+        } else {
+            state.tariffs = state.tariffs.filter(t => t.id !== id);
+            saveStateLocal();
+        }
+        await loadState();
+        this.renderTariffsList();
+        this.showAlert('Tarifa eliminada.', 'success');
+    },
+
     // RENDER FUNCTIONS
     renderAll: function() {
         this.renderMetrics();
@@ -531,6 +815,8 @@ const app = {
         this.renderConfigInputs();
         this.renderCotizadorConfig();
         this.renderPurchaseRequestsList();
+        this.renderUserTypeSelect();
+        this.renderTariffTypeFilterSelect();
     },
 
     renderMetrics: function() {
@@ -713,11 +999,14 @@ const app = {
         });
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
             return;
         }
         
         filtered.forEach(u => {
+            const typeLabel = (state.userTypes.find(t => t.id === (u.userType || 'cliente')) || {}).label || (u.userType || 'cliente');
+            const typeColors = { cliente: '#6366f1', emprendedor: '#f97316', aliado: '#10b981', administrador: '#ef4444' };
+            const typeColor = typeColors[u.userType] || '#64748b';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong></td>
@@ -726,6 +1015,7 @@ const app = {
                 <td>${u.email}</td>
                 <td>${u.phone || '—'}</td>
                 <td>${u.city || '—'}</td>
+                <td><span style="background:${typeColor}22; color:${typeColor}; padding:2px 8px; border-radius:20px; font-size:0.78rem; font-weight:600; white-space:nowrap;">${typeLabel}</span></td>
                 <td>${u.dateCreated || '—'}</td>
             `;
             tbody.appendChild(tr);
@@ -1137,6 +1427,7 @@ const app = {
         const doc = document.getElementById('user-doc').value.trim();
         const city = document.getElementById('user-city').value.trim();
         const address = document.getElementById('user-address').value.trim();
+        const userType = document.getElementById('user-type').value || 'cliente';
         
         // Auto-generate locker code: buscar el mayor número PAKKIXXXXX e incrementar
         let maxSequence = 50191; // seed basado en el último código importado
@@ -1159,6 +1450,7 @@ const app = {
             city,
             address,
             lockerCode,
+            userType,
             dateCreated: todayStr
         };
         
