@@ -332,17 +332,31 @@ Tel: +1 (305) 555-0199
                         </div>
                     </div>
 
+                    <!-- Barra de acciones masivas (se muestra al seleccionar filas) -->
+                    <div id="lockers-bulk-bar" style="display:none; align-items:center; gap:0.75rem; flex-wrap:wrap; background:var(--bg-app); border-radius:var(--radius-md); padding:0.65rem 1rem; margin-bottom:1rem; border:1px solid var(--primary);">
+                        <span id="lockers-selected-count" style="font-weight:600; color:var(--primary); font-size:0.9rem; white-space:nowrap;"></span>
+                        <select id="bulk-type-select" style="flex:1; min-width:160px; max-width:240px; font-size:0.85rem; padding:0.35rem 0.6rem; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary);">
+                            <option value="">-- Asignar tipo --</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="app.applyBulkLockerType()">Aplicar a seleccionados</button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.clearLockersSelection()">Deseleccionar todo</button>
+                    </div>
+
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
+                                    <th style="width:36px; text-align:center;">
+                                        <input type="checkbox" id="chk-select-all-lockers" onchange="app.selectAllLockers(this.checked)"
+                                               style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;" title="Seleccionar todos">
+                                    </th>
                                     <th>Código Casillero</th>
                                     <th>Nombre del Cliente</th>
                                     <th>Documento / Identidad</th>
                                     <th>Correo Electrónico</th>
                                     <th>Teléfono</th>
                                     <th>Ciudad Destino</th>
-                                    <th>Tipo</th>
+                                    <th>Tipo de Usuario</th>
                                     <th>Fecha Registro</th>
                                 </tr>
                             </thead>

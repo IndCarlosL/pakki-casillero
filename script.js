@@ -989,37 +989,136 @@ const app = {
     renderLockersList: function(searchQuery = '') {
         const tbody = document.getElementById('table-lockers-body');
         tbody.innerHTML = '';
-        
-        const query = searchQuery.toLowerCase();
+
+        // Reset select-all checkbox
+        const selectAllChk = document.getElementById('chk-select-all-lockers');
+        if (selectAllChk) { selectAllChk.checked = false; selectAllChk.indeterminate = false; }
+        const bulkBar = document.getElementById('lockers-bulk-bar');
+        if (bulkBar) bulkBar.style.display = 'none';
+
+        const query = (searchQuery || '').toLowerCase();
         const filtered = state.users.filter(u => {
-            return u.name.toLowerCase().includes(query) || 
-                   u.email.toLowerCase().includes(query) || 
-                   u.lockerCode.toLowerCase().includes(query) ||
-                   u.doc.toLowerCase().includes(query);
+            return (u.name || '').toLowerCase().includes(query) ||
+                   (u.email || '').toLowerCase().includes(query) ||
+                   (u.lockerCode || '').toLowerCase().includes(query) ||
+                   (u.doc || '').toLowerCase().includes(query);
         });
-        
+
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
             return;
         }
-        
+
+        const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+        const typeColors = { cliente: '#6366f1', emprendedor: '#f97316', aliado: '#10b981', administrador: '#ef4444' };
+        const typeOptionsHTML = types.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+
         filtered.forEach(u => {
-            const typeLabel = (state.userTypes.find(t => t.id === (u.userType || 'cliente')) || {}).label || (u.userType || 'cliente');
-            const typeColors = { cliente: '#6366f1', emprendedor: '#f97316', aliado: '#10b981', administrador: '#ef4444' };
-            const typeColor = typeColors[u.userType] || '#64748b';
+            const currentType = u.userType || 'cliente';
+            const typeColor = typeColors[currentType] || '#64748b';
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td style="text-align:center;">
+                    <input type="checkbox" class="locker-chk" data-user-id="${u.id}"
+                           onchange="app.updateLockersSelection()"
+                           style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;">
+                </td>
                 <td><strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong></td>
                 <td><strong>${u.name}</strong></td>
                 <td>${u.doc || '—'}</td>
                 <td>${u.email}</td>
                 <td>${u.phone || '—'}</td>
                 <td>${u.city || '—'}</td>
-                <td><span style="background:${typeColor}22; color:${typeColor}; padding:2px 8px; border-radius:20px; font-size:0.78rem; font-weight:600; white-space:nowrap;">${typeLabel}</span></td>
+                <td>
+                    <select data-user-id="${u.id}" onchange="app.changeLockerType('${u.id}', this.value)"
+                            style="font-size:0.82rem; padding:3px 8px; border-radius:20px; border:1.5px solid ${typeColor}; background:${typeColor}22; color:${typeColor}; font-weight:600; cursor:pointer; outline:none; appearance:auto;">
+                        ${types.map(t => `<option value="${t.id}" ${t.id === currentType ? 'selected' : ''}>${t.label}</option>`).join('')}
+                    </select>
+                </td>
                 <td>${u.dateCreated || '—'}</td>
             `;
             tbody.appendChild(tr);
         });
+    },
+
+    updateLockersSelection: function() {
+        const checked = document.querySelectorAll('.locker-chk:checked');
+        const all     = document.querySelectorAll('.locker-chk');
+        const bar     = document.getElementById('lockers-bulk-bar');
+        const countEl = document.getElementById('lockers-selected-count');
+        const selectAllChk = document.getElementById('chk-select-all-lockers');
+        const n = checked.length;
+
+        bar.style.display = n > 0 ? 'flex' : 'none';
+        if (countEl) countEl.textContent = `${n} casillero${n !== 1 ? 's' : ''} seleccionado${n !== 1 ? 's' : ''}`;
+        if (selectAllChk) {
+            selectAllChk.checked = n === all.length && n > 0;
+            selectAllChk.indeterminate = n > 0 && n < all.length;
+        }
+
+        // Populate bulk type select if empty
+        const bulkSel = document.getElementById('bulk-type-select');
+        if (bulkSel && bulkSel.options.length <= 1) {
+            const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+            types.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.label;
+                bulkSel.appendChild(opt);
+            });
+        }
+    },
+
+    selectAllLockers: function(checked) {
+        document.querySelectorAll('.locker-chk').forEach(c => c.checked = checked);
+        this.updateLockersSelection();
+    },
+
+    clearLockersSelection: function() {
+        document.querySelectorAll('.locker-chk').forEach(c => c.checked = false);
+        const selectAllChk = document.getElementById('chk-select-all-lockers');
+        if (selectAllChk) { selectAllChk.checked = false; selectAllChk.indeterminate = false; }
+        document.getElementById('lockers-bulk-bar').style.display = 'none';
+    },
+
+    changeLockerType: async function(userId, newType) {
+        if (!newType) return;
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('users').update({ userType: newType }).eq('id', userId);
+            if (error) { this.showAlert(`Error al actualizar: ${error.message}`, 'danger'); return; }
+        } else {
+            const u = state.users.find(u => u.id === userId);
+            if (u) u.userType = newType;
+            saveStateLocal();
+        }
+        // Update in local state without full reload
+        const u = state.users.find(u => u.id === userId);
+        if (u) u.userType = newType;
+        // Re-color the select that just changed
+        const sel = document.querySelector(`select[data-user-id="${userId}"]`);
+        const typeColors = { cliente: '#6366f1', emprendedor: '#f97316', aliado: '#10b981', administrador: '#ef4444' };
+        const c = typeColors[newType] || '#64748b';
+        if (sel) { sel.style.borderColor = c; sel.style.background = c + '22'; sel.style.color = c; }
+        this.showAlert('Tipo de usuario actualizado.', 'success');
+    },
+
+    applyBulkLockerType: async function() {
+        const selected = [...document.querySelectorAll('.locker-chk:checked')].map(c => c.dataset.userId);
+        const newType  = document.getElementById('bulk-type-select').value;
+        if (!selected.length) { this.showAlert('Selecciona al menos un casillero.', 'warning'); return; }
+        if (!newType) { this.showAlert('Selecciona un tipo de usuario para aplicar.', 'warning'); return; }
+        const typeName = ((state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES).find(t => t.id === newType) || {}).label || newType;
+        if (!confirm(`¿Asignar el tipo "${typeName}" a ${selected.length} casillero(s)?`)) return;
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('users').update({ userType: newType }).in('id', selected);
+            if (error) { this.showAlert(`Error: ${error.message}`, 'danger'); return; }
+        } else {
+            selected.forEach(id => { const u = state.users.find(u => u.id === id); if (u) u.userType = newType; });
+            saveStateLocal();
+        }
+        await loadState();
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+        this.showAlert(`Tipo "${typeName}" asignado a ${selected.length} casillero(s) exitosamente.`, 'success');
     },
 
     renderPrealertsList: function() {
