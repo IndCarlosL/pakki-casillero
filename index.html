@@ -360,14 +360,14 @@ Tel: +1 (305) 555-0199
                                         <input type="checkbox" id="chk-select-all-lockers" onchange="app.selectAllLockers(this.checked)"
                                                style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;" title="Seleccionar todos">
                                     </th>
-                                    <th data-sort-col="lockerCode" onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Código Casillero <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th data-sort-col="name"        onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Nombre del Cliente <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th data-sort-col="doc"         onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Documento <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th data-sort-col="email"       onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Correo Electrónico <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th>Teléfono</th>
-                                    <th data-sort-col="city"        onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Ciudad Destino <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th data-sort-col="userType"    onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Tipo de Usuario <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
-                                    <th data-sort-col="dateCreated" onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Fecha Registro <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="lockerCode" onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Código <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="name"        onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Nombre <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="doc"         onclick="app.sortLockers(this)" class="col-hide-500" style="cursor:pointer; user-select:none; white-space:nowrap;">Documento <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="email"       onclick="app.sortLockers(this)" class="col-hide-700" style="cursor:pointer; user-select:none; white-space:nowrap;">Correo <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th class="col-hide-900">Teléfono</th>
+                                    <th data-sort-col="city"        onclick="app.sortLockers(this)" class="col-hide-700" style="cursor:pointer; user-select:none; white-space:nowrap;">Ciudad <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="userType"    onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Tipo <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="dateCreated" onclick="app.sortLockers(this)" class="col-hide-900" style="cursor:pointer; user-select:none; white-space:nowrap;">Fecha <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
                                 </tr>
                             </thead>
                             <tbody id="table-lockers-body">

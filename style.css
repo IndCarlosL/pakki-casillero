@@ -490,6 +490,23 @@ textarea {
     border-radius: var(--radius-sm);
 }
 
+/* ── Columnas ocultables por breakpoint (usadas en tabla Casilleros) ── */
+.col-hide-900,
+.col-hide-700,
+.col-hide-500 { display: table-cell; }   /* visible por defecto */
+
+@media (max-width: 900px) { .col-hide-900 { display: none !important; } }
+@media (max-width: 700px) { .col-hide-700 { display: none !important; } }
+@media (max-width: 500px) { .col-hide-500 { display: none !important; } }
+
+/* Tabla Casilleros: padding más compacto para caber en pantalla */
+#tab-casillero-list .table-container th,
+#tab-casillero-list .table-container td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.83rem;
+    white-space: nowrap;
+}
+
 /* Paginador de casilleros */
 #lockers-pagination {
     display: flex;

@@ -1065,17 +1065,17 @@ const app = {
                 </td>
                 <td><strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong></td>
                 <td><strong>${u.name}</strong></td>
-                <td>${u.doc || '—'}</td>
-                <td>${u.email}</td>
-                <td>${u.phone || '—'}</td>
-                <td>${u.city || '—'}</td>
+                <td class="col-hide-500">${u.doc || '—'}</td>
+                <td class="col-hide-700">${u.email}</td>
+                <td class="col-hide-900">${u.phone || '—'}</td>
+                <td class="col-hide-700">${u.city || '—'}</td>
                 <td>
                     <select data-user-id="${u.id}" onchange="app.changeLockerType('${u.id}', this.value)"
                             style="font-size:0.82rem; padding:3px 8px; border-radius:20px; border:1.5px solid ${typeColor}; background:${typeColor}22; color:${typeColor}; font-weight:600; cursor:pointer; outline:none; appearance:auto;">
                         ${types.map(t => `<option value="${t.id}" ${t.id === currentType ? 'selected' : ''}>${t.label}</option>`).join('')}
                     </select>
                 </td>
-                <td>${u.dateCreated || '—'}</td>
+                <td class="col-hide-900">${u.dateCreated || '—'}</td>
             `;
             tbody.appendChild(tr);
         });
