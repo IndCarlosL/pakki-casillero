@@ -322,17 +322,27 @@ Tel: +1 (305) 555-0199
                 <div class="card">
                     <div class="section-card-header">
                         <h2>Base de Clientes y Casilleros</h2>
-                        <div class="filters-bar">
+                        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.83rem; color:var(--text-muted); white-space:nowrap;">
+                                <span>Mostrar</span>
+                                <select id="lockers-per-page" onchange="app.setLockersPerPage(+this.value)"
+                                        style="padding:4px 8px; font-size:0.83rem; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card);">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                </select>
+                                <span>por página</span>
+                            </div>
                             <div class="search-input-wrapper">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                                 </svg>
-                                <input type="text" id="search-lockers" placeholder="Buscar por Nombre, Correo o Código de Casillero...">
+                                <input type="text" id="search-lockers" placeholder="Buscar por Nombre, Correo o Código...">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Barra de acciones masivas (se muestra al seleccionar filas) -->
+                    <!-- Barra de acciones masivas -->
                     <div id="lockers-bulk-bar" style="display:none; align-items:center; gap:0.75rem; flex-wrap:wrap; background:var(--bg-app); border-radius:var(--radius-md); padding:0.65rem 1rem; margin-bottom:1rem; border:1px solid var(--primary);">
                         <span id="lockers-selected-count" style="font-weight:600; color:var(--primary); font-size:0.9rem; white-space:nowrap;"></span>
                         <select id="bulk-type-select" style="flex:1; min-width:160px; max-width:240px; font-size:0.85rem; padding:0.35rem 0.6rem; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary);">
@@ -344,20 +354,20 @@ Tel: +1 (305) 555-0199
 
                     <div class="table-container">
                         <table>
-                            <thead>
+                            <thead id="table-lockers-head">
                                 <tr>
                                     <th style="width:36px; text-align:center;">
                                         <input type="checkbox" id="chk-select-all-lockers" onchange="app.selectAllLockers(this.checked)"
                                                style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;" title="Seleccionar todos">
                                     </th>
-                                    <th>Código Casillero</th>
-                                    <th>Nombre del Cliente</th>
-                                    <th>Documento / Identidad</th>
-                                    <th>Correo Electrónico</th>
+                                    <th data-sort-col="lockerCode" onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Código Casillero <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="name"        onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Nombre del Cliente <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="doc"         onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Documento <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="email"       onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Correo Electrónico <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
                                     <th>Teléfono</th>
-                                    <th>Ciudad Destino</th>
-                                    <th>Tipo de Usuario</th>
-                                    <th>Fecha Registro</th>
+                                    <th data-sort-col="city"        onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Ciudad Destino <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="userType"    onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Tipo de Usuario <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="dateCreated" onclick="app.sortLockers(this)" style="cursor:pointer; user-select:none; white-space:nowrap;">Fecha Registro <span class="sort-icon" style="color:var(--text-muted); font-size:0.75em;">↕</span></th>
                                 </tr>
                             </thead>
                             <tbody id="table-lockers-body">
@@ -365,6 +375,9 @@ Tel: +1 (305) 555-0199
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginador -->
+                    <div id="lockers-pagination" style="display:flex; align-items:center; justify-content:space-between; margin-top:1rem; flex-wrap:wrap; gap:0.5rem;"></div>
                 </div>
             </section>
 

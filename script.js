@@ -341,6 +341,10 @@ async function loadState() {
     }
 }
 
+// Estado de ordenamiento y paginación de la tabla de casilleros
+let lockersSort       = { col: 'name', dir: 'asc' };
+let lockersPagination = { page: 1, perPage: 10 };
+
 // Core Controller Object
 const app = {
     init: async function() {
@@ -465,6 +469,7 @@ const app = {
 
         // Live Search Filters
         document.getElementById('search-lockers').addEventListener('input', (e) => {
+            lockersPagination.page = 1;
             this.renderLockersList(e.target.value.trim());
         });
 
@@ -990,30 +995,65 @@ const app = {
         const tbody = document.getElementById('table-lockers-body');
         tbody.innerHTML = '';
 
-        // Reset select-all checkbox
+        // Reset checkboxes y bulk bar
         const selectAllChk = document.getElementById('chk-select-all-lockers');
         if (selectAllChk) { selectAllChk.checked = false; selectAllChk.indeterminate = false; }
         const bulkBar = document.getElementById('lockers-bulk-bar');
         if (bulkBar) bulkBar.style.display = 'none';
 
+        // 1. Filtrar
         const query = (searchQuery || '').toLowerCase();
-        const filtered = state.users.filter(u => {
-            return (u.name || '').toLowerCase().includes(query) ||
-                   (u.email || '').toLowerCase().includes(query) ||
-                   (u.lockerCode || '').toLowerCase().includes(query) ||
-                   (u.doc || '').toLowerCase().includes(query);
+        let filtered = state.users.filter(u =>
+            (u.name       || '').toLowerCase().includes(query) ||
+            (u.email      || '').toLowerCase().includes(query) ||
+            (u.lockerCode || '').toLowerCase().includes(query) ||
+            (u.doc        || '').toLowerCase().includes(query)
+        );
+
+        // 2. Ordenar
+        const col = lockersSort.col;
+        const dir = lockersSort.dir === 'asc' ? 1 : -1;
+        filtered.sort((a, b) => {
+            const va = (a[col] || '').toString().toLowerCase();
+            const vb = (b[col] || '').toString().toLowerCase();
+            return va < vb ? -dir : va > vb ? dir : 0;
         });
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
+        // 3. Actualizar indicadores de orden en cabeceras
+        document.querySelectorAll('#table-lockers-head th[data-sort-col]').forEach(th => {
+            const icon = th.querySelector('.sort-icon');
+            if (!icon) return;
+            if (th.dataset.sortCol === col) {
+                icon.textContent = lockersSort.dir === 'asc' ? ' ↑' : ' ↓';
+                icon.style.color = 'var(--primary)';
+            } else {
+                icon.textContent = ' ↕';
+                icon.style.color = 'var(--text-muted)';
+            }
+        });
+
+        const total = filtered.length;
+        const paginationEl = document.getElementById('lockers-pagination');
+
+        if (total === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);">No se encontraron casilleros con el criterio de búsqueda.</td></tr>`;
+            if (paginationEl) paginationEl.innerHTML = '';
             return;
         }
 
+        // 4. Paginar
+        const perPage = lockersPagination.perPage;
+        const totalPages = Math.ceil(total / perPage);
+        if (lockersPagination.page > totalPages) lockersPagination.page = totalPages;
+        if (lockersPagination.page < 1) lockersPagination.page = 1;
+        const start = (lockersPagination.page - 1) * perPage;
+        const pageData = filtered.slice(start, start + perPage);
+
+        // 5. Renderizar filas de la página actual
         const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
         const typeColors = { cliente: '#6366f1', emprendedor: '#f97316', aliado: '#10b981', administrador: '#ef4444' };
-        const typeOptionsHTML = types.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
 
-        filtered.forEach(u => {
+        pageData.forEach(u => {
             const currentType = u.userType || 'cliente';
             const typeColor = typeColors[currentType] || '#64748b';
             const tr = document.createElement('tr');
@@ -1039,6 +1079,78 @@ const app = {
             `;
             tbody.appendChild(tr);
         });
+
+        // 6. Renderizar paginador
+        this.renderLockersPagination(total, totalPages, start, perPage);
+    },
+
+    sortLockers: function(th) {
+        const col = th.dataset.sortCol;
+        if (lockersSort.col === col) {
+            lockersSort.dir = lockersSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            lockersSort.col = col;
+            lockersSort.dir = 'asc';
+        }
+        lockersPagination.page = 1;
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+    },
+
+    setLockersPerPage: function(n) {
+        lockersPagination.perPage = n;
+        lockersPagination.page = 1;
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+    },
+
+    goToLockersPage: function(page) {
+        const perPage = lockersPagination.perPage;
+        const total = state.users.length;
+        const totalPages = Math.ceil(total / perPage);
+        if (page < 1 || page > totalPages) return;
+        lockersPagination.page = page;
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+        document.getElementById('tab-casillero-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    renderLockersPagination: function(total, totalPages, start, perPage) {
+        const container = document.getElementById('lockers-pagination');
+        if (!container) return;
+        if (totalPages <= 1) { container.innerHTML = `<span style="font-size:0.82rem; color:var(--text-muted);">${total} casillero${total !== 1 ? 's' : ''} en total</span>`; return; }
+
+        const page = lockersPagination.page;
+        const end  = Math.min(start + perPage, total);
+
+        // Botones de páginas con elipsis
+        let btns = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const show = i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1);
+            const isEllipsisBefore = i === page - 2 && page - 2 > 1;
+            const isEllipsisAfter  = i === page + 2 && page + 2 < totalPages;
+            if (isEllipsisBefore || isEllipsisAfter) { btns += `<span style="color:var(--text-muted); padding:0 2px; font-size:0.85rem;">…</span>`; continue; }
+            if (!show) continue;
+            const active = i === page;
+            btns += `<button onclick="app.goToLockersPage(${i})"
+                style="min-width:30px; padding:4px 8px; border-radius:6px;
+                       border:1px solid ${active ? 'var(--primary)' : 'var(--border-color)'};
+                       background:${active ? 'var(--primary)' : 'white'};
+                       color:${active ? 'white' : 'var(--text-main)'};
+                       font-size:0.82rem; font-weight:${active ? '700' : '500'};
+                       cursor:${active ? 'default' : 'pointer'};">${i}</button>`;
+        }
+
+        const btnStyle = (disabled) => `padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:white; font-size:0.82rem; cursor:${disabled ? 'default' : 'pointer'}; opacity:${disabled ? '0.35' : '1'};`;
+
+        container.innerHTML = `
+            <span style="font-size:0.82rem; color:var(--text-muted);">
+                Mostrando <strong>${start + 1}–${end}</strong> de <strong>${total}</strong> casilleros
+            </span>
+            <div style="display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap;">
+                <button onclick="app.goToLockersPage(1)" ${page<=1?'disabled':''} style="${btnStyle(page<=1)}" title="Primera">«</button>
+                <button onclick="app.goToLockersPage(${page-1})" ${page<=1?'disabled':''} style="${btnStyle(page<=1)}" title="Anterior">‹</button>
+                ${btns}
+                <button onclick="app.goToLockersPage(${page+1})" ${page>=totalPages?'disabled':''} style="${btnStyle(page>=totalPages)}" title="Siguiente">›</button>
+                <button onclick="app.goToLockersPage(${totalPages})" ${page>=totalPages?'disabled':''} style="${btnStyle(page>=totalPages)}" title="Última">»</button>
+            </div>`;
     },
 
     updateLockersSelection: function() {
