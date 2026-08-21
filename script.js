@@ -1056,14 +1056,20 @@ const app = {
         pageData.forEach(u => {
             const currentType = u.userType || 'cliente';
             const typeColor = typeColors[currentType] || '#64748b';
+            const isInactive = u.active === false;
             const tr = document.createElement('tr');
+            if (isInactive) tr.style.cssText = 'opacity:0.45; background:#f8fafc;';
             tr.innerHTML = `
                 <td style="text-align:center;">
                     <input type="checkbox" class="locker-chk" data-user-id="${u.id}"
                            onchange="app.updateLockersSelection()"
                            style="width:16px; height:16px; accent-color:var(--primary); cursor:pointer;">
                 </td>
-                <td><strong style="color:var(--primary); font-size:1.05rem;">${u.lockerCode}</strong></td>
+                <td>
+                    <button onclick="app.openLockerModal('${u.id}')"
+                            style="background:none; border:none; padding:0; cursor:pointer; color:var(--primary); font-weight:700; font-size:1.05rem; text-decoration:underline dotted; text-underline-offset:3px;"
+                            title="Editar casillero">${u.lockerCode}</button>
+                </td>
                 <td><strong>${u.name}</strong></td>
                 <td class="col-hide-500">${u.doc || '—'}</td>
                 <td class="col-hide-700">${u.email}</td>
@@ -1231,6 +1237,118 @@ const app = {
         await loadState();
         this.renderLockersList(document.getElementById('search-lockers').value.trim());
         this.showAlert(`Tipo "${typeName}" asignado a ${selected.length} casillero(s) exitosamente.`, 'success');
+    },
+
+    // ── Modal Editar / Inactivar Casillero ─────────────────────────────
+    openLockerModal: function(userId) {
+        const u = state.users.find(u => u.id === userId);
+        if (!u) return;
+
+        document.getElementById('edit-locker-id').value = u.id;
+        document.getElementById('edit-locker-code-label').textContent = u.lockerCode || '—';
+        document.getElementById('edit-locker-date-label').textContent = u.dateCreated || '—';
+        document.getElementById('edit-locker-name').value    = u.name    || '';
+        document.getElementById('edit-locker-doc').value     = u.doc     || '';
+        document.getElementById('edit-locker-email').value   = u.email   || '';
+        document.getElementById('edit-locker-phone').value   = u.phone   || '';
+        document.getElementById('edit-locker-city').value    = u.city    || '';
+        document.getElementById('edit-locker-address').value = u.address || '';
+
+        // Tipo de usuario
+        const types = state.userTypes.length ? state.userTypes : DEFAULT_USER_TYPES;
+        const typeSelect = document.getElementById('edit-locker-type');
+        typeSelect.innerHTML = types.map(t =>
+            `<option value="${t.id}" ${t.id === (u.userType || 'cliente') ? 'selected' : ''}>${t.label}</option>`
+        ).join('');
+
+        // Estado activo / inactivo
+        const isActive = u.active !== false;
+        const statusLabel = document.getElementById('edit-locker-status-label');
+        statusLabel.innerHTML = isActive
+            ? `<span style="background:#dcfce7; color:#16a34a; border-radius:20px; padding:2px 10px; font-size:0.78rem; font-weight:600;">Activo</span>`
+            : `<span style="background:#fee2e2; color:#dc2626; border-radius:20px; padding:2px 10px; font-size:0.78rem; font-weight:600;">Inactivo</span>`;
+
+        const btnToggle = document.getElementById('btn-inactivate-locker');
+        if (isActive) {
+            btnToggle.textContent = 'Inactivar casillero';
+            btnToggle.style.background = '#fef2f2';
+            btnToggle.style.color = '#dc2626';
+            btnToggle.style.borderColor = '#fca5a5';
+        } else {
+            btnToggle.textContent = 'Reactivar casillero';
+            btnToggle.style.background = '#f0fdf4';
+            btnToggle.style.color = '#16a34a';
+            btnToggle.style.borderColor = '#86efac';
+        }
+
+        // Limpiar mensaje
+        const msg = document.getElementById('edit-locker-msg');
+        msg.style.display = 'none';
+
+        document.getElementById('modal-edit-locker').classList.add('active');
+    },
+
+    handleSaveLockerEdit: async function() {
+        const userId  = document.getElementById('edit-locker-id').value;
+        const name    = document.getElementById('edit-locker-name').value.trim();
+        const email   = document.getElementById('edit-locker-email').value.trim();
+        const doc     = document.getElementById('edit-locker-doc').value.trim();
+        const phone   = document.getElementById('edit-locker-phone').value.trim();
+        const city    = document.getElementById('edit-locker-city').value.trim();
+        const address = document.getElementById('edit-locker-address').value.trim();
+        const userType = document.getElementById('edit-locker-type').value;
+
+        const showMsg = (text, type) => {
+            const el = document.getElementById('edit-locker-msg');
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+            el.style.color = type === 'success' ? '#16a34a' : '#dc2626';
+        };
+
+        if (!name || !email) { showMsg('Nombre y correo son obligatorios.', 'error'); return; }
+
+        const updates = { name, email, doc, phone, city, address, userType };
+
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('users').update(updates).eq('id', userId);
+            if (error) { showMsg(`Error al guardar: ${error.message}`, 'error'); return; }
+        } else {
+            const u = state.users.find(u => u.id === userId);
+            if (u) Object.assign(u, updates);
+            saveStateLocal();
+        }
+
+        const u = state.users.find(u => u.id === userId);
+        if (u) Object.assign(u, updates);
+
+        this.closeModal('modal-edit-locker');
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+        this.showAlert('Datos del casillero actualizados correctamente.', 'success');
+    },
+
+    handleToggleLockerActive: async function() {
+        const userId = document.getElementById('edit-locker-id').value;
+        const u = state.users.find(u => u.id === userId);
+        if (!u) return;
+
+        const isActive = u.active !== false;
+        const newActive = !isActive;
+        const accion = newActive ? 'reactivar' : 'inactivar';
+        if (!confirm(`¿Deseas ${accion} el casillero ${u.lockerCode}?`)) return;
+
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('users').update({ active: newActive }).eq('id', userId);
+            if (error) { this.showAlert(`Error: ${error.message}`, 'danger'); return; }
+        } else {
+            u.active = newActive;
+            saveStateLocal();
+        }
+
+        u.active = newActive;
+        this.closeModal('modal-edit-locker');
+        this.renderLockersList(document.getElementById('search-lockers').value.trim());
+        this.showAlert(`Casillero ${u.lockerCode} ${newActive ? 'reactivado' : 'inactivado'} correctamente.`, newActive ? 'success' : 'warning');
     },
 
     renderPrealertsList: function() {

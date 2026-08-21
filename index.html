@@ -1221,6 +1221,71 @@ Tel: +1 (305) 555-0199
         </div>
     </div>
 
+    <!-- Modal: Editar / Inactivar Casillero -->
+    <div class="modal-overlay" id="modal-edit-locker">
+        <div class="modal-container" style="max-width:640px; width:95%;">
+            <div class="modal-header">
+                <h3>✏️ Editar Casillero</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-edit-locker')">&times;</button>
+            </div>
+            <form id="form-edit-locker" onsubmit="event.preventDefault(); app.handleSaveLockerEdit();">
+                <div class="modal-body" style="max-height:72vh; overflow-y:auto; display:flex; flex-direction:column; gap:1rem;">
+                    <div id="edit-locker-msg" style="display:none; padding:0.6rem 0.85rem; border-radius:6px; font-size:0.85rem; font-weight:500;"></div>
+                    <input type="hidden" id="edit-locker-id">
+
+                    <!-- Cabecera de identificación (solo lectura) -->
+                    <div style="background:var(--bg-app); border-radius:8px; padding:0.65rem 1rem; font-size:0.85rem; display:flex; gap:1.5rem; flex-wrap:wrap; align-items:center;">
+                        <span>Código: <strong id="edit-locker-code-label" style="color:var(--primary); font-size:1.05rem;">—</strong></span>
+                        <span>Registrado: <strong id="edit-locker-date-label" style="color:var(--text-muted);">—</strong></span>
+                        <span id="edit-locker-status-label"></span>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit-locker-name">Nombre completo *</label>
+                            <input type="text" id="edit-locker-name" required placeholder="Nombre del titular">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-locker-doc">Documento de identidad</label>
+                            <input type="text" id="edit-locker-doc" placeholder="CC / NIT / Pasaporte">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-locker-email">Correo electrónico *</label>
+                            <input type="email" id="edit-locker-email" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-locker-phone">Teléfono</label>
+                            <input type="text" id="edit-locker-phone" placeholder="+57 300 000 0000">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-locker-city">Ciudad destino</label>
+                            <input type="text" id="edit-locker-city" placeholder="Ciudad, Departamento">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-locker-type">Tipo de usuario</label>
+                            <select id="edit-locker-type"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-locker-address">Dirección de entrega</label>
+                        <input type="text" id="edit-locker-address" placeholder="Dirección completa">
+                    </div>
+                </div>
+                <div class="modal-footer" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                    <button type="button" id="btn-inactivate-locker"
+                            style="background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; border-radius:8px; padding:0.5rem 1.1rem; font-size:0.88rem; font-weight:600; cursor:pointer;"
+                            onclick="app.handleToggleLockerActive()">
+                        Inactivar casillero
+                    </button>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-edit-locker')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Editar datos del paquete -->
     <div class="modal-overlay" id="modal-edit-package">
         <div class="modal-container" style="max-width:680px; width:95%;">
