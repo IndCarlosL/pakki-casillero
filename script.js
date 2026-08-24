@@ -263,67 +263,50 @@ function saveStateLocal() {
     localStorage.setItem('pakki_locker_state', JSON.stringify(state));
 }
 
-// Helper: Load State (Soporte local y remoto)
+// Helper: Load State — siempre desde Supabase; localStorage solo si no hay credenciales
 async function loadState() {
     if (useSupabase) {
         try {
-            // 1. Obtener usuarios
-            const { data: users, error: errUsers } = await supabaseClient.from('users').select('*');
+            // Limpiar cualquier caché local para evitar mostrar datos obsoletos
+            localStorage.removeItem('pakki_locker_state');
+
+            const { data: users,          error: errUsers }    = await supabaseClient.from('users').select('*');
             if (errUsers) throw errUsers;
 
-            // 2. Obtener prealertas
-            const { data: prealerts, error: errPrealerts } = await supabaseClient.from('prealerts').select('*');
+            const { data: prealerts,      error: errPrealerts } = await supabaseClient.from('prealerts').select('*');
             if (errPrealerts) throw errPrealerts;
 
-            // 3. Obtener paquetes
-            const { data: packages, error: errPackages } = await supabaseClient.from('packages').select('*');
+            const { data: packages,       error: errPackages }  = await supabaseClient.from('packages').select('*');
             if (errPackages) throw errPackages;
 
-            // 4. Obtener configuraciones de lógica
-            const { data: settings, error: errSettings } = await supabaseClient.from('settings').select('*');
+            const { data: settings,       error: errSettings }  = await supabaseClient.from('settings').select('*');
             if (errSettings) throw errSettings;
 
-            // 5. Obtener solicitudes de compra
             const { data: purchaseRequests } = await supabaseClient.from('purchase_requests').select('*');
+            const { data: userTypes }        = await supabaseClient.from('user_types').select('*').order('label');
+            const { data: tariffs }          = await supabaseClient.from('tariffs').select('*');
 
-            // 6. Obtener tipos de usuario y tarifas
-            const { data: userTypes } = await supabaseClient.from('user_types').select('*').order('label');
-            const { data: tariffs }   = await supabaseClient.from('tariffs').select('*');
-
-            state.users = users || [];
-            state.prealerts = prealerts || [];
-            state.packages = packages || [];
+            // Solo datos reales de Supabase — sin semillas automáticas
+            state.users            = users            || [];
+            state.prealerts        = prealerts        || [];
+            state.packages         = packages         || [];
             state.purchaseRequests = purchaseRequests || [];
-            state.userTypes = userTypes && userTypes.length ? userTypes : DEFAULT_USER_TYPES;
-            state.tariffs   = tariffs   || [];
-            
+            state.userTypes        = (userTypes && userTypes.length) ? userTypes : DEFAULT_USER_TYPES;
+            state.tariffs          = tariffs || [];
+
             if (settings && settings.length > 0) {
                 state.settings = settings.find(s => s.id === 'global') || settings[0];
             }
-
-            // Sembrar datos de ejemplo en Supabase si está totalmente vacía
-            if (state.users.length === 0) {
-                console.log("Sembrando datos iniciales en Supabase...");
-                await supabaseClient.from('users').insert(SEED_USERS);
-                await supabaseClient.from('prealerts').insert(SEED_PREALERTS);
-                await supabaseClient.from('packages').insert(SEED_PACKAGES);
-                
-                // Recargar
-                const { data: rUsers } = await supabaseClient.from('users').select('*');
-                const { data: rPre } = await supabaseClient.from('prealerts').select('*');
-                const { data: rPkg } = await supabaseClient.from('packages').select('*');
-                state.users = rUsers || [];
-                state.prealerts = rPre || [];
-                state.packages = rPkg || [];
-            }
         } catch (error) {
             console.error("Error cargando datos desde Supabase:", error.message);
-            // Fallback a local si hay un error de conexión
-            useSupabase = false;
-            await loadState();
+            // NO hacer fallback a localStorage — mostrar el error claramente
+            state.users = [];
+            state.prealerts = [];
+            state.packages = [];
+            state._supabaseError = error.message;
         }
     } else {
-        // Carga de base de datos LocalStorage
+        // Modo sin Supabase: localStorage con datos mínimos vacíos
         const saved = localStorage.getItem('pakki_locker_state');
         if (saved) {
             state = JSON.parse(saved);
@@ -331,11 +314,12 @@ async function loadState() {
             if (!state.userTypes || !state.userTypes.length) state.userTypes = DEFAULT_USER_TYPES;
             if (!state.tariffs) state.tariffs = DEFAULT_TARIFFS;
         } else {
-            state.users = SEED_USERS;
-            state.prealerts = SEED_PREALERTS;
-            state.packages = SEED_PACKAGES;
-            state.userTypes = DEFAULT_USER_TYPES;
-            state.tariffs = DEFAULT_TARIFFS;
+            // Sin credenciales: partir de vacío (no insertar seed)
+            state.users            = [];
+            state.prealerts        = [];
+            state.packages         = [];
+            state.userTypes        = DEFAULT_USER_TYPES;
+            state.tariffs          = DEFAULT_TARIFFS;
             saveStateLocal();
         }
     }
@@ -372,12 +356,15 @@ const app = {
         const container = document.getElementById('alerts-container');
         const banner = document.createElement('div');
         banner.className = 'alert';
-        if (useSupabase) {
+        if (useSupabase && state._supabaseError) {
+            banner.className += ' alert-danger';
+            banner.innerHTML = `<strong>Error de conexión con Supabase:</strong> ${state._supabaseError}. Los datos mostrados están vacíos. Recarga la página para reintentar.`;
+        } else if (useSupabase) {
             banner.className += ' alert-success';
-            banner.innerHTML = `<strong>Nube Conectada:</strong> Sistema sincronizado con la base de datos de Supabase en tiempo real.`;
+            banner.innerHTML = `<strong>Nube Conectada:</strong> Sistema sincronizado con Supabase — ${state.users.length} casillero(s) cargado(s).`;
         } else {
             banner.className += ' alert-info';
-            banner.innerHTML = `<strong>Modo de Prueba Local:</strong> Los datos se guardan en el navegador. Configura las variables <code>SUPABASE_URL</code> y <code>SUPABASE_KEY</code> en la primera línea de <code>script.js</code> para conectar tu base de datos de Supabase.`;
+            banner.innerHTML = `<strong>Modo Local:</strong> Sin conexión a Supabase. Configura <code>SUPABASE_URL</code> y <code>SUPABASE_KEY</code> en <code>script.js</code>.`;
         }
         container.insertBefore(banner, container.firstChild);
     },
