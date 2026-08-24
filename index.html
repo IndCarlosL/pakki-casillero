@@ -383,187 +383,49 @@ Tel: +1 (305) 555-0199
 
             <!-- Tab 4: Prealertas -->
             <section id="tab-prealertas" class="tab-content">
-                <div class="dashboard-split">
-                    <!-- Left: Registrar Prealerta Form -->
-                    <div class="card">
-                        <div class="section-card-header">
-                            <h2>Crear Nueva Prealerta</h2>
-                        </div>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Registra las compras realizadas para notificar a la bodega de Miami de su próxima llegada.</p>
-                        
-                        <form id="form-register-prealert">
-                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                                <div class="form-group">
-                                    <label for="prealert-locker-search">Seleccionar Casillero / Usuario *</label>
-                                    <div style="position:relative;">
-                                        <input type="text" id="prealert-locker-search"
-                                               placeholder="Buscar por nombre, documento o código..."
-                                               autocomplete="off"
-                                               style="width:100%; padding-right:2.2rem;">
-                                        <span id="prealert-locker-clear"
-                                              onclick="app.clearLockerSearch()"
-                                              title="Limpiar selección"
-                                              style="display:none; position:absolute; right:0.65rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text-muted); font-size:1.1rem; line-height:1;">&times;</span>
-                                        <input type="hidden" id="prealert-locker">
-                                        <div id="prealert-locker-dropdown"
-                                             style="display:none; position:absolute; z-index:200; left:0; right:0; top:calc(100% + 4px);
-                                                    background:white; border:1px solid var(--border-color); border-radius:8px;
-                                                    box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:260px; overflow-y:auto;">
-                                        </div>
-                                    </div>
-                                    <span style="font-size:0.75rem; color:var(--text-muted);">Escribe al menos 1 letra para buscar — nombre, apellido, cédula o código.</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-tracking">Número de Tracking (Rastreo) *</label>
-                                    <input type="text" id="prealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-store">Tienda de Compra *</label>
-                                    <input type="text" id="prealert-store" required placeholder="Ej. Amazon, Shein, Nike, eBay…">
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-carrier">Transportadora *</label>
-                                    <select id="prealert-carrier" required onchange="toggleCarrierOther('prealert-carrier', 'prealert-carrier-other')">
-                                        <option value="">-- Selecciona transportadora --</option>
-                                        <option value="Amazon Log">Amazon Logistics</option>
-                                        <option value="UPS">UPS</option>
-                                        <option value="FedEx">FedEx</option>
-                                        <option value="USPS">USPS (Correo Postal EE.UU.)</option>
-                                        <option value="DHL">DHL Express</option>
-                                        <option value="Otro">Otra / Desconocida</option>
-                                    </select>
-                                    <input type="text" id="prealert-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;" oninput="this.setCustomValidity('')">
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-value">Valor Declarado (USD) *</label>
-                                    <input type="number" id="prealert-value" required min="1" step="0.01" placeholder="Ej. 149.99">
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-weight">Peso Estimado (Lbs)</label>
-                                    <input type="number" id="prealert-weight" min="0.1" step="0.1" placeholder="Ej. 2.5">
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-desc">Descripción del Producto *</label>
-                                    <textarea id="prealert-desc" required placeholder="Ej. Calzado deportivo Adidas, 1 par de tenis color negro."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-city">Ciudad de Entrega *</label>
-                                    <select id="prealert-city" required>
-                                        <option value="">-- Selecciona ciudad --</option>
-                                        <optgroup label="Principales ciudades">
-                                            <option>Bogotá D.C.</option>
-                                            <option>Medellín</option>
-                                            <option>Cali</option>
-                                            <option>Barranquilla</option>
-                                            <option>Cartagena de Indias</option>
-                                            <option>Cúcuta</option>
-                                            <option>Bucaramanga</option>
-                                            <option>Pereira</option>
-                                            <option>Santa Marta</option>
-                                            <option>Ibagué</option>
-                                            <option>Manizales</option>
-                                            <option>Pasto</option>
-                                            <option>Neiva</option>
-                                            <option>Armenia</option>
-                                            <option>Villavicencio</option>
-                                            <option>Montería</option>
-                                            <option>Sincelejo</option>
-                                            <option>Valledupar</option>
-                                            <option>Popayán</option>
-                                            <option>Tunja</option>
-                                        </optgroup>
-                                        <optgroup label="Otras ciudades">
-                                            <option>Apartadó</option>
-                                            <option>Arauca</option>
-                                            <option>Barrancabermeja</option>
-                                            <option>Bello</option>
-                                            <option>Buenaventura</option>
-                                            <option>Caldas (Ant.)</option>
-                                            <option>Caucasia</option>
-                                            <option>Cereté</option>
-                                            <option>Chaparral</option>
-                                            <option>Ciénaga</option>
-                                            <option>Dosquebradas</option>
-                                            <option>Duitama</option>
-                                            <option>Envigado</option>
-                                            <option>Espinal</option>
-                                            <option>Florencia</option>
-                                            <option>Floridablanca</option>
-                                            <option>Fundación</option>
-                                            <option>Garzón</option>
-                                            <option>Girardot</option>
-                                            <option>Girón</option>
-                                            <option>Honda</option>
-                                            <option>Inírida</option>
-                                            <option>Ipiales</option>
-                                            <option>Itagüí</option>
-                                            <option>La Dorada</option>
-                                            <option>La Estrella</option>
-                                            <option>Leticia</option>
-                                            <option>Lorica</option>
-                                            <option>Maicao</option>
-                                            <option>Melgar</option>
-                                            <option>Mitú</option>
-                                            <option>Mocoa</option>
-                                            <option>Ocaña</option>
-                                            <option>Palmira</option>
-                                            <option>Pamplona</option>
-                                            <option>Piedecuesta</option>
-                                            <option>Pitalito</option>
-                                            <option>Puerto Carreño</option>
-                                            <option>Quibdó</option>
-                                            <option>Riohacha</option>
-                                            <option>Rionegro</option>
-                                            <option>Sabaneta</option>
-                                            <option>San Andrés</option>
-                                            <option>San José del Guaviare</option>
-                                            <option>Soacha</option>
-                                            <option>Sogamoso</option>
-                                            <option>Soledad</option>
-                                            <option>Tumaco</option>
-                                            <option>Tuluá</option>
-                                            <option>Turbo</option>
-                                            <option>Yopal</option>
-                                            <option>Zipaquirá</option>
-                                        </optgroup>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="prealert-file">Soporte de Compra (PNG, JPG o PDF — máx. 3 MB)</label>
-                                    <input type="file" id="prealert-file" accept=".png,.jpg,.jpeg,.pdf" style="border: 1px dashed var(--border-color); padding: 0.5rem; border-radius: 6px; width:100%; cursor:pointer;">
-                                    <span style="font-size:0.75rem; color:var(--text-muted);">Adjunta la factura o captura de pantalla de la compra.</span>
-                                </div>
-                                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                                    <label for="prealert-shipping-type">Dirección de Envío en Miami *</label>
-                                    <select id="prealert-shipping-type" required onchange="showShippingTypeInfo(this.value)">
-                                        <option value="">-- Selecciona tipo de envío --</option>
-                                        <option value="Persona Natural">Persona Natural</option>
-                                        <option value="Corporativo">Corporativo</option>
-                                    </select>
-                                    <span style="font-size:0.75rem; color:var(--text-muted);">Al seleccionar, se mostrará la información y restricciones del tipo de envío.</span>
-                                </div>
-                                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Registrar Prealerta</button>
-                            </div>
-                        </form>
+                <div class="card">
+                    <div class="section-card-header" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+                        <h2>Prealertas Registradas</h2>
+                        <button class="btn btn-primary" onclick="app.openNewPrealertModal()">+ Nueva Prealerta</button>
                     </div>
-
-                    <!-- Right: Prealertas Registradas -->
-                    <div class="card">
-                        <div class="section-card-header">
-                            <h2>Prealertas Registradas</h2>
-                        </div>
-                        <div class="filters-bar">
-                            <select id="filter-prealert-status" style="width: 100%; padding: 0.5rem;">
-                                <option value="all">Todas las Prealertas</option>
-                                <option value="Pendiente">Pendientes (Por recibir)</option>
-                                <option value="Recibido">Recibidas (En bodega)</option>
+                    <div class="filters-bar" style="margin-bottom:0.5rem;">
+                        <input type="text" id="search-prealerts" placeholder="Buscar por casillero, tracking o cliente..." style="flex:1; min-width:160px;">
+                        <select id="filter-prealert-status">
+                            <option value="all">Todos los estados</option>
+                            <option value="Pendiente">Pendientes</option>
+                            <option value="Recibido">Recibidas</option>
+                        </select>
+                        <div style="display:flex; align-items:center; gap:0.4rem; white-space:nowrap; font-size:0.82rem; color:var(--text-muted);">
+                            Mostrar
+                            <select id="prealerts-per-page" onchange="app.setPrealartsPerPage(+this.value)" style="padding:4px 8px; font-size:0.82rem; border-radius:6px; border:1px solid var(--border-color);">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
                             </select>
-                        </div>
-                        
-                        <div style="max-height: 550px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" id="prealerts-list-cards">
-                            <!-- Dynamic rendering of cards -->
+                            por página
                         </div>
                     </div>
+                    <div class="table-container">
+                        <table>
+                            <thead id="table-prealerts-head">
+                                <tr>
+                                    <th data-sort-col="dateCreated" onclick="app.sortPrealerts(this)" style="cursor:pointer;user-select:none;white-space:nowrap;">Fecha <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="lockerCode"  onclick="app.sortPrealerts(this)" style="cursor:pointer;user-select:none;white-space:nowrap;">Casillero <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="userName"    onclick="app.sortPrealerts(this)" style="cursor:pointer;user-select:none;white-space:nowrap;">Cliente <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th data-sort-col="tracking"    onclick="app.sortPrealerts(this)" style="cursor:pointer;user-select:none;white-space:nowrap;">Tracking <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th class="col-hide-700">Tienda</th>
+                                    <th class="col-hide-900">Transportadora</th>
+                                    <th data-sort-col="value" onclick="app.sortPrealerts(this)" class="col-hide-700" style="cursor:pointer;user-select:none;white-space:nowrap;">Valor USD <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th class="col-hide-900">Ciudad</th>
+                                    <th class="col-hide-900">Tipo Envío</th>
+                                    <th data-sort-col="status"      onclick="app.sortPrealerts(this)" style="cursor:pointer;user-select:none;white-space:nowrap;">Estado <span class="sort-icon" style="color:var(--text-muted);font-size:0.75em;">↕</span></th>
+                                    <th class="col-hide-900">Soporte</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-prealerts-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="prealerts-pagination"></div>
                 </div>
             </section>
 
@@ -1229,6 +1091,126 @@ Tel: +1 (305) 555-0199
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-payment-proof')">Cancelar</button>
                     <button type="submit" class="btn btn-primary">✔ Confirmar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Nueva Prealerta -->
+    <div class="modal-overlay" id="modal-new-prealert">
+        <div class="modal-container" style="max-width:680px; width:95%;">
+            <div class="modal-header">
+                <h3>+ Nueva Prealerta</h3>
+                <button class="modal-close" onclick="app.closeNewPrealertModal()">&times;</button>
+            </div>
+            <form id="form-register-prealert" onsubmit="event.preventDefault(); app.handleRegisterPrealert();">
+                <div class="modal-body" style="max-height:72vh; overflow-y:auto; display:flex; flex-direction:column; gap:1.1rem;">
+                    <div id="new-prealert-msg" style="display:none; padding:0.6rem 0.85rem; border-radius:6px; font-size:0.85rem; font-weight:500;"></div>
+                    <div class="form-group">
+                        <label for="prealert-locker-search">Casillero / Usuario *</label>
+                        <div style="position:relative;">
+                            <input type="text" id="prealert-locker-search"
+                                   placeholder="Buscar por nombre, documento o código..."
+                                   autocomplete="off"
+                                   style="width:100%; padding-right:2.2rem;">
+                            <span id="prealert-locker-clear" onclick="app.clearLockerSearch()" title="Limpiar"
+                                  style="display:none; position:absolute; right:0.65rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text-muted); font-size:1.1rem; line-height:1;">&times;</span>
+                            <input type="hidden" id="prealert-locker">
+                            <div id="prealert-locker-dropdown"
+                                 style="display:none; position:absolute; z-index:300; left:0; right:0; top:calc(100% + 4px);
+                                        background:white; border:1px solid var(--border-color); border-radius:8px;
+                                        box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:220px; overflow-y:auto;"></div>
+                        </div>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Escribe para buscar — nombre, cédula o código PAKKI.</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="prealert-tracking">Número de Tracking *</label>
+                            <input type="text" id="prealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
+                        </div>
+                        <div class="form-group">
+                            <label for="prealert-store">Tienda de Compra *</label>
+                            <input type="text" id="prealert-store" required placeholder="Ej. Amazon, Shein, Nike…">
+                        </div>
+                        <div class="form-group">
+                            <label for="prealert-carrier">Transportadora *</label>
+                            <select id="prealert-carrier" required onchange="toggleCarrierOther('prealert-carrier', 'prealert-carrier-other')">
+                                <option value="">-- Selecciona --</option>
+                                <option value="Amazon Log">Amazon Logistics</option>
+                                <option value="UPS">UPS</option>
+                                <option value="FedEx">FedEx</option>
+                                <option value="USPS">USPS</option>
+                                <option value="DHL">DHL Express</option>
+                                <option value="Otro">Otra / Desconocida</option>
+                            </select>
+                            <input type="text" id="prealert-carrier-other" placeholder="Nombre de la transportadora" style="display:none; margin-top:0.5rem;" oninput="this.setCustomValidity('')">
+                        </div>
+                        <div class="form-group">
+                            <label for="prealert-value">Valor Declarado (USD) *</label>
+                            <input type="number" id="prealert-value" required min="1" step="0.01" placeholder="Ej. 149.99">
+                        </div>
+                        <div class="form-group">
+                            <label for="prealert-weight">Peso Estimado (Lbs)</label>
+                            <input type="number" id="prealert-weight" min="0.1" step="0.1" placeholder="Ej. 2.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="prealert-city">Ciudad de Entrega *</label>
+                            <select id="prealert-city" required>
+                                <option value="">-- Selecciona ciudad --</option>
+                                <optgroup label="Principales ciudades">
+                                    <option>Bogotá D.C.</option><option>Medellín</option><option>Cali</option>
+                                    <option>Barranquilla</option><option>Cartagena de Indias</option><option>Cúcuta</option>
+                                    <option>Bucaramanga</option><option>Pereira</option><option>Santa Marta</option>
+                                    <option>Ibagué</option><option>Manizales</option><option>Pasto</option>
+                                    <option>Neiva</option><option>Armenia</option><option>Villavicencio</option>
+                                    <option>Montería</option><option>Sincelejo</option><option>Valledupar</option>
+                                    <option>Popayán</option><option>Tunja</option>
+                                </optgroup>
+                                <optgroup label="Otras ciudades">
+                                    <option>Apartadó</option><option>Arauca</option><option>Barrancabermeja</option>
+                                    <option>Bello</option><option>Buenaventura</option><option>Caldas (Ant.)</option>
+                                    <option>Caucasia</option><option>Cereté</option><option>Chaparral</option>
+                                    <option>Ciénaga</option><option>Dosquebradas</option><option>Duitama</option>
+                                    <option>Envigado</option><option>Espinal</option><option>Florencia</option>
+                                    <option>Floridablanca</option><option>Fundación</option><option>Garzón</option>
+                                    <option>Girardot</option><option>Girón</option><option>Honda</option>
+                                    <option>Inírida</option><option>Ipiales</option><option>Itagüí</option>
+                                    <option>La Dorada</option><option>La Estrella</option><option>Leticia</option>
+                                    <option>Lorica</option><option>Maicao</option><option>Melgar</option>
+                                    <option>Mitú</option><option>Mocoa</option><option>Ocaña</option>
+                                    <option>Palmira</option><option>Pamplona</option><option>Piedecuesta</option>
+                                    <option>Pitalito</option><option>Puerto Carreño</option><option>Quibdó</option>
+                                    <option>Riohacha</option><option>Rionegro</option><option>Sabaneta</option>
+                                    <option>San Andrés</option><option>San José del Guaviare</option><option>Soacha</option>
+                                    <option>Sogamoso</option><option>Soledad</option><option>Tumaco</option>
+                                    <option>Tuluá</option><option>Turbo</option><option>Yopal</option><option>Zipaquirá</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prealert-desc">Descripción del Producto *</label>
+                        <textarea id="prealert-desc" required placeholder="Ej. Calzado deportivo Adidas, 1 par de tenis color negro." style="min-height:70px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="prealert-shipping-type">Dirección de Envío en Miami *</label>
+                        <select id="prealert-shipping-type" required onchange="showShippingTypeInfo(this.value)">
+                            <option value="">-- Selecciona tipo de envío --</option>
+                            <option value="Persona Natural">Persona Natural</option>
+                            <option value="Corporativo">Corporativo</option>
+                        </select>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Al seleccionar, se mostrará la información del tipo de envío.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="prealert-file">Soporte de Compra (PNG, JPG o PDF — máx. 3 MB)</label>
+                        <input type="file" id="prealert-file" accept=".png,.jpg,.jpeg,.pdf"
+                               style="border:1px dashed var(--border-color); padding:0.5rem; border-radius:6px; width:100%; cursor:pointer;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Adjunta la factura o captura de la compra (opcional).</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeNewPrealertModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Prealerta</button>
                 </div>
             </form>
         </div>

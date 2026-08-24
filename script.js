@@ -345,6 +345,10 @@ async function loadState() {
 let lockersSort       = { col: 'name', dir: 'asc' };
 let lockersPagination = { page: 1, perPage: 10 };
 
+// Estado de ordenamiento y paginación de la tabla de prealertas
+let prealartsSort       = { col: 'dateCreated', dir: 'desc' };
+let prealertsPagination = { page: 1, perPage: 10 };
+
 // Core Controller Object
 const app = {
     init: async function() {
@@ -482,6 +486,12 @@ const app = {
         });
 
         document.getElementById('filter-prealert-status').addEventListener('change', () => {
+            prealertsPagination.page = 1;
+            this.renderPrealertsList();
+        });
+
+        document.getElementById('search-prealerts').addEventListener('input', () => {
+            prealertsPagination.page = 1;
             this.renderPrealertsList();
         });
 
@@ -1447,55 +1457,164 @@ const app = {
     },
 
     renderPrealertsList: function() {
-        const container = document.getElementById('prealerts-list-cards');
-        container.innerHTML = '';
-        
-        const filterVal = document.getElementById('filter-prealert-status').value;
-        const filtered = state.prealerts.filter(p => {
-            if (filterVal === 'all') return true;
-            return p.status === filterVal;
+        const tbody = document.getElementById('table-prealerts-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        // 1. Filtrar por estado y búsqueda de texto
+        const filterVal = (document.getElementById('filter-prealert-status') || {}).value || 'all';
+        const searchQ   = ((document.getElementById('search-prealerts') || {}).value || '').toLowerCase().trim();
+
+        let filtered = state.prealerts.map(p => {
+            const user = state.users.find(u => u.lockerCode === p.lockerCode);
+            return { ...p, userName: user ? user.name : '' };
+        }).filter(p => {
+            const matchStatus = filterVal === 'all' || p.status === filterVal;
+            const matchSearch = !searchQ ||
+                (p.lockerCode  || '').toLowerCase().includes(searchQ) ||
+                (p.tracking    || '').toLowerCase().includes(searchQ) ||
+                (p.userName    || '').toLowerCase().includes(searchQ) ||
+                (p.store       || '').toLowerCase().includes(searchQ);
+            return matchStatus && matchSearch;
         });
-        
-        if (filtered.length === 0) {
-            container.innerHTML = `<p style="text-align:center; padding:2rem; color:var(--text-muted);">No hay prealertas en esta categoría.</p>`;
+
+        // 2. Ordenar
+        const col = prealartsSort.col;
+        const dir = prealartsSort.dir === 'asc' ? 1 : -1;
+        filtered.sort((a, b) => {
+            const va = (a[col] != null ? String(a[col]) : '').toLowerCase();
+            const vb = (b[col] != null ? String(b[col]) : '').toLowerCase();
+            return va < vb ? -dir : va > vb ? dir : 0;
+        });
+
+        // 3. Actualizar íconos de orden
+        document.querySelectorAll('#table-prealerts-head th[data-sort-col]').forEach(th => {
+            const icon = th.querySelector('.sort-icon');
+            if (!icon) return;
+            if (th.dataset.sortCol === col) {
+                icon.textContent = prealartsSort.dir === 'asc' ? ' ↑' : ' ↓';
+                icon.style.color = 'var(--primary)';
+            } else {
+                icon.textContent = ' ↕';
+                icon.style.color = 'var(--text-muted)';
+            }
+        });
+
+        const total = filtered.length;
+        const paginationEl = document.getElementById('prealerts-pagination');
+
+        if (total === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:2rem; color:var(--text-muted);">No hay prealertas en esta categoría.</td></tr>`;
+            if (paginationEl) paginationEl.innerHTML = '';
             return;
         }
-        
-        // Show as cards on the right side
-        filtered.forEach(pre => {
-            const user = state.users.find(u => u.lockerCode === pre.lockerCode);
-            const userName = user ? user.name : 'Usuario Desconocido';
-            const statusBadge = pre.status === 'Pendiente' ? 'badge-warning' : 'badge-success';
-            
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.padding = '1rem';
-            card.style.borderLeft = `4px solid ${pre.status === 'Pendiente' ? 'var(--warning)' : 'var(--success)'}`;
-            
-            const fileLink = pre.invoiceFileData
-                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte'}</a>`
-                : '<span style="color:var(--text-muted);">Sin soporte adjunto</span>';
 
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
-                    <div>
-                        <span class="badge ${statusBadge}" style="margin-bottom:0.25rem;">${pre.status}</span>
-                        <h4 style="font-size:0.95rem; font-family:var(--font-heading); margin:0;">${pre.tracking}</h4>
-                    </div>
-                    <strong style="color:var(--primary);">${pre.lockerCode}</strong>
-                </div>
-                <div style="font-size:0.8rem; color:var(--text-muted);">
-                    <p style="margin-bottom:0.25rem;"><strong>Cliente:</strong> ${userName}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Tienda:</strong> ${pre.store || '—'} &nbsp;|&nbsp; <strong>Transporte:</strong> ${pre.carrier}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Producto:</strong> ${pre.description}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Valor:</strong> $${parseFloat(pre.value||0).toFixed(2)} USD &nbsp;|&nbsp; <strong>Peso est.:</strong> ${pre.weightLbs ? pre.weightLbs + ' Lbs' : '—'}</p>
-                    <p style="margin-bottom:0.25rem;"><strong>Ciudad entrega:</strong> ${pre.deliveryCity || '—'} &nbsp;|&nbsp; <strong>Tipo envío:</strong> ${pre.shippingType ? `<span style="color:${pre.shippingType==='Corporativo'?'var(--secondary)':'var(--primary)'}; font-weight:600;">${pre.shippingType}</span>` : '—'}</p>
-                    <p style="margin-bottom:0.35rem;"><strong>Soporte:</strong> ${fileLink}</p>
-                    <p style="font-size:0.75rem; margin-top:0.25rem; text-align:right;">Creado: ${pre.dateCreated}</p>
-                </div>
+        // 4. Paginar
+        const perPage = prealertsPagination.perPage;
+        const totalPages = Math.ceil(total / perPage);
+        if (prealertsPagination.page > totalPages) prealertsPagination.page = totalPages;
+        if (prealertsPagination.page < 1) prealertsPagination.page = 1;
+        const start = (prealertsPagination.page - 1) * perPage;
+        const pageData = filtered.slice(start, start + perPage);
+
+        // 5. Renderizar filas
+        pageData.forEach(pre => {
+            const statusBadge = pre.status === 'Pendiente' ? 'badge-warning' : 'badge-success';
+            const fileLink = pre.invoiceFileData
+                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600; white-space:nowrap;">📎 Ver</a>`
+                : `<span style="color:var(--text-muted); font-size:0.78rem;">—</span>`;
+            const shippingColor = pre.shippingType === 'Corporativo' ? 'var(--secondary)' : 'var(--primary)';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="white-space:nowrap; color:var(--text-muted); font-size:0.8rem;">${pre.dateCreated || '—'}</td>
+                <td><strong style="color:var(--primary);">${pre.lockerCode}</strong></td>
+                <td style="font-weight:600;">${pre.userName || '—'}</td>
+                <td style="font-family:monospace; font-size:0.82rem;">${pre.tracking}</td>
+                <td class="col-hide-700">${pre.store || '—'}</td>
+                <td class="col-hide-900">${pre.carrier || '—'}</td>
+                <td class="col-hide-700" style="white-space:nowrap;">$${parseFloat(pre.value||0).toFixed(2)}</td>
+                <td class="col-hide-900">${pre.deliveryCity || '—'}</td>
+                <td class="col-hide-900" style="color:${shippingColor}; font-weight:600; font-size:0.82rem;">${pre.shippingType || '—'}</td>
+                <td><span class="badge ${statusBadge}" style="white-space:nowrap;">${pre.status}</span></td>
+                <td class="col-hide-900">${fileLink}</td>
             `;
-            container.appendChild(card);
+            tbody.appendChild(tr);
         });
+
+        // 6. Paginador
+        this.renderPrealertsPagination(total, totalPages, start, perPage);
+    },
+
+    sortPrealerts: function(th) {
+        const col = th.dataset.sortCol;
+        if (prealartsSort.col === col) {
+            prealartsSort.dir = prealartsSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            prealartsSort.col = col;
+            prealartsSort.dir = 'asc';
+        }
+        prealertsPagination.page = 1;
+        this.renderPrealertsList();
+    },
+
+    setPrealartsPerPage: function(n) {
+        prealertsPagination.perPage = n;
+        prealertsPagination.page = 1;
+        this.renderPrealertsList();
+    },
+
+    goToPrealartsPage: function(page) {
+        const total = state.prealerts.length;
+        const totalPages = Math.ceil(total / prealertsPagination.perPage) || 1;
+        if (page < 1 || page > totalPages) return;
+        prealertsPagination.page = page;
+        this.renderPrealertsList();
+        document.getElementById('tab-prealertas').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    renderPrealertsPagination: function(total, totalPages, start, perPage) {
+        const container = document.getElementById('prealerts-pagination');
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<span style="font-size:0.82rem; color:var(--text-muted);">${total} prealerta${total !== 1 ? 's' : ''} en total</span>`;
+            return;
+        }
+        const page = prealertsPagination.page;
+        const end  = Math.min(start + perPage, total);
+        let btns = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const show = i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1);
+            if (i === page - 2 && page - 2 > 1) { btns += `<span style="color:var(--text-muted);padding:0 2px;font-size:0.85rem;">…</span>`; continue; }
+            if (i === page + 2 && page + 2 < totalPages) { btns += `<span style="color:var(--text-muted);padding:0 2px;font-size:0.85rem;">…</span>`; continue; }
+            if (!show) continue;
+            const active = i === page;
+            btns += `<button onclick="app.goToPrealartsPage(${i})" style="min-width:30px;padding:4px 8px;border-radius:6px;border:1px solid ${active?'var(--primary)':'var(--border-color)'};background:${active?'var(--primary)':'white'};color:${active?'white':'var(--text-main)'};font-size:0.82rem;font-weight:${active?700:500};cursor:${active?'default':'pointer'};">${i}</button>`;
+        }
+        const bs = (d) => `padding:4px 10px;border-radius:6px;border:1px solid var(--border-color);background:white;font-size:0.82rem;cursor:${d?'default':'pointer'};opacity:${d?'0.35':'1'};`;
+        container.innerHTML = `
+            <span style="font-size:0.82rem;color:var(--text-muted);">Mostrando <strong>${start+1}–${end}</strong> de <strong>${total}</strong></span>
+            <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
+                <button onclick="app.goToPrealartsPage(1)" ${page<=1?'disabled':''} style="${bs(page<=1)}" title="Primera">«</button>
+                <button onclick="app.goToPrealartsPage(${page-1})" ${page<=1?'disabled':''} style="${bs(page<=1)}" title="Anterior">‹</button>
+                ${btns}
+                <button onclick="app.goToPrealartsPage(${page+1})" ${page>=totalPages?'disabled':''} style="${bs(page>=totalPages)}" title="Siguiente">›</button>
+                <button onclick="app.goToPrealartsPage(${totalPages})" ${page>=totalPages?'disabled':''} style="${bs(page>=totalPages)}" title="Última">»</button>
+            </div>`;
+    },
+
+    openNewPrealertModal: function() {
+        document.getElementById('form-register-prealert').reset();
+        this.clearLockerSearch();
+        toggleCarrierOther('prealert-carrier', 'prealert-carrier-other');
+        const msg = document.getElementById('new-prealert-msg');
+        if (msg) msg.style.display = 'none';
+        this.initLockerAutocomplete();
+        document.getElementById('modal-new-prealert').classList.add('active');
+    },
+
+    closeNewPrealertModal: function() {
+        document.getElementById('modal-new-prealert').classList.remove('active');
     },
 
     renderPackagesList: function() {
@@ -1974,13 +2093,10 @@ const app = {
         }
 
         await loadState();
-        this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> registrada con éxito.`, 'success');
-        document.getElementById('form-register-prealert').reset();
-        this.clearLockerSearch();
-        toggleCarrierOther('prealert-carrier', 'prealert-carrier-other');
-
+        this.closeNewPrealertModal();
         this.renderPrealertsList();
         this.renderMetrics();
+        this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> registrada con éxito.`, 'success');
     },
 
     handleSaveConfig: async function() {
