@@ -981,14 +981,109 @@ const app = {
     },
 
     renderUserDropdowns: function() {
-        const prealertSelect = document.getElementById('prealert-locker');
-        prealertSelect.innerHTML = '<option value="">-- Selecciona un casillero --</option>';
-        state.users.forEach(u => {
-            const opt = document.createElement('option');
-            opt.value = u.lockerCode;
-            opt.textContent = `${u.lockerCode} - ${u.name} (${u.city})`;
-            prealertSelect.appendChild(opt);
+        this.initLockerAutocomplete();
+    },
+
+    initLockerAutocomplete: function() {
+        const searchInput = document.getElementById('prealert-locker-search');
+        const hiddenInput = document.getElementById('prealert-locker');
+        const dropdown    = document.getElementById('prealert-locker-dropdown');
+        const clearBtn    = document.getElementById('prealert-locker-clear');
+        if (!searchInput) return;
+
+        const markSelected = (selected) => {
+            if (selected) {
+                searchInput.style.borderColor = 'var(--success)';
+                if (clearBtn) clearBtn.style.display = 'block';
+            } else {
+                searchInput.style.borderColor = '';
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
+        };
+
+        const showResults = (query) => {
+            dropdown.innerHTML = '';
+            const q = query.toLowerCase().trim();
+            if (!q) { dropdown.style.display = 'none'; return; }
+
+            const results = state.users.filter(u =>
+                (u.active !== false) && (
+                    (u.name       || '').toLowerCase().includes(q) ||
+                    (u.doc        || '').toLowerCase().includes(q) ||
+                    (u.lockerCode || '').toLowerCase().includes(q) ||
+                    (u.email      || '').toLowerCase().includes(q)
+                )
+            ).slice(0, 10);
+
+            if (!results.length) {
+                dropdown.innerHTML = `<div style="padding:0.7rem 1rem; color:var(--text-muted); font-size:0.85rem;">Sin resultados para "<strong>${query}</strong>"</div>`;
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            const highlight = (text, q) => {
+                if (!text) return '—';
+                const idx = text.toLowerCase().indexOf(q);
+                if (idx === -1) return text;
+                return text.slice(0, idx) + `<mark style="background:#fef08a; border-radius:2px; padding:0 1px;">${text.slice(idx, idx + q.length)}</mark>` + text.slice(idx + q.length);
+            };
+
+            results.forEach(u => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding:0.6rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); transition:background 0.1s;';
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <span style="font-weight:700; color:var(--primary); font-size:0.88rem; white-space:nowrap;">${highlight(u.lockerCode, q)}</span>
+                        <span style="font-size:0.88rem; color:var(--text-main); font-weight:600;">${highlight(u.name, q)}</span>
+                    </div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+                        ${u.doc ? 'Doc: ' + highlight(u.doc, q) + ' &nbsp;·&nbsp; ' : ''}${u.city || ''}
+                    </div>`;
+                item.addEventListener('mouseover', () => item.style.background = '#f1f5f9');
+                item.addEventListener('mouseout',  () => item.style.background = '');
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    searchInput.value = `${u.lockerCode} — ${u.name}`;
+                    hiddenInput.value = u.lockerCode;
+                    dropdown.style.display = 'none';
+                    markSelected(true);
+                });
+                dropdown.appendChild(item);
+            });
+
+            const lastItem = dropdown.lastElementChild;
+            if (lastItem) lastItem.style.borderBottom = 'none';
+            dropdown.style.display = 'block';
+        };
+
+        // Evitar listeners duplicados al reinicializar
+        if (searchInput._autocompleteReady) return;
+        searchInput._autocompleteReady = true;
+
+        searchInput.addEventListener('input', (e) => {
+            hiddenInput.value = '';
+            markSelected(false);
+            showResults(e.target.value);
         });
+
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value && !hiddenInput.value) showResults(searchInput.value);
+        });
+
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => { dropdown.style.display = 'none'; }, 180);
+        });
+    },
+
+    clearLockerSearch: function() {
+        const s = document.getElementById('prealert-locker-search');
+        const h = document.getElementById('prealert-locker');
+        const d = document.getElementById('prealert-locker-dropdown');
+        const c = document.getElementById('prealert-locker-clear');
+        if (s) { s.value = ''; s.style.borderColor = ''; s.focus(); }
+        if (h) h.value = '';
+        if (d) d.style.display = 'none';
+        if (c) c.style.display = 'none';
     },
 
     renderLockersList: function(searchQuery = '') {
@@ -1817,7 +1912,8 @@ const app = {
         const shippingType = document.getElementById('prealert-shipping-type').value;
 
         if (!lockerCode) {
-            this.showAlert('Por favor selecciona un casillero válido.', 'warning');
+            this.showAlert('Debes seleccionar un casillero de la lista de sugerencias — escribe y haz clic en un resultado.', 'warning');
+            document.getElementById('prealert-locker-search').focus();
             return;
         }
 
@@ -1880,6 +1976,7 @@ const app = {
         await loadState();
         this.showAlert(`Prealerta para tracking <strong>${tracking}</strong> registrada con éxito.`, 'success');
         document.getElementById('form-register-prealert').reset();
+        this.clearLockerSearch();
         toggleCarrierOther('prealert-carrier', 'prealert-carrier-other');
 
         this.renderPrealertsList();

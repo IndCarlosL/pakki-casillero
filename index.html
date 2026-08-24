@@ -394,11 +394,24 @@ Tel: +1 (305) 555-0199
                         <form id="form-register-prealert">
                             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                                 <div class="form-group">
-                                    <label for="prealert-locker">Seleccionar Casillero / Usuario *</label>
-                                    <select id="prealert-locker" required>
-                                        <option value="">-- Selecciona un casillero --</option>
-                                        <!-- Dynamic options -->
-                                    </select>
+                                    <label for="prealert-locker-search">Seleccionar Casillero / Usuario *</label>
+                                    <div style="position:relative;">
+                                        <input type="text" id="prealert-locker-search"
+                                               placeholder="Buscar por nombre, documento o código..."
+                                               autocomplete="off"
+                                               style="width:100%; padding-right:2.2rem;">
+                                        <span id="prealert-locker-clear"
+                                              onclick="app.clearLockerSearch()"
+                                              title="Limpiar selección"
+                                              style="display:none; position:absolute; right:0.65rem; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text-muted); font-size:1.1rem; line-height:1;">&times;</span>
+                                        <input type="hidden" id="prealert-locker">
+                                        <div id="prealert-locker-dropdown"
+                                             style="display:none; position:absolute; z-index:200; left:0; right:0; top:calc(100% + 4px);
+                                                    background:white; border:1px solid var(--border-color); border-radius:8px;
+                                                    box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:260px; overflow-y:auto;">
+                                        </div>
+                                    </div>
+                                    <span style="font-size:0.75rem; color:var(--text-muted);">Escribe al menos 1 letra para buscar — nombre, apellido, cédula o código.</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="prealert-tracking">Número de Tracking (Rastreo) *</label>
