@@ -499,13 +499,36 @@ textarea {
 @media (max-width: 700px) { .col-hide-700 { display: none !important; } }
 @media (max-width: 500px) { .col-hide-500 { display: none !important; } }
 
-/* Tabla Casilleros y Prealertas: padding compacto */
+/* Tabla Casilleros: padding compacto */
 #tab-casillero-list .table-container th,
-#tab-casillero-list .table-container td,
-#tab-prealertas .table-container th,
-#tab-prealertas .table-container td {
+#tab-casillero-list .table-container td {
     padding: 0.65rem 0.75rem;
     font-size: 0.83rem;
+    white-space: nowrap;
+}
+
+/* Tabla Prealertas: más compacta, th sin wrap, td puede envolver */
+#tab-prealertas .table-container th {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+#tab-prealertas .table-container td {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.8rem;
+    white-space: normal;
+}
+/* Tracking: truncar con ellipsis y mostrar completo en title */
+#tab-prealertas .table-container .cell-tracking {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 0.78rem;
+}
+/* Casillero y Fecha: siempre en una línea */
+#tab-prealertas .table-container .cell-nowrap {
     white-space: nowrap;
 }
 

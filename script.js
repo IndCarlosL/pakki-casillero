@@ -1527,16 +1527,16 @@ const app = {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="white-space:nowrap; color:var(--text-muted); font-size:0.8rem;">${pre.dateCreated || '—'}</td>
-                <td><strong style="color:var(--primary);">${pre.lockerCode}</strong></td>
+                <td class="col-hide-500 cell-nowrap" style="color:var(--text-muted);">${pre.dateCreated || '—'}</td>
+                <td class="cell-nowrap"><strong style="color:var(--primary);">${pre.lockerCode}</strong></td>
                 <td style="font-weight:600;">${pre.userName || '—'}</td>
-                <td style="font-family:monospace; font-size:0.82rem;">${pre.tracking}</td>
+                <td class="cell-tracking" title="${pre.tracking}">${pre.tracking}</td>
                 <td class="col-hide-700">${pre.store || '—'}</td>
                 <td class="col-hide-900">${pre.carrier || '—'}</td>
-                <td class="col-hide-700" style="white-space:nowrap;">$${parseFloat(pre.value||0).toFixed(2)}</td>
-                <td class="col-hide-900">${pre.deliveryCity || '—'}</td>
-                <td class="col-hide-900" style="color:${shippingColor}; font-weight:600; font-size:0.82rem;">${pre.shippingType || '—'}</td>
-                <td><span class="badge ${statusBadge}" style="white-space:nowrap;">${pre.status}</span></td>
+                <td class="col-hide-700 cell-nowrap">$${parseFloat(pre.value||0).toFixed(2)}</td>
+                <td class="col-hide-700">${pre.deliveryCity || '—'}</td>
+                <td class="col-hide-900 cell-nowrap" style="color:${shippingColor}; font-weight:600;">${pre.shippingType || '—'}</td>
+                <td><span class="badge ${statusBadge}">${pre.status}</span></td>
                 <td class="col-hide-900">${fileLink}</td>
             `;
             tbody.appendChild(tr);
