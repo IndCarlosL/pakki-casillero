@@ -477,9 +477,7 @@ const app = {
             this.renderLockersList(e.target.value.trim());
         });
 
-        document.getElementById('search-packages').addEventListener('input', (e) => {
-            this.renderPackagesList();
-        });
+        // search-packages usa autocomplete propio (initPackagesSearch), no listener aquí
 
         document.getElementById('filter-packages-status').addEventListener('change', () => {
             this.renderPackagesList();
@@ -822,6 +820,7 @@ const app = {
         this.renderMetrics();
         this.renderDashboardRecent();
         this.renderUserDropdowns();
+        this.initPackagesSearch();
         this.renderLockersList();
         this.renderPrealertsList();
         this.renderPackagesList();
@@ -1617,17 +1616,127 @@ const app = {
         document.getElementById('modal-new-prealert').classList.remove('active');
     },
 
+    initPackagesSearch: function() {
+        const searchInput = document.getElementById('search-packages');
+        const hiddenInput = document.getElementById('search-packages-locker');
+        const dropdown    = document.getElementById('search-packages-dropdown');
+        const clearBtn    = document.getElementById('search-packages-clear');
+        if (!searchInput || searchInput._pkgSearchReady) return;
+        searchInput._pkgSearchReady = true;
+
+        const markSelected = (yes) => {
+            searchInput.style.borderColor = yes ? 'var(--success)' : '';
+            if (clearBtn) clearBtn.style.display = yes ? 'block' : 'none';
+        };
+
+        const highlight = (text, q) => {
+            if (!text) return '—';
+            const idx = text.toLowerCase().indexOf(q);
+            if (idx === -1) return text;
+            return text.slice(0, idx) +
+                `<mark style="background:#fef08a;border-radius:2px;padding:0 1px;">${text.slice(idx, idx + q.length)}</mark>` +
+                text.slice(idx + q.length);
+        };
+
+        const showResults = (query) => {
+            dropdown.innerHTML = '';
+            const q = query.toLowerCase().trim();
+            if (!q) { dropdown.style.display = 'none'; return; }
+
+            const results = state.users.filter(u =>
+                (u.active !== false) && (
+                    (u.name       || '').toLowerCase().includes(q) ||
+                    (u.doc        || '').toLowerCase().includes(q) ||
+                    (u.lockerCode || '').toLowerCase().includes(q) ||
+                    (u.email      || '').toLowerCase().includes(q)
+                )
+            ).slice(0, 10);
+
+            if (!results.length) {
+                // Sin usuario → búsqueda libre (tracking / descripción)
+                dropdown.innerHTML = `<div style="padding:0.65rem 1rem; color:var(--text-muted); font-size:0.82rem;">
+                    Buscando "<strong>${query}</strong>" en trackings y descripciones…
+                    <br><span style="font-size:0.75rem;">Presiona Enter o espera para filtrar.</span></div>`;
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            results.forEach(u => {
+                const pkgCount = state.packages.filter(p => p.lockerCode === u.lockerCode).length;
+                const item = document.createElement('div');
+                item.style.cssText = 'padding:0.55rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); transition:background 0.1s;';
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <span style="font-weight:700; color:var(--primary); font-size:0.85rem; white-space:nowrap;">${highlight(u.lockerCode, q)}</span>
+                        <span style="font-size:0.85rem; color:var(--text-main); font-weight:600;">${highlight(u.name, q)}</span>
+                        <span style="margin-left:auto; font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">${pkgCount} paquete${pkgCount !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:1px;">
+                        ${u.doc ? 'Doc: ' + highlight(u.doc, q) + '  ·  ' : ''}${u.city || ''}
+                    </div>`;
+                item.addEventListener('mouseover', () => item.style.background = '#f1f5f9');
+                item.addEventListener('mouseout',  () => item.style.background = '');
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    searchInput.value = `${u.lockerCode} — ${u.name}`;
+                    hiddenInput.value = u.lockerCode;
+                    dropdown.style.display = 'none';
+                    markSelected(true);
+                    this.renderPackagesList();
+                });
+                dropdown.appendChild(item);
+            });
+            if (dropdown.lastElementChild) dropdown.lastElementChild.style.borderBottom = 'none';
+            dropdown.style.display = 'block';
+        };
+
+        searchInput.addEventListener('input', (e) => {
+            hiddenInput.value = '';
+            markSelected(false);
+            showResults(e.target.value);
+            this.renderPackagesList();
+        });
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value && !hiddenInput.value) showResults(searchInput.value);
+        });
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => { dropdown.style.display = 'none'; }, 180);
+        });
+    },
+
+    clearPackagesSearch: function() {
+        const s = document.getElementById('search-packages');
+        const h = document.getElementById('search-packages-locker');
+        const d = document.getElementById('search-packages-dropdown');
+        const c = document.getElementById('search-packages-clear');
+        if (s) { s.value = ''; s.style.borderColor = ''; }
+        if (h) h.value = '';
+        if (d) d.style.display = 'none';
+        if (c) c.style.display = 'none';
+        this.renderPackagesList();
+    },
+
     renderPackagesList: function() {
         const tbody = document.getElementById('table-packages-body');
         tbody.innerHTML = '';
 
-        const searchVal = document.getElementById('search-packages').value.trim().toLowerCase();
-        const statusVal = document.getElementById('filter-packages-status').value;
+        const lockerFilter = (document.getElementById('search-packages-locker') || {}).value || '';
+        const searchVal    = (document.getElementById('search-packages') || {}).value.trim().toLowerCase();
+        const statusVal    = document.getElementById('filter-packages-status').value;
 
         const filtered = state.packages.filter(pkg => {
-            const matchesSearch = pkg.tracking.toLowerCase().includes(searchVal) ||
-                                  pkg.lockerCode.toLowerCase().includes(searchVal) ||
-                                  pkg.description.toLowerCase().includes(searchVal);
+            let matchesSearch;
+            if (lockerFilter) {
+                matchesSearch = pkg.lockerCode === lockerFilter;
+            } else {
+                const user = state.users.find(u => u.lockerCode === pkg.lockerCode);
+                const userName = (user ? user.name : '').toLowerCase();
+                matchesSearch = !searchVal ||
+                    (pkg.tracking     || '').toLowerCase().includes(searchVal) ||
+                    (pkg.lockerCode   || '').toLowerCase().includes(searchVal) ||
+                    (pkg.description  || '').toLowerCase().includes(searchVal) ||
+                    userName.includes(searchVal);
+            }
             const matchesStatus = statusVal === 'all' || pkg.status === statusVal;
             return matchesSearch && matchesStatus;
         });

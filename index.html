@@ -477,11 +477,18 @@ Tel: +1 (305) 555-0199
                     <div class="section-card-header">
                         <h2>Inventario de Bodega e Historial de Envíos</h2>
                         <div class="filters-bar">
-                            <div class="search-input-wrapper" style="flex-grow: 1;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                </svg>
-                                <input type="text" id="search-packages" placeholder="Buscar por Tracking o Casillero...">
+                            <div style="position:relative; flex-grow:1; min-width:200px;">
+                                <input type="text" id="search-packages"
+                                       placeholder="Buscar por nombre, código, cédula o tracking..."
+                                       autocomplete="off" style="width:100%; padding-right:2.2rem;">
+                                <span id="search-packages-clear" onclick="app.clearPackagesSearch()" title="Limpiar"
+                                      style="display:none; position:absolute; right:0.65rem; top:50%; transform:translateY(-50%);
+                                             cursor:pointer; color:var(--text-muted); font-size:1.1rem; line-height:1;">&times;</span>
+                                <input type="hidden" id="search-packages-locker">
+                                <div id="search-packages-dropdown"
+                                     style="display:none; position:absolute; z-index:200; left:0; right:0; top:calc(100% + 4px);
+                                            background:white; border:1px solid var(--border-color); border-radius:8px;
+                                            box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:240px; overflow-y:auto;"></div>
                             </div>
                             <select id="filter-packages-status" style="padding: 0.75rem;">
                                 <option value="all">Todos los Estados</option>
