@@ -2773,7 +2773,11 @@ const app = {
         // Handle optional invoice file upload
         let purchaseInvoiceFileName = req.purchaseInvoiceFileName || '';
         let purchaseInvoiceFileData = req.purchaseInvoiceFileData || '';
+        let purchaseInvoiceDriveUrl = req.purchaseInvoiceDriveUrl || '';
+        let purchaseInvoiceDriveFileName = req.purchaseInvoiceDriveFileName || '';
         const fileInput = document.getElementById('pr-invoice-file');
+        const driveConfigured = DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT';
+
         if (fileInput && fileInput.files[0]) {
             const file = fileInput.files[0];
             if (file.size > 3 * 1024 * 1024) {
@@ -2781,57 +2785,49 @@ const app = {
                 return;
             }
             purchaseInvoiceFileName = file.name;
-            purchaseInvoiceFileData = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
-        }
 
-        // Send to Google Drive via hidden iframe form (avoids CORS)
-        let purchaseInvoiceDriveUrl = req.purchaseInvoiceDriveUrl || '';
-        let purchaseInvoiceDriveFileName = req.purchaseInvoiceDriveFileName || '';
-        const driveConfigured = DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT';
-        if (purchaseInvoiceFileData && fileInput && fileInput.files[0] && driveConfigured) {
-            const today = new Date().toISOString().slice(0, 10);
-            const driveFileName = [req.lockerCode || '', today, purchaseInvoiceFileName].filter(Boolean).join('_');
-            try {
-                // Use iframe trick to POST without CORS restriction
-                const iframeName = 'drive-upload-' + Date.now();
-                const iframe = document.createElement('iframe');
-                iframe.name = iframeName;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
+            if (useSupabase) {
+                // Upload to Supabase Storage
+                const today = new Date().toISOString().slice(0, 10);
+                const year  = today.slice(0, 4);
+                const month = today.slice(5, 7);
+                const filePath = `compramos-por-ti/${year}/${month}/${prId}_${file.name}`;
 
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = DRIVE_BRIDGE_URL;
-                form.target = iframeName;
-                form.style.display = 'none';
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('facturas')
+                    .upload(filePath, file, { upsert: true });
 
-                const payload = JSON.stringify({
-                    fileData: purchaseInvoiceFileData,
-                    fileName: purchaseInvoiceFileName,
-                    clientCode: req.lockerCode || '',
-                    requestId: prId
+                if (uploadError) {
+                    this.showAlert('Error al subir el archivo: ' + uploadError.message, 'danger');
+                    return;
+                }
+
+                const { data: { publicUrl } } = supabaseClient.storage
+                    .from('facturas')
+                    .getPublicUrl(filePath);
+
+                purchaseInvoiceFileData = publicUrl;
+
+                // Trigger Apps Script via GET — server downloads from Supabase and saves to Drive
+                if (driveConfigured) {
+                    const params = new URLSearchParams({
+                        fileUrl:     publicUrl,
+                        fileName:    file.name,
+                        clientCode:  req.lockerCode || '',
+                        requestId:   prId
+                    });
+                    fetch(`${DRIVE_BRIDGE_URL}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {});
+                    purchaseInvoiceDriveUrl      = 'drive-sent';
+                    purchaseInvoiceDriveFileName = [req.lockerCode || '', today, file.name].filter(Boolean).join('_');
+                }
+            } else {
+                // Fallback: base64 when no Supabase
+                purchaseInvoiceFileData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = ev => resolve(ev.target.result);
+                    reader.readAsDataURL(file);
                 });
-
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'payload';
-                input.value = payload;
-                form.appendChild(input);
-
-                document.body.appendChild(form);
-                form.submit();
-
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }, 5000);
-            } catch (_) {}
-            purchaseInvoiceDriveFileName = driveFileName;
-            purchaseInvoiceDriveUrl = 'drive-sent';
+            }
         }
 
         state.purchaseRequests[idx].status = newStatus;
