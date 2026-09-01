@@ -961,6 +961,7 @@ const app = {
             let badgeClass = 'badge-neutral';
             if (pkg.status === 'En Bodega Miami') badgeClass = 'badge-warning';
             if (pkg.status === 'En Tránsito a Colombia') badgeClass = 'badge-info';
+            if (pkg.status === 'En Bodega Bogotá') badgeClass = 'badge-bodega-bog';
             if (pkg.status === 'Listo para Entrega') badgeClass = 'badge-success';
             if (pkg.status === 'Entregado') badgeClass = 'badge-success';
             
@@ -1742,6 +1743,7 @@ const app = {
             let badgeClass = 'badge-neutral';
             if (pkg.status === 'En Bodega Miami')          badgeClass = 'badge-warning';
             if (pkg.status === 'En Tránsito a Colombia')   badgeClass = 'badge-info';
+            if (pkg.status === 'En Bodega Bogotá')         badgeClass = 'badge-bodega-bog';
             if (pkg.status === 'Nacionalización')           badgeClass = 'badge-danger';
             if (pkg.status === 'Listo para Entrega')        badgeClass = 'badge-success';
             if (pkg.status === 'Entregado')                 badgeClass = 'badge-success';

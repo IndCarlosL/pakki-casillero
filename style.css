@@ -644,6 +644,11 @@ tr:hover td {
     color: #475569;
 }
 
+.badge-bodega-bog {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
 /* Grid splits */
 .dashboard-split {
     display: grid;
