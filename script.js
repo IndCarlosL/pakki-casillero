@@ -1729,38 +1729,45 @@ const app = {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:var(--text-muted);">No se encontraron paquetes registrados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:2rem; color:var(--text-muted);">No se encontraron paquetes registrados.</td></tr>`;
             this.updateBulkBar();
             return;
         }
 
         filtered.forEach(pkg => {
             const calc = this.calculatePackageInvoicing(pkg);
+            const user = state.users.find(u => u.lockerCode === pkg.lockerCode);
+            const userName = user ? user.name : '—';
 
             let badgeClass = 'badge-neutral';
-            if (pkg.status === 'En Bodega Miami') badgeClass = 'badge-warning';
-            if (pkg.status === 'En Tránsito a Colombia') badgeClass = 'badge-info';
-            if (pkg.status === 'Nacionalización') badgeClass = 'badge-danger';
-            if (pkg.status === 'Listo para Entrega') badgeClass = 'badge-success';
-            if (pkg.status === 'Entregado') badgeClass = 'badge-success';
+            if (pkg.status === 'En Bodega Miami')          badgeClass = 'badge-warning';
+            if (pkg.status === 'En Tránsito a Colombia')   badgeClass = 'badge-info';
+            if (pkg.status === 'Nacionalización')           badgeClass = 'badge-danger';
+            if (pkg.status === 'Listo para Entrega')        badgeClass = 'badge-success';
+            if (pkg.status === 'Entregado')                 badgeClass = 'badge-success';
+
+            const dims = (pkg.lengthIn && pkg.widthIn && pkg.heightIn)
+                ? `${pkg.lengthIn}×${pkg.widthIn}×${pkg.heightIn}`
+                : '—';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="text-align:center;">
                     <input type="checkbox" class="pkg-checkbox" data-id="${pkg.id}" style="cursor:pointer;" onchange="app.updateBulkBar()">
                 </td>
-                <td>${pkg.dateReceived}</td>
-                <td><strong style="color:var(--primary);">${pkg.lockerCode}</strong></td>
+                <td class="col-hide-900 cell-nowrap" style="color:var(--text-muted);">${pkg.dateReceived || '—'}</td>
+                <td class="cell-nowrap"><strong style="color:var(--primary);">${pkg.lockerCode}</strong></td>
+                <td style="font-weight:600;">${userName}</td>
                 <td>
-                    <span style="font-weight:600; font-size:0.85rem;">${pkg.tracking}</span><br>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">${pkg.carrier}</span>
+                    <div class="cell-tracking" title="${pkg.tracking}">${pkg.tracking}</div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:1px;">${pkg.carrier}</div>
                 </td>
-                <td>${pkg.weightLbs} lbs</td>
-                <td>${pkg.lengthIn}x${pkg.widthIn}x${pkg.heightIn}</td>
-                <td>${calc.volWeight} lbs</td>
-                <td><strong style="color:var(--secondary);">${calc.chargeableWeight} lbs</strong></td>
-                <td>$${pkg.value.toFixed(2)}<br><small style="color:var(--text-muted); font-size:0.78rem;">${fmtCOP(pkg.value)}</small></td>
-                <td><span class="badge ${badgeClass}">${pkg.status}</span></td>
+                <td class="col-hide-700 cell-nowrap">${pkg.weightLbs} lbs</td>
+                <td class="col-hide-900 cell-nowrap">${dims}</td>
+                <td class="col-hide-900 cell-nowrap">${calc.volWeight} lbs</td>
+                <td class="col-hide-700 cell-nowrap"><strong style="color:var(--secondary);">${calc.chargeableWeight} lbs</strong></td>
+                <td class="col-hide-700 cell-nowrap">$${pkg.value.toFixed(2)}</td>
+                <td><span class="badge ${badgeClass}" style="white-space:nowrap; font-size:0.72rem;">${pkg.status}</span></td>
                 <td>
                     <div style="display:flex; gap:0.25rem;">
                         <button class="btn btn-secondary btn-sm" onclick="app.openChangeStatusModal('${pkg.id}')" title="Cambiar Estado">⚙️</button>

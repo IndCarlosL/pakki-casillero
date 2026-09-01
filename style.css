@@ -532,6 +532,21 @@ textarea {
     white-space: nowrap;
 }
 
+/* Tabla Inventario de Bodega: compacta sin scroll horizontal */
+#tab-bodega .table-container th {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+#tab-bodega .table-container td {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.8rem;
+    white-space: normal;
+}
+#tab-bodega .table-container .cell-nowrap {
+    white-space: nowrap;
+}
+
 /* Paginadores de tablas */
 #lockers-pagination,
 #prealerts-pagination {
