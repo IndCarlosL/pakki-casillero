@@ -133,6 +133,10 @@ async function sendStatusNotification(req, newStatus) {
 // CONFIGURACIÓN DE CONEXIÓN CON SUPABASE
 // Reemplaza los siguientes valores con la URL y la Clave Anónima de tu proyecto de Supabase.
 // Si dejas estos valores por defecto, la aplicación funcionará automáticamente en MODO DE PRUEBA LOCAL (usando LocalStorage).
+// URL del Apps Script para guardar facturas en Google Drive.
+// Pega aquí la URL que obtienes al desplegar el script "Pakki Drive Bridge".
+const DRIVE_BRIDGE_URL = "PON_AQUI_LA_URL_DEL_APPS_SCRIPT";
+
 const SUPABASE_URL = "https://uuaglghhsxbzhvbjzgky.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdsZ2hoc3hiemh2Ymp6Z2t5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMDMxOTgsImV4cCI6MjA5Njc3OTE5OH0.WI317E3WbMLHcS8hFDYnIH8TjCjkL09G55lt3Qd7X6k";
 
@@ -2678,9 +2682,11 @@ const app = {
                 <td>
                     <div style="display:flex; gap:0.3rem; align-items:center;">
                         <button class="btn btn-secondary btn-sm" onclick="app.viewPRDetail('${req.id}')">Ver</button>
-                        ${req.purchaseInvoiceFileData
-                            ? `<a href="${req.purchaseInvoiceFileData}" target="_blank" title="${req.purchaseInvoiceFileName || 'Ver factura'}" style="font-size:1rem; line-height:1; text-decoration:none;">📎</a>`
-                            : ''}
+                        ${req.purchaseInvoiceDriveUrl
+                            ? `<a href="${req.purchaseInvoiceDriveUrl}" target="_blank" title="Ver en Drive: ${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || ''}" style="font-size:1rem; line-height:1; text-decoration:none;" title="Drive">📎</a>`
+                            : req.purchaseInvoiceFileData
+                                ? `<a href="${req.purchaseInvoiceFileData}" target="_blank" title="${req.purchaseInvoiceFileName || 'Ver factura'}" style="font-size:1rem; line-height:1; text-decoration:none;">📎</a>`
+                                : ''}
                     </div>
                 </td>
             `;
@@ -2700,9 +2706,13 @@ const app = {
         if (fileInput) fileInput.value = '';
         const currentDiv = document.getElementById('pr-invoice-current');
         if (currentDiv) {
-            currentDiv.innerHTML = req.purchaseInvoiceFileData
-                ? `📎 Factura actual: <a href="${req.purchaseInvoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">${req.purchaseInvoiceFileName || 'Ver archivo'}</a>`
-                : 'Sin factura adjunta aún.';
+            if (req.purchaseInvoiceDriveUrl) {
+                currentDiv.innerHTML = `📎 En Drive: <a href="${req.purchaseInvoiceDriveUrl}" target="_blank" style="color:#10b981; font-weight:600;">${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || 'Ver en Drive'}</a>`;
+            } else if (req.purchaseInvoiceFileData) {
+                currentDiv.innerHTML = `📎 <a href="${req.purchaseInvoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">${req.purchaseInvoiceFileName || 'Ver archivo'}</a>`;
+            } else {
+                currentDiv.textContent = 'Sin factura adjunta aún.';
+            }
         }
 
         const statusColors = {
@@ -2776,11 +2786,44 @@ const app = {
             });
         }
 
+        // Try to upload to Google Drive if configured and a new file was selected
+        let purchaseInvoiceDriveUrl = req.purchaseInvoiceDriveUrl || '';
+        let purchaseInvoiceDriveFileName = req.purchaseInvoiceDriveFileName || '';
+        if (purchaseInvoiceFileData && fileInput && fileInput.files[0] &&
+            DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT') {
+            try {
+                const driveRes = await fetch(DRIVE_BRIDGE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        fileData: purchaseInvoiceFileData,
+                        fileName: purchaseInvoiceFileName,
+                        clientCode: req.lockerCode || '',
+                        requestId: prId
+                    })
+                });
+                const driveJson = await driveRes.json();
+                if (driveJson.success) {
+                    purchaseInvoiceDriveUrl = driveJson.driveUrl;
+                    purchaseInvoiceDriveFileName = driveJson.driveFileName || purchaseInvoiceFileName;
+                }
+            } catch (_) {
+                // Drive upload failed — file still saved as base64 in Supabase
+            }
+        }
+
         state.purchaseRequests[idx].status = newStatus;
         state.purchaseRequests[idx].purchaseInvoiceFileName = purchaseInvoiceFileName;
         state.purchaseRequests[idx].purchaseInvoiceFileData = purchaseInvoiceFileData;
+        state.purchaseRequests[idx].purchaseInvoiceDriveUrl = purchaseInvoiceDriveUrl;
+        state.purchaseRequests[idx].purchaseInvoiceDriveFileName = purchaseInvoiceDriveFileName;
 
-        const updates = { status: newStatus, purchaseInvoiceFileName, purchaseInvoiceFileData };
+        const updates = {
+            status: newStatus,
+            purchaseInvoiceFileName,
+            purchaseInvoiceFileData,
+            purchaseInvoiceDriveUrl,
+            purchaseInvoiceDriveFileName
+        };
 
         if (useSupabase) {
             await supabaseClient.from('purchase_requests').update(updates).eq('id', prId);
@@ -2790,7 +2833,8 @@ const app = {
 
         await sendStatusNotification(req, newStatus);
 
-        this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>. Notificación enviada.`, 'success');
+        const driveNote = purchaseInvoiceDriveUrl ? ' · Guardada en Google Drive ✓' : '';
+        this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>. Notificación enviada.${driveNote}`, 'success');
         this.closeModal('modal-pr-detail');
         this.renderPurchaseRequestsList();
     },
