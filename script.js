@@ -2793,11 +2793,15 @@ const app = {
                 const month = today.slice(5, 7);
                 const filePath = `compramos-por-ti/${year}/${month}/${prId}_${file.name}`;
 
-                const { error: uploadError } = await supabaseClient.storage
+                console.log('[Pakki] Subiendo a Supabase Storage…', filePath);
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
                     .from('facturas')
                     .upload(filePath, file, { upsert: true });
 
+                console.log('[Pakki] Upload result:', { uploadData, uploadError });
+
                 if (uploadError) {
+                    console.error('[Pakki] Storage error:', uploadError);
                     this.showAlert('Error al subir el archivo: ' + uploadError.message, 'danger');
                     return;
                 }
