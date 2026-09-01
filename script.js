@@ -2820,7 +2820,9 @@ const app = {
                         clientCode:  req.lockerCode || '',
                         requestId:   prId
                     });
-                    fetch(`${DRIVE_BRIDGE_URL}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {});
+                    const driveReqUrl = `${DRIVE_BRIDGE_URL}?${params.toString()}`;
+                    console.log('[Pakki] Drive URL:', driveReqUrl);
+                    fetch(driveReqUrl, { mode: 'no-cors' }).catch(err => console.warn('[Pakki] Drive fetch error:', err));
                     purchaseInvoiceDriveUrl      = 'drive-sent';
                     purchaseInvoiceDriveFileName = [req.lockerCode || '', today, file.name].filter(Boolean).join('_');
                 }
