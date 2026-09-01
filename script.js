@@ -135,7 +135,7 @@ async function sendStatusNotification(req, newStatus) {
 // Si dejas estos valores por defecto, la aplicación funcionará automáticamente en MODO DE PRUEBA LOCAL (usando LocalStorage).
 // URL del Apps Script para guardar facturas en Google Drive.
 // Pega aquí la URL que obtienes al desplegar el script "Pakki Drive Bridge".
-const DRIVE_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbytgOnzwaCe5hHP3PmdmlB6chmfVyveZ5Wr9EmeaJAEAoJZeqV3mpJhT71WKXYFH9o0nQ/exec";
+const DRIVE_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbx6AM_k7Sw69Ic9RE1cVb-jz83lWM68kNK148ZWSQqvb-02Kmv58MfivmKKlqVb0P1szA/exec";
 
 const SUPABASE_URL = "https://uuaglghhsxbzhvbjzgky.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdsZ2hoc3hiemh2Ymp6Z2t5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMDMxOTgsImV4cCI6MjA5Njc3OTE5OH0.WI317E3WbMLHcS8hFDYnIH8TjCjkL09G55lt3Qd7X6k";
