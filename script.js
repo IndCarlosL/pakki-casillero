@@ -2706,8 +2706,10 @@ const app = {
         if (fileInput) fileInput.value = '';
         const currentDiv = document.getElementById('pr-invoice-current');
         if (currentDiv) {
-            if (req.purchaseInvoiceDriveUrl) {
+            if (req.purchaseInvoiceDriveUrl && req.purchaseInvoiceDriveUrl !== 'drive-sent' ) {
                 currentDiv.innerHTML = `📎 En Drive: <a href="${req.purchaseInvoiceDriveUrl}" target="_blank" style="color:#10b981; font-weight:600;">${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || 'Ver en Drive'}</a>`;
+            } else if (req.purchaseInvoiceDriveUrl === 'drive-sent' && req.purchaseInvoiceFileData) {
+                currentDiv.innerHTML = `<span style="color:#10b981;">✓ Enviada a Google Drive</span> &nbsp;·&nbsp; <a href="${req.purchaseInvoiceFileData}" target="_blank" style="color:var(--primary);">Ver copia local</a>`;
             } else if (req.purchaseInvoiceFileData) {
                 currentDiv.innerHTML = `📎 <a href="${req.purchaseInvoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">${req.purchaseInvoiceFileName || 'Ver archivo'}</a>`;
             } else {
@@ -2786,29 +2788,25 @@ const app = {
             });
         }
 
-        // Try to upload to Google Drive if configured and a new file was selected
+        // Send to Google Drive (fire & forget — no-cors bypasses CORS restriction)
         let purchaseInvoiceDriveUrl = req.purchaseInvoiceDriveUrl || '';
         let purchaseInvoiceDriveFileName = req.purchaseInvoiceDriveFileName || '';
-        if (purchaseInvoiceFileData && fileInput && fileInput.files[0] &&
-            DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT') {
-            try {
-                const driveRes = await fetch(DRIVE_BRIDGE_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        fileData: purchaseInvoiceFileData,
-                        fileName: purchaseInvoiceFileName,
-                        clientCode: req.lockerCode || '',
-                        requestId: prId
-                    })
-                });
-                const driveJson = await driveRes.json();
-                if (driveJson.success) {
-                    purchaseInvoiceDriveUrl = driveJson.driveUrl;
-                    purchaseInvoiceDriveFileName = driveJson.driveFileName || purchaseInvoiceFileName;
-                }
-            } catch (_) {
-                // Drive upload failed — file still saved as base64 in Supabase
-            }
+        const driveConfigured = DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT';
+        if (purchaseInvoiceFileData && fileInput && fileInput.files[0] && driveConfigured) {
+            const today = new Date().toISOString().slice(0, 10);
+            const driveFileName = [req.lockerCode || '', today, purchaseInvoiceFileName].filter(Boolean).join('_');
+            fetch(DRIVE_BRIDGE_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    fileData: purchaseInvoiceFileData,
+                    fileName: purchaseInvoiceFileName,
+                    clientCode: req.lockerCode || '',
+                    requestId: prId
+                })
+            }).catch(() => {});
+            purchaseInvoiceDriveFileName = driveFileName;
+            purchaseInvoiceDriveUrl = 'drive-sent'; // marca que fue enviado
         }
 
         state.purchaseRequests[idx].status = newStatus;
@@ -2833,7 +2831,7 @@ const app = {
 
         await sendStatusNotification(req, newStatus);
 
-        const driveNote = purchaseInvoiceDriveUrl ? ' · Guardada en Google Drive ✓' : '';
+        const driveNote = (purchaseInvoiceFileData && fileInput && fileInput.files[0] && driveConfigured) ? ' · Enviada a Google Drive ✓' : '';
         this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>. Notificación enviada.${driveNote}`, 'success');
         this.closeModal('modal-pr-detail');
         this.renderPurchaseRequestsList();
