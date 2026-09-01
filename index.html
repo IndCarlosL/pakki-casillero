@@ -1453,9 +1453,18 @@ Tel: +1 (305) 555-0199
                         <option value="Cancelado">Cancelado</option>
                     </select>
                     <input type="hidden" id="pr-modal-id">
-                    <button class="btn btn-primary" onclick="app.handleUpdatePRStatus()">Guardar</button>
                 </div>
-                <button class="btn btn-secondary" onclick="app.closeModal('modal-pr-detail')">Cerrar</button>
+                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                    <label style="font-weight:600; font-size:0.85rem;">Factura / Comprobante de compra <span style="font-weight:400; color:var(--text-muted);">(opcional)</span></label>
+                    <div id="pr-invoice-current" style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.15rem;"></div>
+                    <input type="file" id="pr-invoice-file" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                        style="font-size:0.83rem; padding:0.35rem; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-secondary);">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">PDF o imagen, máx. 3 MB</span>
+                </div>
+                <div style="display:flex; gap:0.75rem;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="app.handleUpdatePRStatus()">Guardar cambios</button>
+                    <button class="btn btn-secondary" onclick="app.closeModal('modal-pr-detail')">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>

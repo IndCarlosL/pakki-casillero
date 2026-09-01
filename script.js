@@ -2676,7 +2676,12 @@ const app = {
                 <td>${req.deliveryCity}</td>
                 <td><span class="badge ${badgeClass}">${req.status}</span></td>
                 <td>
-                    <button class="btn btn-secondary btn-sm" onclick="app.viewPRDetail('${req.id}')">Ver</button>
+                    <div style="display:flex; gap:0.3rem; align-items:center;">
+                        <button class="btn btn-secondary btn-sm" onclick="app.viewPRDetail('${req.id}')">Ver</button>
+                        ${req.purchaseInvoiceFileData
+                            ? `<a href="${req.purchaseInvoiceFileData}" target="_blank" title="${req.purchaseInvoiceFileName || 'Ver factura'}" style="font-size:1rem; line-height:1; text-decoration:none;">📎</a>`
+                            : ''}
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -2689,6 +2694,16 @@ const app = {
 
         document.getElementById('pr-modal-id').value = req.id;
         document.getElementById('pr-new-status').value = req.status;
+
+        // Reset file input and show current invoice if any
+        const fileInput = document.getElementById('pr-invoice-file');
+        if (fileInput) fileInput.value = '';
+        const currentDiv = document.getElementById('pr-invoice-current');
+        if (currentDiv) {
+            currentDiv.innerHTML = req.purchaseInvoiceFileData
+                ? `📎 Factura actual: <a href="${req.purchaseInvoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">${req.purchaseInvoiceFileName || 'Ver archivo'}</a>`
+                : 'Sin factura adjunta aún.';
+        }
 
         const statusColors = {
             'Pendiente': 'badge-warning',
@@ -2742,10 +2757,33 @@ const app = {
         if (idx === -1) return;
 
         const req = state.purchaseRequests[idx];
+
+        // Handle optional invoice file upload
+        let purchaseInvoiceFileName = req.purchaseInvoiceFileName || '';
+        let purchaseInvoiceFileData = req.purchaseInvoiceFileData || '';
+        const fileInput = document.getElementById('pr-invoice-file');
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 3 * 1024 * 1024) {
+                this.showAlert('El archivo supera el límite de 3 MB.', 'warning');
+                return;
+            }
+            purchaseInvoiceFileName = file.name;
+            purchaseInvoiceFileData = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
         state.purchaseRequests[idx].status = newStatus;
+        state.purchaseRequests[idx].purchaseInvoiceFileName = purchaseInvoiceFileName;
+        state.purchaseRequests[idx].purchaseInvoiceFileData = purchaseInvoiceFileData;
+
+        const updates = { status: newStatus, purchaseInvoiceFileName, purchaseInvoiceFileData };
 
         if (useSupabase) {
-            await supabaseClient.from('purchase_requests').update({ status: newStatus }).eq('id', prId);
+            await supabaseClient.from('purchase_requests').update(updates).eq('id', prId);
         } else {
             saveStateLocal();
         }
