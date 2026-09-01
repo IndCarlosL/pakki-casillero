@@ -2788,25 +2788,50 @@ const app = {
             });
         }
 
-        // Send to Google Drive (fire & forget — no-cors bypasses CORS restriction)
+        // Send to Google Drive via hidden iframe form (avoids CORS)
         let purchaseInvoiceDriveUrl = req.purchaseInvoiceDriveUrl || '';
         let purchaseInvoiceDriveFileName = req.purchaseInvoiceDriveFileName || '';
         const driveConfigured = DRIVE_BRIDGE_URL !== 'PON_AQUI_LA_URL_DEL_APPS_SCRIPT';
         if (purchaseInvoiceFileData && fileInput && fileInput.files[0] && driveConfigured) {
             const today = new Date().toISOString().slice(0, 10);
             const driveFileName = [req.lockerCode || '', today, purchaseInvoiceFileName].filter(Boolean).join('_');
-            fetch(DRIVE_BRIDGE_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
+            try {
+                // Use iframe trick to POST without CORS restriction
+                const iframeName = 'drive-upload-' + Date.now();
+                const iframe = document.createElement('iframe');
+                iframe.name = iframeName;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = DRIVE_BRIDGE_URL;
+                form.target = iframeName;
+                form.style.display = 'none';
+
+                const payload = JSON.stringify({
                     fileData: purchaseInvoiceFileData,
                     fileName: purchaseInvoiceFileName,
                     clientCode: req.lockerCode || '',
                     requestId: prId
-                })
-            }).catch(() => {});
+                });
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'payload';
+                input.value = payload;
+                form.appendChild(input);
+
+                document.body.appendChild(form);
+                form.submit();
+
+                setTimeout(() => {
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }, 5000);
+            } catch (_) {}
             purchaseInvoiceDriveFileName = driveFileName;
-            purchaseInvoiceDriveUrl = 'drive-sent'; // marca que fue enviado
+            purchaseInvoiceDriveUrl = 'drive-sent';
         }
 
         state.purchaseRequests[idx].status = newStatus;
