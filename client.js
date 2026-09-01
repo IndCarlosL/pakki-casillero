@@ -1032,6 +1032,28 @@ Tel: +1 (305) 555-0199
             };
             const sc = statusColors[req.status] || statusColors['Pendiente'];
 
+            let quoteHtml = '';
+            if (req.quoteStatus === 'sent') {
+                quoteHtml = `
+                    <div style="margin-top:0.75rem; padding:0.85rem; background:#eff6ff; border:1.5px solid #93c5fd; border-radius:8px;">
+                        <p style="font-weight:700; color:#1d4ed8; margin-bottom:0.5rem; font-size:0.9rem;">💰 Cotización disponible</p>
+                        <div style="font-size:0.85rem; color:#374151; display:flex; flex-direction:column; gap:0.2rem; margin-bottom:0.6rem;">
+                            <div style="display:flex; justify-content:space-between;"><span>Costo artículo:</span><strong>$${(req.quoteAmount || 0).toFixed(2)} USD</strong></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Comisión:</span><strong>$${(req.quoteCommission || 0).toFixed(2)} USD</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:1rem; padding-top:0.4rem; border-top:1px solid #bfdbfe;"><span><strong>Total a pagar:</strong></span><strong style="color:#1d4ed8;">$${(req.quoteTotal || 0).toFixed(2)} USD</strong></div>
+                            ${req.quoteNotes ? `<p style="margin-top:0.3rem; color:#6b7280; font-size:0.78rem;">Obs: ${req.quoteNotes}</p>` : ''}
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="clientApp.respondToQuote('${req.id}', 'accepted')">✓ Aceptar</button>
+                            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="clientApp.respondToQuote('${req.id}', 'rejected')">✗ Rechazar</button>
+                        </div>
+                    </div>`;
+            } else if (req.quoteStatus === 'accepted') {
+                quoteHtml = `<div style="margin-top:0.6rem; padding:0.5rem 0.75rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:0.82rem; color:#166534;">✓ Cotización aceptada · Total: <strong>$${(req.quoteTotal || 0).toFixed(2)} USD</strong></div>`;
+            } else if (req.quoteStatus === 'rejected') {
+                quoteHtml = `<div style="margin-top:0.6rem; padding:0.5rem 0.75rem; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; font-size:0.82rem; color:#991b1b;">✗ Cotización rechazada — contáctanos si tienes dudas.</div>`;
+            }
+
             const card = document.createElement('div');
             card.className = 'card';
             card.style.cssText = `padding: 1rem; border-left: 4px solid ${sc.border};`;
@@ -1049,9 +1071,23 @@ Tel: +1 (305) 555-0199
                     <p><strong>Seguro:</strong> ${req.insure ? 'Sí' : 'No'} &nbsp;|&nbsp; <strong>Ciudad entrega:</strong> ${req.deliveryCity}</p>
                     <a href="${req.url}" target="_blank" rel="noopener" style="color:var(--primary); font-size:0.78rem; word-break:break-all;">Ver producto ↗</a>
                 </div>
+                ${quoteHtml}
             `;
             container.appendChild(card);
         });
+    },
+
+    respondToQuote: async function(prId, response) {
+        const label = response === 'accepted' ? 'aceptar' : 'rechazar';
+        if (!confirm(`¿Deseas ${label} esta cotización?`)) return;
+        const updates = { quoteStatus: response };
+        if (supabaseClient) {
+            const { error } = await supabaseClient.from('purchase_requests').update(updates).eq('id', prId);
+            if (error) { alert('Error al guardar tu respuesta: ' + error.message); return; }
+        }
+        const idx = (state.purchaseRequests || []).findIndex(r => r.id === prId);
+        if (idx !== -1) state.purchaseRequests[idx].quoteStatus = response;
+        this.renderMyPurchaseRequests();
     }
 };
 

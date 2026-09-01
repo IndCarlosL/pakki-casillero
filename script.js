@@ -97,6 +97,28 @@ const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY';   // ej: 'aBcDeFgHiJkLmNoP'
 
 const FIXED_NOTIFICATION_EMAILS = 'info@yotraigo.com,administrativo@yotraigo.com,gerencia@yotraigo.com';
 
+async function sendQuoteNotification(req, amount, commission, total, notes) {
+    if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') return;
+    const clientUser  = (state.users || []).find(u => u.lockerCode === req.lockerCode);
+    const clientEmail = clientUser ? clientUser.email : '';
+    const toEmails    = clientEmail ? `${clientEmail},${FIXED_NOTIFICATION_EMAILS}` : FIXED_NOTIFICATION_EMAILS;
+    const notesLine   = notes ? ` Observaciones: ${notes}.` : '';
+    try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_emails:    toEmails,
+            client_name:  req.clientName,
+            locker_code:  req.lockerCode,
+            product_name: req.productName,
+            store:        req.store || '',
+            status:       'Cotización Disponible',
+            status_msg:   `Tienes una cotización lista. Artículo: $${amount.toFixed(2)} USD | Comisión: $${commission.toFixed(2)} USD | Total: $${total.toFixed(2)} USD.${notesLine} Ingresa a tu casillero para aceptar o rechazar.`,
+            date:         new Date().toLocaleDateString('es-CO', { dateStyle: 'long' })
+        }, EMAILJS_PUBLIC_KEY);
+    } catch (err) {
+        console.warn('Error enviando notificación de cotización:', err);
+    }
+}
+
 async function sendStatusNotification(req, newStatus) {
     if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') return;
 
@@ -2666,6 +2688,10 @@ const app = {
                 'Cancelado': 'badge-danger'
             };
             const badgeClass = statusColors[req.status] || 'badge-neutral';
+            const quoteLabel = req.quoteStatus === 'sent'     ? '<br><span class="badge badge-info"    style="font-size:0.68rem;">💰 Cotizado</span>'
+                             : req.quoteStatus === 'accepted' ? '<br><span class="badge badge-success" style="font-size:0.68rem;">✓ Aceptado</span>'
+                             : req.quoteStatus === 'rejected' ? '<br><span class="badge badge-danger"  style="font-size:0.68rem;">✗ Rechazado</span>'
+                             : '';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -2678,10 +2704,11 @@ const app = {
                 <td>${req.estimatedWeightLbs} Lbs</td>
                 <td style="text-align:center;">${req.insure ? '<span class="badge badge-success">Sí</span>' : '<span class="badge badge-neutral">No</span>'}</td>
                 <td>${req.deliveryCity}</td>
-                <td><span class="badge ${badgeClass}">${req.status}</span></td>
+                <td><span class="badge ${badgeClass}">${req.status}</span>${quoteLabel}</td>
                 <td>
-                    <div style="display:flex; gap:0.3rem; align-items:center;">
+                    <div style="display:flex; gap:0.3rem; align-items:center; flex-wrap:wrap;">
                         <button class="btn btn-secondary btn-sm" onclick="app.viewPRDetail('${req.id}')">Ver</button>
+                        <button class="btn btn-primary btn-sm" onclick="app.openQuoteModal('${req.id}')">💰</button>
                         ${req.purchaseInvoiceDriveUrl
                             ? `<a href="${req.purchaseInvoiceDriveUrl}" target="_blank" title="Ver en Drive: ${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || ''}" style="font-size:1rem; line-height:1; text-decoration:none;" title="Drive">📎</a>`
                             : req.purchaseInvoiceFileData
@@ -2861,6 +2888,62 @@ const app = {
         const driveNote = (purchaseInvoiceFileData && fileInput && fileInput.files[0] && driveConfigured) ? ' · Enviada a Google Drive ✓' : '';
         this.showAlert(`Estado actualizado a <strong>${newStatus}</strong>. Notificación enviada.${driveNote}`, 'success');
         this.closeModal('modal-pr-detail');
+        this.renderPurchaseRequestsList();
+    },
+
+    openQuoteModal: function(prId) {
+        const req = (state.purchaseRequests || []).find(r => r.id === prId);
+        if (!req) return;
+        document.getElementById('quote-pr-id').value = prId;
+        document.getElementById('quote-product-name').textContent = req.productName;
+        document.getElementById('quote-client-info').textContent = `${req.clientName}  ·  ${req.lockerCode}  ·  ${req.store}`;
+        document.getElementById('quote-amount').value = req.quoteAmount || '';
+        document.getElementById('quote-notes').value = req.quoteNotes || '';
+        this.calcQuote();
+        this.closeModal('modal-pr-detail');
+        this.openModal('modal-pr-quote');
+    },
+
+    calcQuote: function() {
+        const amount = parseFloat(document.getElementById('quote-amount').value) || 0;
+        const commission = Math.max(5, amount * 0.05);
+        const total = amount + commission;
+        document.getElementById('quote-display-amount').textContent     = `$${amount.toFixed(2)} USD`;
+        document.getElementById('quote-display-commission').textContent = `$${commission.toFixed(2)} USD`;
+        document.getElementById('quote-display-total').textContent      = `$${total.toFixed(2)} USD`;
+    },
+
+    handleSendQuote: async function() {
+        const prId   = document.getElementById('quote-pr-id').value;
+        const amount = parseFloat(document.getElementById('quote-amount').value);
+        const notes  = document.getElementById('quote-notes').value.trim();
+
+        if (!prId || isNaN(amount) || amount <= 0) {
+            this.showAlert('Ingresa el costo del artículo para generar la cotización.', 'warning');
+            return;
+        }
+
+        const commission = parseFloat(Math.max(5, amount * 0.05).toFixed(2));
+        const total      = parseFloat((amount + commission).toFixed(2));
+        const today      = new Date().toISOString().slice(0, 10);
+
+        const updates = { quoteAmount: amount, quoteCommission: commission, quoteTotal: total, quoteNotes: notes, quoteDate: today, quoteStatus: 'sent' };
+
+        const idx = (state.purchaseRequests || []).findIndex(r => r.id === prId);
+        if (idx !== -1) Object.assign(state.purchaseRequests[idx], updates);
+
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('purchase_requests').update(updates).eq('id', prId);
+            if (error) { this.showAlert('Error al guardar la cotización: ' + error.message, 'danger'); return; }
+        } else {
+            saveStateLocal();
+        }
+
+        const req = (state.purchaseRequests || []).find(r => r.id === prId);
+        await sendQuoteNotification(req, amount, commission, total, notes);
+
+        this.showAlert(`Cotización enviada: <strong>$${total.toFixed(2)} USD</strong> · El cliente será notificado.`, 'success');
+        this.closeModal('modal-pr-quote');
         this.renderPurchaseRequestsList();
     },
 
