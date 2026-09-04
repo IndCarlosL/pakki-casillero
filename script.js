@@ -2416,9 +2416,14 @@ const app = {
                             <span>Impuestos Aduana (IVA ${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200 USD' : 'Exento < $200 USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
+                        ${pkg.domicilioCOP ? `
+                        <div class="invoice-total-row">
+                            <span>Domicilio:</span>
+                            <span><strong>$${Math.round(pkg.domicilioCOP).toLocaleString('es-CO')} COP</strong></span>
+                        </div>` : ''}
                         <div class="invoice-total-row grand-total">
                             <span>TOTAL A LIQUIDAR:</span>
-                            <span>$${calc.total.toFixed(2)} USD<br><span style="font-size:0.88em;">${fmtCOP(calc.total)}</span></span>
+                            <span>$${calc.total.toFixed(2)} USD<br><span style="font-size:0.88em;">${fmtCOP(calc.total)}${pkg.domicilioCOP ? ` + $${Math.round(pkg.domicilioCOP).toLocaleString('es-CO')} COP domicilio` : ''}</span></span>
                         </div>
                     </div>
                     <p style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem;">TRM aplicada: $${(s.trm||4000).toLocaleString('es-CO')} COP/USD</p>
@@ -2467,6 +2472,12 @@ const app = {
         document.getElementById('edit-pkg-fuel').placeholder      = `Auto (${calc.fuelCalc})`;
         document.getElementById('edit-pkg-tax').placeholder       = `Auto (${calc.taxCalc})`;
 
+        // Domicilio
+        const hasDomicilio = pkg.domicilioCOP != null && pkg.domicilioCOP > 0;
+        document.getElementById('edit-pkg-domicilio-toggle').checked = hasDomicilio;
+        document.getElementById('edit-pkg-domicilio').value = hasDomicilio ? pkg.domicilioCOP : '';
+        document.getElementById('domicilio-amount-wrap').style.display = hasDomicilio ? 'block' : 'none';
+
         // Transportadora
         const knownCarriers = ['Amazon Log', 'UPS', 'FedEx', 'USPS', 'DHL'];
         const sel = document.getElementById('edit-pkg-carrier');
@@ -2489,6 +2500,13 @@ const app = {
         }
 
         this.openModal('modal-edit-package');
+    },
+
+    toggleDomicilio: function() {
+        const checked = document.getElementById('edit-pkg-domicilio-toggle').checked;
+        const wrap = document.getElementById('domicilio-amount-wrap');
+        wrap.style.display = checked ? 'block' : 'none';
+        if (!checked) document.getElementById('edit-pkg-domicilio').value = '';
     },
 
     _editPkgMsg: function(text, type) {
@@ -2534,7 +2552,13 @@ const app = {
             handlingOverride:  parseOverride('edit-pkg-handling'),
             insuranceOverride: parseOverride('edit-pkg-insurance'),
             fuelOverride:      parseOverride('edit-pkg-fuel'),
-            taxOverride:       parseOverride('edit-pkg-tax')
+            taxOverride:       parseOverride('edit-pkg-tax'),
+            domicilioCOP:      (() => {
+                const on = document.getElementById('edit-pkg-domicilio-toggle').checked;
+                if (!on) return null;
+                const v = parseFloat(document.getElementById('edit-pkg-domicilio').value);
+                return isNaN(v) || v <= 0 ? null : v;
+            })()
         };
 
         // Feedback inmediato en el botón
@@ -2568,7 +2592,8 @@ const app = {
                     handlingOverride:  overrideUpdates.handlingOverride,
                     insuranceOverride: overrideUpdates.insuranceOverride,
                     fuelOverride:      overrideUpdates.fuelOverride,
-                    taxOverride:       overrideUpdates.taxOverride
+                    taxOverride:       overrideUpdates.taxOverride,
+                    domicilioCOP:      overrideUpdates.domicilioCOP
                 });
             }
         } else {
