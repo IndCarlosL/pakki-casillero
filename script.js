@@ -47,10 +47,10 @@ function showShippingTypeInfo(type) {
                 'Diseñado para <strong>emprendedores y comerciantes</strong>.',
                 'Permite <strong>consolidación de mercancía</strong> de múltiples proveedores.',
                 '<strong>Sin límite de peso ni dimensiones</strong>.',
-                'Tarifa especial: <strong>mínimo 10 libras a $8 USD por libra</strong>.',
-                'Sin aplicación de IVA ni arancel adicional.',
+                '<strong>Tarifas preferenciales</strong> con sistema de consolidación internacional.',
+                '<strong>Sin IVA ni Arancel</strong> · Cotización a la medida según volumen.',
             ],
-            note: 'Ideal para negocios, reventas y compras al por mayor.'
+            note: 'Ideal para negocios, reventas e importaciones frecuentes.'
         }
     };
 
@@ -3006,7 +3006,7 @@ const app = {
             infoEl.innerHTML = `<strong>Persona Natural:</strong> 1ª libra $${(s.cotizFletePrimeraLb||5).toFixed(2)} USD + adicionales $${(s.cotizFleteAdicionalLb||3.50).toFixed(2)} USD. Si el valor declarado supera los <strong>$200 USD</strong> se aplican automáticamente IVA ${s.cotizIvaPercent||19}% + Arancel ${s.cotizArancelPercent||10}%.`;
         } else {
             infoEl.style.background = '#f0fdf4'; infoEl.style.color = '#166534'; infoEl.style.borderColor = '#bbf7d0';
-            infoEl.innerHTML = `<strong>Corporativo:</strong> Mínimo ${s.cotizCorpMinLbs||10} libras facturables a $${(s.cotizCorpLbUsd||8).toFixed(2)} USD por libra. <strong>Sin IVA ni Arancel</strong>.`;
+            infoEl.innerHTML = `<strong>Corporativo:</strong> Sistema de consolidación internacional con tarifas preferenciales desde <strong>$${(s.cotizCorpLbUsd||8).toFixed(2)} USD/lb</strong>. <strong>Sin IVA ni Arancel</strong> · Cotización a la medida según tu volumen y frecuencia de importación.`;
         }
         document.getElementById('cot-results-card').style.display = 'none';
     },
