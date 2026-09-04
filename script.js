@@ -98,35 +98,24 @@ const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY';   // ej: 'aBcDeFgHiJkLmNoP'
 const FIXED_NOTIFICATION_EMAILS = 'info@yotraigo.com,administrativo@yotraigo.com,gerencia@yotraigo.com';
 
 async function sendQuoteNotification(req, amount, commission, total, notes) {
-    if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') return;
     const clientUser  = (state.users || []).find(u => u.lockerCode === req.lockerCode);
     const clientEmail = clientUser ? clientUser.email : '';
     const toEmails    = clientEmail ? `${clientEmail},${FIXED_NOTIFICATION_EMAILS}` : FIXED_NOTIFICATION_EMAILS;
-    const notesLine   = notes ? ` Observaciones: ${notes}.` : '';
+    const notesLine   = notes ? `\nObservaciones: ${notes}` : '';
+    const body = `Hola ${req.clientName} (${req.lockerCode}),\n\nTienes una cotización lista para tu solicitud.\n\nProducto: ${req.productName}\nTienda: ${req.store || ''}\nCosto artículo: $${amount.toFixed(2)} USD\nComisión: $${commission.toFixed(2)} USD\nTotal a pagar: $${total.toFixed(2)} USD${notesLine}\n\nIngresa a tu casillero para aceptar o rechazar la cotización.\n\n— Equipo Pakki Global Express`;
+    const subject = `Pakki · Cotización disponible — ${req.productName}`;
     try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-            to_emails:    toEmails,
-            client_name:  req.clientName,
-            locker_code:  req.lockerCode,
-            product_name: req.productName,
-            store:        req.store || '',
-            status:       'Cotización Disponible',
-            status_msg:   `Tienes una cotización lista. Artículo: $${amount.toFixed(2)} USD | Comisión: $${commission.toFixed(2)} USD | Total: $${total.toFixed(2)} USD.${notesLine} Ingresa a tu casillero para aceptar o rechazar.`,
-            date:         new Date().toLocaleDateString('es-CO', { dateStyle: 'long' })
-        }, EMAILJS_PUBLIC_KEY);
+        const params = new URLSearchParams({ action: 'email', to: toEmails, subject, body: encodeURIComponent(body) });
+        fetch(`${DRIVE_BRIDGE_URL}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {});
     } catch (err) {
         console.warn('Error enviando notificación de cotización:', err);
     }
 }
 
 async function sendStatusNotification(req, newStatus) {
-    if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') return;
-
     const clientUser = (state.users || []).find(u => u.lockerCode === req.lockerCode);
     const clientEmail = clientUser ? clientUser.email : '';
-    const toEmails = clientEmail
-        ? `${clientEmail},${FIXED_NOTIFICATION_EMAILS}`
-        : FIXED_NOTIFICATION_EMAILS;
+    const toEmails = clientEmail ? `${clientEmail},${FIXED_NOTIFICATION_EMAILS}` : FIXED_NOTIFICATION_EMAILS;
 
     const statusMessages = {
         'Pendiente':  'Tu solicitud está pendiente de revisión.',
@@ -135,17 +124,13 @@ async function sendStatusNotification(req, newStatus) {
         'Cancelado':  'Tu solicitud ha sido cancelada. Contáctanos para más información.'
     };
 
+    const date = new Date().toLocaleDateString('es-CO', { dateStyle: 'long' });
+    const body = `Hola ${req.clientName} (${req.lockerCode}),\n\n${statusMessages[newStatus] || ''}\n\nProducto: ${req.productName}\nTienda: ${req.store || ''}\nNuevo estado: ${newStatus}\nFecha: ${date}\n\n— Equipo Pakki Global Express`;
+    const subject = `Pakki · ${newStatus} — ${req.productName}`;
+
     try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-            to_emails:    toEmails,
-            client_name:  req.clientName,
-            locker_code:  req.lockerCode,
-            product_name: req.productName,
-            store:        req.store || '',
-            status:       newStatus,
-            status_msg:   statusMessages[newStatus] || '',
-            date:         new Date().toLocaleDateString('es-CO', { dateStyle: 'long' })
-        }, EMAILJS_PUBLIC_KEY);
+        const params = new URLSearchParams({ action: 'email', to: toEmails, subject, body: encodeURIComponent(body) });
+        fetch(`${DRIVE_BRIDGE_URL}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {});
         console.log('Notificación enviada a:', toEmails);
     } catch (err) {
         console.warn('Error enviando notificación:', err);
@@ -157,7 +142,7 @@ async function sendStatusNotification(req, newStatus) {
 // Si dejas estos valores por defecto, la aplicación funcionará automáticamente en MODO DE PRUEBA LOCAL (usando LocalStorage).
 // URL del Apps Script para guardar facturas en Google Drive.
 // Pega aquí la URL que obtienes al desplegar el script "Pakki Drive Bridge".
-const DRIVE_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbxL9Sag0QPIXkmA12LwnL30Rx_pJfa_hSbwo6LVSJX62MFw3seccCmTY14_kyLDxxV-7Q/exec";
+const DRIVE_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbwtQBGxPEVTjEGmrVkiaWTJwLmfluRNqr8QTFdNeWmBtvXzTMrkvCJi1qmkGIgSoCxPEA/exec";
 
 const SUPABASE_URL = "https://uuaglghhsxbzhvbjzgky.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdsZ2hoc3hiemh2Ymp6Z2t5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMDMxOTgsImV4cCI6MjA5Njc3OTE5OH0.WI317E3WbMLHcS8hFDYnIH8TjCjkL09G55lt3Qd7X6k";
