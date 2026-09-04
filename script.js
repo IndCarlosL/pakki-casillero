@@ -385,12 +385,8 @@ const app = {
         if (useSupabase && state._supabaseError) {
             banner.className += ' alert-danger';
             banner.innerHTML = `<strong>Error de conexión con Supabase:</strong> ${state._supabaseError}. Los datos mostrados están vacíos. Recarga la página para reintentar.`;
-        } else if (useSupabase) {
-            banner.className += ' alert-success';
-            banner.innerHTML = `<strong>Nube Conectada:</strong> Sistema sincronizado con Supabase — ${state.users.length} casillero(s) cargado(s).`;
         } else {
-            banner.className += ' alert-info';
-            banner.innerHTML = `<strong>Modo Local:</strong> Sin conexión a Supabase. Configura <code>SUPABASE_URL</code> y <code>SUPABASE_KEY</code> en <code>script.js</code>.`;
+            return; // Sin banner cuando todo está OK
         }
         container.insertBefore(banner, container.firstChild);
     },
@@ -3232,7 +3228,7 @@ async function loadTRM(spanId) {
         if (data && data.length > 0 && data[0].valor) {
             const trm = parseFloat(data[0].valor);
             const trmServicio = trm + 300;
-            el.textContent = 'USD $' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            el.innerHTML = 'USD <strong>$' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>';
         } else {
             el.textContent = 'TRM no disponible';
         }

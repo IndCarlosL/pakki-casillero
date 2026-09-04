@@ -1115,7 +1115,7 @@ async function loadTRM(spanId) {
         if (data && data.length > 0 && data[0].valor) {
             const trm = parseFloat(data[0].valor);
             const trmServicio = trm + 300;
-            el.textContent = 'USD $' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            el.innerHTML = 'USD <strong>$' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>';
         } else {
             el.textContent = 'TRM no disponible';
         }
