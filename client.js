@@ -1345,3 +1345,20 @@ async function loadTRM(spanId) {
         el.textContent = 'TRM no disponible';
     }
 }
+
+function filterBodegasClient(key, btn) {
+    document.querySelectorAll('#cl-bodega-filters .bodega-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('#cl-bodegas-grid .bodega-card').forEach(card => {
+        card.classList.toggle('hidden', key !== 'all' && card.dataset.bodega !== key);
+    });
+}
+
+function copyBodegaAddressClient(btn) {
+    const pre = btn.closest('.bodega-card').querySelector('.bodega-address');
+    navigator.clipboard.writeText(pre.textContent.trim()).then(() => {
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copiar Dirección'; btn.classList.remove('copied'); }, 2000);
+    });
+}

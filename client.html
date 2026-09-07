@@ -252,6 +252,106 @@ Cargando dirección...
                         </div>
                     </div>
                 </div>
+
+                <!-- Bodegas Internacionales -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="section-card-header" style="margin-bottom: 1.25rem;">
+                        <div>
+                            <h2>Bodegas Internacionales</h2>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.2rem;">Direcciones de recepción de paquetes por país de origen</p>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;" id="cl-bodega-filters">
+                        <button class="bodega-filter-btn active" onclick="filterBodegasClient('all', this)">🌎 Todas</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegasClient('miami1', this)">🇺🇸 Miami 1</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegasClient('miami2', this)">🇺🇸 Miami 2</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegasClient('china', this)">🇨🇳 China</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegasClient('espana', this)">🇪🇸 España</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegasClient('canada', this)">🇨🇦 Canada</button>
+                    </div>
+
+                    <!-- Grid de bodegas -->
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;" id="cl-bodegas-grid">
+
+                        <div class="bodega-card" data-bodega="miami1">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇺🇸</span>
+                                <div>
+                                    <div class="bodega-title">Miami 1</div>
+                                    <div class="bodega-subtitle">Bodega Principal — Doral, FL</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
+8400 NW 25th Street, Suite 100
+Doral, FL 33198
+Tel: +1 (305) 555-0199</pre>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
+                        </div>
+
+                        <div class="bodega-card" data-bodega="miami2">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇺🇸</span>
+                                <div>
+                                    <div class="bodega-title">Miami 2</div>
+                                    <div class="bodega-subtitle">Bodega Secundaria — Doral, FL</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
+7820 NW 29th Street, Bay 12
+Doral, FL 33122
+Tel: +1 (305) 555-0288</pre>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
+                        </div>
+
+                        <div class="bodega-card" data-bodega="china">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇨🇳</span>
+                                <div>
+                                    <div class="bodega-title">China</div>
+                                    <div class="bodega-subtitle">Bodega Guangzhou</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
+No. 888 Zhongshan Ave, Room 501
+Tianhe District, Guangzhou 510000
+Tel: +86 20 8888-0199</pre>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
+                        </div>
+
+                        <div class="bodega-card" data-bodega="espana">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇪🇸</span>
+                                <div>
+                                    <div class="bodega-title">España</div>
+                                    <div class="bodega-subtitle">Bodega Madrid</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
+Calle Alcalá 123, Local B
+28009 Madrid, España
+Tel: +34 91 555-0199</pre>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
+                        </div>
+
+                        <div class="bodega-card" data-bodega="canada">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇨🇦</span>
+                                <div>
+                                    <div class="bodega-title">Canada</div>
+                                    <div class="bodega-subtitle">Bodega Toronto</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
+2901 Steeles Ave E, Unit 210
+Toronto, ON M1W 3C7
+Tel: +1 (416) 555-0199</pre>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
+                        </div>
+
+                    </div>
+                </div>
             </section>
 
             <!-- TAB 2: Crear Prealerta -->
