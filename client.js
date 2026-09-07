@@ -1088,6 +1088,228 @@ Tel: +1 (305) 555-0199
         const idx = (state.purchaseRequests || []).findIndex(r => r.id === prId);
         if (idx !== -1) state.purchaseRequests[idx].quoteStatus = response;
         this.renderMyPurchaseRequests();
+    },
+
+    // ===== COTIZADOR =====
+    _cotizMode: 'natural',
+
+    setCotizMode: function(mode) {
+        this._cotizMode = mode;
+        const isNatural = mode === 'natural';
+        const btnNat = document.getElementById('cl-btn-mode-natural');
+        const btnCorp = document.getElementById('cl-btn-mode-corp');
+        if (!btnNat) return;
+        btnNat.style.background = isNatural ? 'var(--primary)' : 'var(--bg-secondary)';
+        btnNat.style.color = isNatural ? '#fff' : 'var(--text-muted)';
+        btnCorp.style.background = !isNatural ? 'var(--secondary)' : 'var(--bg-secondary)';
+        btnCorp.style.color = !isNatural ? '#fff' : 'var(--text-muted)';
+
+        const s = state.settings || {};
+        const infoEl = document.getElementById('cl-cot-mode-info');
+        if (!infoEl) return;
+        if (isNatural) {
+            infoEl.style.background = '#eff6ff'; infoEl.style.color = '#1e40af'; infoEl.style.borderColor = '#bfdbfe';
+            infoEl.innerHTML = `<strong>Persona Natural:</strong> 1ª libra $${(s.cotizFletePrimeraLb||5).toFixed(2)} USD + adicionales $${(s.cotizFleteAdicionalLb||3.50).toFixed(2)} USD. Si el valor declarado supera los <strong>$200 USD</strong> se aplican automáticamente IVA ${s.cotizIvaPercent||19}% + Arancel ${s.cotizArancelPercent||10}%.`;
+        } else {
+            infoEl.style.background = '#f0fdf4'; infoEl.style.color = '#166534'; infoEl.style.borderColor = '#bbf7d0';
+            infoEl.innerHTML = `<strong>Corporativo:</strong> Sistema de consolidación internacional con tarifas preferenciales desde <strong>$${(s.cotizCorpLbUsd||8).toFixed(2)} USD/lb</strong>. <strong>Sin IVA ni Arancel</strong> · Cotización a la medida según tu volumen y frecuencia de importación.`;
+        }
+        const resultsCard = document.getElementById('cl-cot-results-card');
+        if (resultsCard) resultsCard.style.display = 'none';
+    },
+
+    _buildCotizData: function() {
+        const valorUsd = parseFloat(document.getElementById('cl-cot-valor').value) || 0;
+        const pesoLbs = parseFloat(document.getElementById('cl-cot-peso').value) || 0;
+        const otrosCargos = parseFloat(document.getElementById('cl-cot-otros-cargos').value) || 0;
+        const incluyeSeguro = document.getElementById('cl-cot-chk-seguro').checked;
+        const incluyeDomicilio = document.getElementById('cl-cot-chk-domicilio').checked;
+        const incluyeServicio = document.getElementById('cl-cot-chk-servicio').checked;
+        const s = state.settings || {};
+        const trm = s.trm || 4000;
+        const seguroPercent = s.cotizSeguroPercent || 2;
+        const domicilioUsd = s.cotizDomicilioUsd || 4;
+        const servicioPercent = s.cotizServicioCompraPercent || 5;
+
+        let flete, fleteLabel, iva = 0, arancel = 0, modoTexto;
+
+        if (this._cotizMode === 'corporativo') {
+            const lbUsd = s.cotizCorpLbUsd || 8;
+            const minLbs = s.cotizCorpMinLbs || 10;
+            const pesoFacturable = Math.max(Math.ceil(pesoLbs), minLbs);
+            flete = pesoFacturable * lbUsd;
+            const minNota = pesoLbs < minLbs ? ` &mdash; mínimo ${minLbs} Lbs aplicado` : (pesoFacturable !== pesoLbs ? ` &mdash; redondeado de ${pesoLbs} Lbs` : '');
+            fleteLabel = `Flete Corporativo (${pesoFacturable} Lbs &times; $${lbUsd.toFixed(2)}${minNota})`;
+            modoTexto = 'Corporativo';
+        } else {
+            const fletePrimera = s.cotizFletePrimeraLb || 5;
+            const fleteAdicional = s.cotizFleteAdicionalLb || 3.50;
+            const ivaPercent = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
+            const arancelPercent = s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
+            const pesoFacturable = pesoLbs > 0 ? Math.ceil(pesoLbs) : 0;
+            flete = pesoFacturable <= 0 ? 0 : pesoFacturable <= 1 ? fletePrimera : fletePrimera + (pesoFacturable - 1) * fleteAdicional;
+            const redNota = pesoFacturable !== pesoLbs ? ` &mdash; redondeado de ${pesoLbs} Lbs` : '';
+            fleteLabel = pesoFacturable <= 1
+                ? `Flete (${pesoFacturable} Lb &mdash; 1ª libra${redNota})`
+                : `Flete (1&ordf; Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable-1} Lbs &times; $${fleteAdicional.toFixed(2)}${redNota})`;
+            const aplicaImpuestos = valorUsd > 200;
+            iva = aplicaImpuestos ? valorUsd * (ivaPercent / 100) : 0;
+            arancel = aplicaImpuestos ? valorUsd * (arancelPercent / 100) : 0;
+            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor ≤ $200 USD — sin impuestos)' : ` (valor > $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)`}`;
+        }
+
+        const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
+        const domicilio = incluyeDomicilio ? domicilioUsd : 0;
+        const servicio = incluyeServicio ? valorUsd * (servicioPercent / 100) : 0;
+        const totalUsd = flete + iva + arancel + seguro + domicilio + servicio + otrosCargos;
+
+        return { valorUsd, pesoLbs, otrosCargos, trm, flete, fleteLabel, iva, arancel, seguro, seguroPercent, domicilio, domicilioUsd, servicio, servicioPercent, totalUsd, modoTexto, incluyeSeguro, incluyeDomicilio, incluyeServicio };
+    },
+
+    calcularCotizacion: function() {
+        const valorUsd = parseFloat(document.getElementById('cl-cot-valor').value) || 0;
+        const pesoLbs = parseFloat(document.getElementById('cl-cot-peso').value) || 0;
+        if (valorUsd <= 0 && pesoLbs <= 0) {
+            alert('Ingresa al menos el valor declarado o el peso para calcular.');
+            return;
+        }
+
+        const d = this._buildCotizData();
+        const s = state.settings || {};
+        const trm = d.trm;
+        const fmtUsd = (v) => `$${v.toFixed(2)} USD`;
+        const fmtCop = (v) => `$${Math.round(v * trm).toLocaleString('es-CO')} COP`;
+
+        const filas = [
+            { label: d.fleteLabel, usd: d.flete, mostrar: true },
+            { label: `IVA (${s.cotizIvaPercent||19}% del valor declarado)`, usd: d.iva, mostrar: d.iva > 0 },
+            { label: `Arancel (${s.cotizArancelPercent||10}% del valor declarado)`, usd: d.arancel, mostrar: d.arancel > 0 },
+            { label: `Seguro (${d.seguroPercent}% del valor declarado)`, usd: d.seguro, mostrar: d.incluyeSeguro },
+            { label: `Servicio de Compra (${d.servicioPercent}%)`, usd: d.servicio, mostrar: d.incluyeServicio },
+            { label: `Domicilio (cargo fijo $${d.domicilioUsd.toFixed(2)} USD)`, usd: d.domicilio, mostrar: d.incluyeDomicilio },
+            { label: 'Otros Cargos', usd: d.otrosCargos, mostrar: d.otrosCargos > 0 },
+        ];
+
+        let html = `
+            <div style="font-size:0.78rem; margin-bottom:0.75rem; padding:0.4rem 0.5rem; background:var(--bg-app); border-radius:6px; color:var(--text-muted);">
+                Modalidad: <strong style="color:var(--text-primary);">${d.modoTexto}</strong>
+            </div>
+            <div class="invoice-total-section">
+                <div class="cot-total-row header">
+                    <span>Concepto</span><span>USD</span>
+                    <span>COP &nbsp;(TRM: ${trm.toLocaleString('es-CO')})</span>
+                </div>`;
+
+        filas.filter(f => f.mostrar).forEach(f => {
+            html += `<div class="cot-total-row"><span>${f.label}</span><span>${fmtUsd(f.usd)}</span><span>${fmtCop(f.usd)}</span></div>`;
+        });
+
+        html += `
+                <div class="cot-total-row grand-total">
+                    <span>TOTAL ESTIMADO</span>
+                    <span>$${d.totalUsd.toFixed(2)} USD</span>
+                    <span>$${Math.round(d.totalUsd * trm).toLocaleString('es-CO')} COP</span>
+                </div>
+            </div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:1rem; padding:0 0.5rem;">
+                * Estimado basado en valor declarado de <strong>$${d.valorUsd.toFixed(2)} USD</strong> y peso de <strong>${d.pesoLbs} Lbs</strong>. Los valores finales pueden variar.
+            </p>`;
+
+        document.getElementById('cl-cot-breakdown-content').innerHTML = html;
+        document.getElementById('cl-cot-fecha-resultado').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('cl-cot-results-card').style.display = 'block';
+        document.getElementById('cl-cot-results-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    limpiarCotizacion: function() {
+        document.getElementById('cl-cot-valor').value = '';
+        document.getElementById('cl-cot-peso').value = '';
+        document.getElementById('cl-cot-otros-cargos').value = '0';
+        ['cl-cot-chk-seguro', 'cl-cot-chk-domicilio', 'cl-cot-chk-servicio'].forEach(id => {
+            document.getElementById(id).checked = false;
+        });
+        document.getElementById('cl-cot-results-card').style.display = 'none';
+        document.getElementById('cl-cot-breakdown-content').innerHTML = '';
+        this.setCotizMode('natural');
+    },
+
+    imprimirCotizacion: function() {
+        const d = this._buildCotizData();
+        const s = state.settings || {};
+        const fmt = (v) => v.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const trm = d.trm;
+
+        const filas = [
+            { label: d.fleteLabel.replace(/&mdash;/g, '—').replace(/&ordf;/g, 'ª').replace(/&times;/g, '×'), usd: d.flete, mostrar: true },
+            { label: `IVA (${s.cotizIvaPercent||19}% del valor declarado)`, usd: d.iva, mostrar: d.iva > 0 },
+            { label: `Arancel (${s.cotizArancelPercent||10}% del valor declarado)`, usd: d.arancel, mostrar: d.arancel > 0 },
+            { label: `Seguro (${d.seguroPercent}% del valor declarado)`, usd: d.seguro, mostrar: d.incluyeSeguro },
+            { label: `Servicio de Compra (${d.servicioPercent}%)`, usd: d.servicio, mostrar: d.incluyeServicio },
+            { label: 'Domicilio (cargo fijo)', usd: d.domicilio, mostrar: d.incluyeDomicilio },
+            { label: 'Otros Cargos', usd: d.otrosCargos, mostrar: d.otrosCargos > 0 },
+        ].filter(f => f.mostrar);
+
+        const filasHtml = filas.map(f => `
+            <tr><td>${f.label}</td><td>$${f.usd.toFixed(2)}</td><td>$${fmt(Math.round(f.usd * trm))}</td></tr>
+        `).join('');
+
+        const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const modoTexto = d.modoTexto.replace(/[≤>]/g, m => m === '≤' ? '≤' : '>');
+
+        const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cotización Pakki Casillero</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; font-size: 14px; max-width: 700px; margin: 0 auto; }
+    h1 { color: #f97316; font-size: 22px; margin: 0 0 4px 0; }
+    .subtitle { color: #64748b; font-size: 12px; margin: 0 0 24px 0; }
+    .info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; }
+    .info-box p { margin: 4px 0; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    thead tr { background: #0f172a; color: white; }
+    th { padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+    .total td { background: #fff7ed; font-weight: 700; font-size: 15px; color: #f97316; border-top: 2px solid #f97316; border-bottom: none; }
+    td:not(:first-child), th:not(:first-child) { text-align: right; }
+    .footer { margin-top: 24px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+    <h1>Pakki Internacional — Cotización de Envío</h1>
+    <p class="subtitle">Generada: ${fecha}</p>
+    <div class="info-box">
+        <p><strong>Modalidad:</strong> ${modoTexto}</p>
+        <p><strong>Valor declarado:</strong> $${d.valorUsd.toFixed(2)} USD</p>
+        <p><strong>Peso:</strong> ${d.pesoLbs} Libras</p>
+        <p><strong>TRM aplicada:</strong> $${fmt(trm)} COP/USD</p>
+    </div>
+    <table>
+        <thead>
+            <tr><th>Concepto</th><th>USD</th><th>COP</th></tr>
+        </thead>
+        <tbody>
+            ${filasHtml}
+            <tr class="total">
+                <td>TOTAL ESTIMADO</td>
+                <td>$${d.totalUsd.toFixed(2)} USD</td>
+                <td>$${fmt(Math.round(d.totalUsd * trm))} COP</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer">
+        * Esta cotización es un estimado. Los valores finales pueden variar según el peso real y normativa aduanera vigente.<br>
+        Pakki Internacional — administrativo@yotraigo.com
+    </div>
+</body>
+</html>`;
+
+        const ventana = window.open('', '_blank', 'width=800,height=600');
+        ventana.document.write(html);
+        ventana.document.close();
+        ventana.focus();
+        setTimeout(() => ventana.print(), 500);
     }
 };
 
