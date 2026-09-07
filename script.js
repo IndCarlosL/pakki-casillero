@@ -3225,6 +3225,23 @@ document.querySelectorAll('.menu-item a').forEach(link => {
     if (span) link.setAttribute('data-label', span.textContent.trim());
 });
 
+function filterBodegas(key, btn) {
+    document.querySelectorAll('#bodega-filters .bodega-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('#bodegas-grid .bodega-card').forEach(card => {
+        card.classList.toggle('hidden', key !== 'all' && card.dataset.bodega !== key);
+    });
+}
+
+function copyBodegaAddress(btn) {
+    const pre = btn.closest('.bodega-card').querySelector('.bodega-address');
+    navigator.clipboard.writeText(pre.textContent.trim()).then(() => {
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copiar Dirección'; btn.classList.remove('copied'); }, 2000);
+    });
+}
+
 async function loadTRM(spanId) {
     const el = document.getElementById(spanId);
     if (!el) return;
