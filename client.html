@@ -531,6 +531,91 @@ Cargando dirección...
                 </div>
             </section>
 
+            <!-- ===== COTIZADOR ===== -->
+            <section id="tab-client-cotizador" class="tab-content">
+                <div style="max-width: 820px;">
+                    <div class="card">
+                        <div class="section-card-header">
+                            <div>
+                                <h2>Nueva Cotización</h2>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">* Cotización válida por hoy</span>
+                            </div>
+                        </div>
+
+                        <!-- Selector de modalidad -->
+                        <div style="display:flex; gap:0; margin-top:1rem; border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; width:fit-content;">
+                            <button id="cl-btn-mode-natural" type="button"
+                                onclick="clientApp.setCotizMode('natural')"
+                                style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--primary); color:#fff; transition:background 0.15s;">
+                                👤 Persona Natural
+                            </button>
+                            <button id="cl-btn-mode-corp" type="button"
+                                onclick="clientApp.setCotizMode('corporativo')"
+                                style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); transition:background 0.15s;">
+                                🏢 Corporativo
+                            </button>
+                        </div>
+
+                        <!-- Info de la modalidad -->
+                        <div id="cl-cot-mode-info" style="margin-top:0.75rem; padding:0.65rem 1rem; border-radius:var(--radius-md); font-size:0.82rem; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;">
+                            <strong>Persona Natural:</strong> 1ª libra $5 USD + adicionales $3.50 USD. Si el valor declarado supera los $200 USD se aplican automáticamente IVA y Arancel.
+                        </div>
+
+                        <div class="form-grid" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label for="cl-cot-valor">Valor Declarado (USD) *</label>
+                                <input type="number" id="cl-cot-valor" min="0" step="0.01" placeholder="Ej. 150.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="cl-cot-peso">Peso (Libras) *</label>
+                                <input type="number" id="cl-cot-peso" min="0" step="0.1" placeholder="Ej. 3.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="cl-cot-otros-cargos">Otros Cargos (USD)</label>
+                                <input type="number" id="cl-cot-otros-cargos" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1rem 1.25rem; background: var(--bg-app); border-radius: var(--radius-md); margin-top: 1rem;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                <input type="checkbox" id="cl-cot-chk-seguro" style="width:16px;height:16px;accent-color:var(--primary);">
+                                Seguro
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                <input type="checkbox" id="cl-cot-chk-domicilio" style="width:16px;height:16px;accent-color:var(--primary);">
+                                Domicilio
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
+                                <input type="checkbox" id="cl-cot-chk-servicio" style="width:16px;height:16px;accent-color:var(--primary);">
+                                Servicio de Compra
+                            </label>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                            <button class="btn btn-secondary" onclick="clientApp.limpiarCotizacion()">Limpiar</button>
+                            <button class="btn btn-primary" onclick="clientApp.calcularCotizacion()">Calcular Cotización</button>
+                        </div>
+                    </div>
+
+                    <!-- Results card (hidden initially) -->
+                    <div class="card" id="cl-cot-results-card" style="display: none; margin-top: 1.5rem;">
+                        <div class="section-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                            <div>
+                                <h2>Resultado de la Cotización</h2>
+                                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;" id="cl-cot-fecha-resultado"></p>
+                            </div>
+                            <button class="btn btn-primary" onclick="clientApp.imprimirCotizacion()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+                                </svg>
+                                Imprimir / PDF
+                            </button>
+                        </div>
+                        <div id="cl-cot-breakdown-content" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -642,91 +727,6 @@ Cargando dirección...
             </form>
         </div>
     </div>
-
-            <!-- ===== COTIZADOR ===== -->
-            <section id="tab-client-cotizador" class="tab-content">
-                <div style="max-width: 820px;">
-                    <div class="card">
-                        <div class="section-card-header">
-                            <div>
-                                <h2>Nueva Cotización</h2>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">* Cotización válida por hoy</span>
-                            </div>
-                        </div>
-
-                        <!-- Selector de modalidad -->
-                        <div style="display:flex; gap:0; margin-top:1rem; border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; width:fit-content;">
-                            <button id="cl-btn-mode-natural" type="button"
-                                onclick="clientApp.setCotizMode('natural')"
-                                style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--primary); color:#fff; transition:background 0.15s;">
-                                👤 Persona Natural
-                            </button>
-                            <button id="cl-btn-mode-corp" type="button"
-                                onclick="clientApp.setCotizMode('corporativo')"
-                                style="padding:0.6rem 1.25rem; border:none; cursor:pointer; font-size:0.875rem; font-weight:600; background:var(--bg-secondary); color:var(--text-muted); transition:background 0.15s;">
-                                🏢 Corporativo
-                            </button>
-                        </div>
-
-                        <!-- Info de la modalidad -->
-                        <div id="cl-cot-mode-info" style="margin-top:0.75rem; padding:0.65rem 1rem; border-radius:var(--radius-md); font-size:0.82rem; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;">
-                            <strong>Persona Natural:</strong> 1ª libra $5 USD + adicionales $3.50 USD. Si el valor declarado supera los $200 USD se aplican automáticamente IVA y Arancel.
-                        </div>
-
-                        <div class="form-grid" style="margin-top: 1rem;">
-                            <div class="form-group">
-                                <label for="cl-cot-valor">Valor Declarado (USD) *</label>
-                                <input type="number" id="cl-cot-valor" min="0" step="0.01" placeholder="Ej. 150.00">
-                            </div>
-                            <div class="form-group">
-                                <label for="cl-cot-peso">Peso (Libras) *</label>
-                                <input type="number" id="cl-cot-peso" min="0" step="0.1" placeholder="Ej. 3.5">
-                            </div>
-                            <div class="form-group">
-                                <label for="cl-cot-otros-cargos">Otros Cargos (USD)</label>
-                                <input type="number" id="cl-cot-otros-cargos" min="0" step="0.01" value="0">
-                            </div>
-                        </div>
-
-                        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1rem 1.25rem; background: var(--bg-app); border-radius: var(--radius-md); margin-top: 1rem;">
-                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
-                                <input type="checkbox" id="cl-cot-chk-seguro" style="width:16px;height:16px;accent-color:var(--primary);">
-                                Seguro
-                            </label>
-                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
-                                <input type="checkbox" id="cl-cot-chk-domicilio" style="width:16px;height:16px;accent-color:var(--primary);">
-                                Domicilio
-                            </label>
-                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; font-weight:500;">
-                                <input type="checkbox" id="cl-cot-chk-servicio" style="width:16px;height:16px;accent-color:var(--primary);">
-                                Servicio de Compra
-                            </label>
-                        </div>
-
-                        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
-                            <button class="btn btn-secondary" onclick="clientApp.limpiarCotizacion()">Limpiar</button>
-                            <button class="btn btn-primary" onclick="clientApp.calcularCotizacion()">Calcular Cotización</button>
-                        </div>
-                    </div>
-
-                    <!-- Results card (hidden initially) -->
-                    <div class="card" id="cl-cot-results-card" style="display: none; margin-top: 1.5rem;">
-                        <div class="section-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                            <div>
-                                <h2>Resultado de la Cotización</h2>
-                                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;" id="cl-cot-fecha-resultado"></p>
-                            </div>
-                            <button class="btn btn-primary" onclick="clientApp.imprimirCotizacion()">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:4px;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
-                                </svg>
-                                Imprimir / PDF
-                            </button>
-                        </div>
-                        <div id="cl-cot-breakdown-content" style="margin-top: 1rem;"></div>
-                    </div>
-                </div>
-            </section>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="client.js"></script>
