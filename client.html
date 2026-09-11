@@ -262,17 +262,6 @@ Cargando dirección...
                         </div>
                     </div>
 
-                    <!-- Filtros -->
-                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;" id="cl-bodega-filters">
-                        <button class="bodega-filter-btn active" onclick="filterBodegasClient('all', this)">🌎 Todas</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('miami-express', this)">🇺🇸 Pakki Express</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('miami-business', this)">🇺🇸 Pakki Business</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('miami-all', this)">🇺🇸 Pakki All Inclusive</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('china', this)">🇨🇳 Pakki Guangzhou</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('espana', this)">🇪🇸 Pakki Madrid</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegasClient('canada', this)">🇨🇦 Pakki Canada</button>
-                    </div>
-
                     <!-- Grid de bodegas -->
                     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;" id="cl-bodegas-grid">
 
@@ -288,72 +277,6 @@ Cargando dirección...
 8524 NW 61st ST, Suite 105
 Miami, FL 33166</pre>
                             <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
-                        </div>
-
-                        <div class="bodega-card" data-bodega="miami-business">
-                            <div class="bodega-card-header">
-                                <span class="bodega-flag">🇺🇸</span>
-                                <div>
-                                    <div class="bodega-title">Pakki Business</div>
-                                    <div class="bodega-subtitle">Miami, FL — Servicio Empresarial</div>
-                                </div>
-                            </div>
-                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-7128 NW 52nd ST
-Miami, FL 33166</pre>
-                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)">Copiar Dirección</button>
-                        </div>
-
-                        <div class="bodega-card" data-bodega="miami-all">
-                            <div class="bodega-card-header">
-                                <span class="bodega-flag">🇺🇸</span>
-                                <div>
-                                    <div class="bodega-title">Pakki All Inclusive</div>
-                                    <div class="bodega-subtitle">Miami, FL — Próximamente</div>
-                                </div>
-                            </div>
-                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección disponible próximamente.
-Contáctanos para más información.</pre>
-                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
-                        </div>
-
-                        <div class="bodega-card" data-bodega="china">
-                            <div class="bodega-card-header">
-                                <span class="bodega-flag">🇨🇳</span>
-                                <div>
-                                    <div class="bodega-title">Pakki Guangzhou</div>
-                                    <div class="bodega-subtitle">China — Próximamente</div>
-                                </div>
-                            </div>
-                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección disponible próximamente.
-Contáctanos para más información.</pre>
-                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
-                        </div>
-
-                        <div class="bodega-card" data-bodega="espana">
-                            <div class="bodega-card-header">
-                                <span class="bodega-flag">🇪🇸</span>
-                                <div>
-                                    <div class="bodega-title">Pakki Madrid</div>
-                                    <div class="bodega-subtitle">España — Próximamente</div>
-                                </div>
-                            </div>
-                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección disponible próximamente.
-Contáctanos para más información.</pre>
-                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
-                        </div>
-
-                        <div class="bodega-card" data-bodega="canada">
-                            <div class="bodega-card-header">
-                                <span class="bodega-flag">🇨🇦</span>
-                                <div>
-                                    <div class="bodega-title">Pakki Canada</div>
-                                    <div class="bodega-subtitle">Canada — Próximamente</div>
-                                </div>
-                            </div>
-                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección disponible próximamente.
-Contáctanos para más información.</pre>
-                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
                         </div>
 
                     </div>
