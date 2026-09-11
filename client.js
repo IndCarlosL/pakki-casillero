@@ -549,9 +549,9 @@ const clientApp = {
             : nameParts[0] || '';
         const addressBlock = document.getElementById('client-miami-address-block');
         addressBlock.innerHTML = `
-<strong>${shortName} ${loggedUser.lockerCode}</strong>
-8400 NW 25th Street, Suite 100
-Doral, FL 33198
+<strong>${shortName} [${loggedUser.lockerCode}]</strong>
+8524 NW 61st ST, Suite 105
+Miami, FL 33166
 Tel: +1 (305) 555-0199
         `;
 

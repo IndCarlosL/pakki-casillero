@@ -256,91 +256,174 @@
                     <!-- Filtros -->
                     <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;" id="bodega-filters">
                         <button class="bodega-filter-btn active" onclick="filterBodegas('all', this)">🌎 Todas</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegas('miami1', this)">🇺🇸 Miami 1</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegas('miami2', this)">🇺🇸 Miami 2</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegas('china', this)">🇨🇳 China</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegas('espana', this)">🇪🇸 España</button>
-                        <button class="bodega-filter-btn" onclick="filterBodegas('canada', this)">🇨🇦 Canada</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('miami-express', this)">🇺🇸 Pakki Express</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('miami-business', this)">🇺🇸 Pakki Business</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('miami-all', this)">🇺🇸 Pakki All Inclusive</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('china', this)">🇨🇳 Pakki Guangzhou</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('espana', this)">🇪🇸 Pakki Madrid</button>
+                        <button class="bodega-filter-btn" onclick="filterBodegas('canada', this)">🇨🇦 Pakki Canada</button>
                     </div>
 
-                    <!-- Grid de bodegas -->
+                    <!-- Grid de bodegas (alias públicos — sin nombre de proveedor) -->
                     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;" id="bodegas-grid">
 
-                        <div class="bodega-card" data-bodega="miami1">
+                        <div class="bodega-card" data-bodega="miami-express">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇺🇸</span>
                                 <div>
-                                    <div class="bodega-title">Miami 1</div>
-                                    <div class="bodega-subtitle">Bodega Principal — Doral, FL</div>
+                                    <div class="bodega-title">Pakki Express</div>
+                                    <div class="bodega-subtitle">Miami, FL — Bodega Principal</div>
                                 </div>
                             </div>
                             <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-8400 NW 25th Street, Suite 100
-Doral, FL 33198
-Tel: +1 (305) 555-0199</pre>
+8524 NW 61st ST, Suite 105
+Miami, FL 33166</pre>
                             <button class="bodega-copy-btn" onclick="copyBodegaAddress(this)">Copiar Dirección</button>
                         </div>
 
-                        <div class="bodega-card" data-bodega="miami2">
+                        <div class="bodega-card" data-bodega="miami-business">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇺🇸</span>
                                 <div>
-                                    <div class="bodega-title">Miami 2</div>
-                                    <div class="bodega-subtitle">Bodega Secundaria — Doral, FL</div>
+                                    <div class="bodega-title">Pakki Business</div>
+                                    <div class="bodega-subtitle">Miami, FL — Servicio Empresarial</div>
                                 </div>
                             </div>
                             <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-7820 NW 29th Street, Bay 12
-Doral, FL 33122
-Tel: +1 (305) 555-0288</pre>
+7128 NW 52nd ST
+Miami, FL 33166</pre>
                             <button class="bodega-copy-btn" onclick="copyBodegaAddress(this)">Copiar Dirección</button>
+                        </div>
+
+                        <div class="bodega-card" data-bodega="miami-all">
+                            <div class="bodega-card-header">
+                                <span class="bodega-flag">🇺🇸</span>
+                                <div>
+                                    <div class="bodega-title">Pakki All Inclusive</div>
+                                    <div class="bodega-subtitle">Miami, FL — Próximamente</div>
+                                </div>
+                            </div>
+                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección pendiente de confirmar.</pre>
+                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
                         </div>
 
                         <div class="bodega-card" data-bodega="china">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇨🇳</span>
                                 <div>
-                                    <div class="bodega-title">China</div>
-                                    <div class="bodega-subtitle">Bodega Guangzhou</div>
+                                    <div class="bodega-title">Pakki Guangzhou</div>
+                                    <div class="bodega-subtitle">China — Próximamente</div>
                                 </div>
                             </div>
-                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-No. 888 Zhongshan Ave, Room 501
-Tianhe District, Guangzhou 510000
-Tel: +86 20 8888-0199</pre>
-                            <button class="bodega-copy-btn" onclick="copyBodegaAddress(this)">Copiar Dirección</button>
+                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección pendiente de confirmar.</pre>
+                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
                         </div>
 
                         <div class="bodega-card" data-bodega="espana">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇪🇸</span>
                                 <div>
-                                    <div class="bodega-title">España</div>
-                                    <div class="bodega-subtitle">Bodega Madrid</div>
+                                    <div class="bodega-title">Pakki Madrid</div>
+                                    <div class="bodega-subtitle">España — Próximamente</div>
                                 </div>
                             </div>
-                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-Calle Alcalá 123, Local B
-28009 Madrid, España
-Tel: +34 91 555-0199</pre>
-                            <button class="bodega-copy-btn" onclick="copyBodegaAddress(this)">Copiar Dirección</button>
+                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección pendiente de confirmar.</pre>
+                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
                         </div>
 
                         <div class="bodega-card" data-bodega="canada">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇨🇦</span>
                                 <div>
-                                    <div class="bodega-title">Canada</div>
-                                    <div class="bodega-subtitle">Bodega Toronto</div>
+                                    <div class="bodega-title">Pakki Canada</div>
+                                    <div class="bodega-subtitle">Canada — Próximamente</div>
                                 </div>
                             </div>
-                            <pre class="bodega-address">Nombre del Cliente [SU-CASILLERO]
-2901 Steeles Ave E, Unit 210
-Toronto, ON M1W 3C7
-Tel: +1 (416) 555-0199</pre>
-                            <button class="bodega-copy-btn" onclick="copyBodegaAddress(this)">Copiar Dirección</button>
+                            <pre class="bodega-address" style="color:var(--text-muted); font-style:italic;">Dirección pendiente de confirmar.</pre>
+                            <button class="bodega-copy-btn" disabled style="opacity:0.4; cursor:not-allowed;">Próximamente</button>
                         </div>
 
+                    </div>
+                </div>
+
+                <!-- Tabla interna de proveedores — solo admin -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="section-card-header" style="margin-bottom:1rem;">
+                        <div>
+                            <h2>🔒 Proveedores Aliados</h2>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Información interna — no visible para clientes</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Proveedor</th>
+                                    <th>Alias Pakki</th>
+                                    <th>País / Ciudad</th>
+                                    <th>Dirección Real</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Somos Cargo</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Business</span></td>
+                                    <td>🇺🇸 Miami, FL</td>
+                                    <td><code style="font-size:0.8rem;">7128 NW 52nd ST, 33166, Miami, FL</code></td>
+                                    <td><span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Activo</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Breton</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Express</span></td>
+                                    <td>🇺🇸 Miami, FL</td>
+                                    <td><code style="font-size:0.8rem;">8524 NW 61st ST, Suite 105, 33166, Miami, FL</code></td>
+                                    <td><span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Activo</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dilo Cargo</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki All Inclusive</span></td>
+                                    <td>🇺🇸 Miami, FL</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dilo Cargo</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Madrid</span></td>
+                                    <td>🇪🇸 España</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dilo Cargo</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Guangzhou</span></td>
+                                    <td>🇨🇳 China</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dilo Cargo</strong></td>
+                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Canada</span></td>
+                                    <td>🇨🇦 Canada</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Agilex</strong></td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Por definir —</span></td>
+                                    <td>🇺🇸 Miami, FL</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Agilex</strong></td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Por definir —</span></td>
+                                    <td>🇪🇸 España</td>
+                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
+                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
