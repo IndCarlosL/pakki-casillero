@@ -757,6 +757,20 @@ Miami, FL 33166</pre>
         </div>
     </div>
 
+    <!-- Botón flotante WhatsApp -->
+    <a href="https://wa.me/573XXXXXXXXX" target="_blank" rel="noopener" id="whatsapp-fab" title="Chatea con nosotros por WhatsApp"
+       style="position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999;
+              width:56px; height:56px; border-radius:50%;
+              background:#FF6B2C; box-shadow:0 4px 16px rgba(255,107,44,0.45);
+              display:flex; align-items:center; justify-content:center;
+              transition:transform 0.2s, box-shadow 0.2s; text-decoration:none;"
+       onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 24px rgba(255,107,44,0.6)'"
+       onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(255,107,44,0.45)'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="30" height="30" fill="#fff">
+            <path d="M16 2C8.268 2 2 8.268 2 16c0 2.522.672 4.882 1.845 6.92L2 30l7.294-1.818A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.6a11.55 11.55 0 0 1-5.89-1.607l-.422-.252-4.33 1.08 1.1-4.217-.276-.434A11.558 11.558 0 0 1 4.4 16C4.4 9.59 9.59 4.4 16 4.4S27.6 9.59 27.6 16 22.41 27.6 16 27.6zm6.34-8.64c-.348-.174-2.06-1.016-2.38-1.132-.318-.116-.55-.174-.78.174-.23.348-.895 1.132-1.097 1.364-.202.23-.405.26-.753.086-.348-.174-1.47-.54-2.8-1.724-1.034-.92-1.733-2.056-1.936-2.404-.202-.348-.022-.536.152-.71.156-.155.348-.405.522-.608.174-.202.232-.348.348-.58.116-.232.058-.435-.029-.61-.087-.174-.78-1.88-1.07-2.574-.28-.676-.565-.584-.78-.595l-.664-.012c-.23 0-.608.087-.926.435-.318.348-1.214 1.186-1.214 2.892s1.242 3.354 1.416 3.586c.174.232 2.445 3.732 5.923 5.232.828.358 1.474.571 1.977.732.83.264 1.585.227 2.182.138.666-.1 2.06-.842 2.35-1.656.29-.814.29-1.512.202-1.656-.086-.144-.318-.23-.666-.405z"/>
+        </svg>
+    </a>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="client.js"></script>
 </body>
