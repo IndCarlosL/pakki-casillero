@@ -1169,7 +1169,10 @@ const app = {
                             style="background:none; border:none; padding:0; cursor:pointer; color:var(--primary); font-weight:700; font-size:1.05rem; text-decoration:underline dotted; text-underline-offset:3px;"
                             title="Editar casillero">${u.lockerCode}</button>
                 </td>
-                <td><strong>${u.name}</strong></td>
+                <td>
+                    <strong>${u.name}</strong>
+                    ${u.clientType === 'corporativo' ? '<span style="margin-left:0.4rem; background:#ede9fe; color:#7c3aed; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:20px; vertical-align:middle;">CORP</span>' : ''}
+                </td>
                 <td class="col-hide-500">${u.doc || '—'}</td>
                 <td class="col-hide-700">${u.email}</td>
                 <td class="col-hide-900">${u.phone || '—'}</td>
@@ -1360,6 +1363,9 @@ const app = {
             `<option value="${t.id}" ${t.id === (u.userType || 'cliente') ? 'selected' : ''}>${t.label}</option>`
         ).join('');
 
+        // Acceso corporativo (cotizador)
+        document.getElementById('edit-locker-client-type').checked = (u.clientType === 'corporativo');
+
         // Estado activo / inactivo
         const isActive = u.active !== false;
         const statusLabel = document.getElementById('edit-locker-status-label');
@@ -1395,7 +1401,8 @@ const app = {
         const phone   = document.getElementById('edit-locker-phone').value.trim();
         const city    = document.getElementById('edit-locker-city').value.trim();
         const address = document.getElementById('edit-locker-address').value.trim();
-        const userType = document.getElementById('edit-locker-type').value;
+        const userType  = document.getElementById('edit-locker-type').value;
+        const clientType = document.getElementById('edit-locker-client-type').checked ? 'corporativo' : 'natural';
 
         const showMsg = (text, type) => {
             const el = document.getElementById('edit-locker-msg');
@@ -1407,7 +1414,7 @@ const app = {
 
         if (!name || !email) { showMsg('Nombre y correo son obligatorios.', 'error'); return; }
 
-        const updates = { name, email, doc, phone, city, address, userType };
+        const updates = { name, email, doc, phone, city, address, userType, clientType };
 
         if (useSupabase) {
             const { error } = await supabaseClient.from('users').update(updates).eq('id', userId);

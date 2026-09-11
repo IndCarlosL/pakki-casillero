@@ -1094,11 +1094,27 @@ Tel: +1 (305) 555-0199
     _cotizMode: 'natural',
 
     setCotizMode: function(mode) {
-        this._cotizMode = mode;
-        const isNatural = mode === 'natural';
-        const btnNat = document.getElementById('cl-btn-mode-natural');
+        const btnNat  = document.getElementById('cl-btn-mode-natural');
         const btnCorp = document.getElementById('cl-btn-mode-corp');
         if (!btnNat) return;
+
+        // Bloquear modo corporativo si el cliente no tiene acceso
+        const esCorp = loggedUser && loggedUser.clientType === 'corporativo';
+        if (!esCorp) {
+            btnCorp.disabled = true;
+            btnCorp.title = 'Disponible solo para Aliados Comerciales. Contacta a Pakki para activarlo.';
+            btnCorp.style.opacity = '0.4';
+            btnCorp.style.cursor = 'not-allowed';
+            mode = 'natural'; // forzar natural
+        } else {
+            btnCorp.disabled = false;
+            btnCorp.title = '';
+            btnCorp.style.opacity = '1';
+            btnCorp.style.cursor = 'pointer';
+        }
+
+        this._cotizMode = mode;
+        const isNatural = mode === 'natural';
         btnNat.style.background = isNatural ? 'var(--primary)' : 'var(--bg-secondary)';
         btnNat.style.color = isNatural ? '#fff' : 'var(--text-muted)';
         btnCorp.style.background = !isNatural ? 'var(--secondary)' : 'var(--bg-secondary)';

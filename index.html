@@ -1349,6 +1349,19 @@ Tel: +1 (416) 555-0199</pre>
                             <select id="edit-locker-type"></select>
                         </div>
                     </div>
+
+                    <!-- Tipo de Cliente para Cotizador -->
+                    <div style="background:var(--bg-app); border-radius:8px; padding:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                        <div>
+                            <div style="font-weight:600; font-size:0.9rem;">Acceso Corporativo (Cotizador)</div>
+                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">Activa el modo <strong>Aliado Comercial</strong> en el cotizador del cliente. Solo para clientes con volumen de importación.</div>
+                        </div>
+                        <label class="toggle-switch" title="Activar modo corporativo">
+                            <input type="checkbox" id="edit-locker-client-type">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
                     <div class="form-group">
                         <label for="edit-locker-address">Dirección de entrega</label>
                         <input type="text" id="edit-locker-address" placeholder="Dirección completa">
