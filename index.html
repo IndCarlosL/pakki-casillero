@@ -353,6 +353,7 @@ Miami, FL 33166</pre>
                             <h2>🔒 Proveedores Aliados</h2>
                             <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Información interna — no visible para clientes</p>
                         </div>
+                        <button class="btn btn-primary" style="font-size:0.85rem; padding:0.45rem 1rem;" onclick="app.openProviderModal(null)">➕ Nuevo Proveedor</button>
                     </div>
                     <div class="table-container">
                         <table>
@@ -365,63 +366,8 @@ Miami, FL 33166</pre>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Somos Cargo</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Business</span></td>
-                                    <td>🇺🇸 Miami, FL</td>
-                                    <td><code style="font-size:0.8rem;">7128 NW 52nd ST, 33166, Miami, FL</code></td>
-                                    <td><span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Activo</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Breton</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Express</span></td>
-                                    <td>🇺🇸 Miami, FL</td>
-                                    <td><code style="font-size:0.8rem;">8524 NW 61st ST, Suite 105, 33166, Miami, FL</code></td>
-                                    <td><span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Activo</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dilo Cargo</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki All Inclusive</span></td>
-                                    <td>🇺🇸 Miami, FL</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dilo Cargo</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Madrid</span></td>
-                                    <td>🇪🇸 España</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dilo Cargo</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Guangzhou</span></td>
-                                    <td>🇨🇳 China</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dilo Cargo</strong></td>
-                                    <td><span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">Pakki Canada</span></td>
-                                    <td>🇨🇦 Canada</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Agilex</strong></td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Por definir —</span></td>
-                                    <td>🇺🇸 Miami, FL</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Agilex</strong></td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Por definir —</span></td>
-                                    <td>🇪🇸 España</td>
-                                    <td><span style="color:var(--text-muted); font-size:0.82rem;">— Pendiente —</span></td>
-                                    <td><span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span></td>
-                                </tr>
+                            <tbody id="providers-tbody">
+                                <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Cargando proveedores...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1726,6 +1672,56 @@ Miami, FL 33166</pre>
                 </div>
                 <div style="position:relative; height:320px;">
                     <canvas id="revenue-chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Proveedor -->
+    <div class="modal-overlay" id="modal-provider" onclick="if(event.target===this) app.closeModal('modal-provider')">
+        <div class="modal" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="modal-provider-title">➕ Nuevo Proveedor</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-provider')">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem;">
+                <input type="hidden" id="prov-modal-id">
+                <div class="form-group">
+                    <label>Nombre Real del Proveedor *</label>
+                    <input type="text" id="prov-nombre" class="form-control" placeholder="Ej: Breton, Somos Cargo…">
+                </div>
+                <div class="form-group">
+                    <label>Alias Pakki</label>
+                    <input type="text" id="prov-alias" class="form-control" placeholder="Ej: Pakki Express">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div class="form-group">
+                        <label>País</label>
+                        <input type="text" id="prov-pais" class="form-control" placeholder="🇺🇸 Estados Unidos">
+                    </div>
+                    <div class="form-group">
+                        <label>Ciudad</label>
+                        <input type="text" id="prov-ciudad" class="form-control" placeholder="Miami, FL">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección Real</label>
+                    <input type="text" id="prov-direccion" class="form-control" placeholder="Dirección completa del proveedor">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="prov-estado" class="form-control">
+                        <option value="activo">Activo</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:space-between;">
+                <button class="btn btn-danger" id="prov-delete-btn" onclick="app.handleDeleteProvider()" style="font-size:0.85rem;">🗑️ Eliminar</button>
+                <div style="display:flex;gap:0.5rem;">
+                    <button class="btn btn-secondary" onclick="app.closeModal('modal-provider')">Cancelar</button>
+                    <button class="btn btn-primary" onclick="app.handleSaveProvider()">Guardar</button>
                 </div>
             </div>
         </div>

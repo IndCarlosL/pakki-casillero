@@ -296,6 +296,7 @@ async function loadState() {
             const { data: purchaseRequests } = await supabaseClient.from('purchase_requests').select('*');
             const { data: userTypes }        = await supabaseClient.from('user_types').select('*').order('label');
             const { data: tariffs }          = await supabaseClient.from('tariffs').select('*');
+            const { data: providers }        = await supabaseClient.from('providers').select('*').order('nombre');
 
             // Solo datos reales de Supabase — sin semillas automáticas
             state.users            = users            || [];
@@ -304,6 +305,7 @@ async function loadState() {
             state.purchaseRequests = purchaseRequests || [];
             state.userTypes        = (userTypes && userTypes.length) ? userTypes : DEFAULT_USER_TYPES;
             state.tariffs          = tariffs || [];
+            state.providers        = providers || [];
 
             if (settings && settings.length > 0) {
                 state.settings = settings.find(s => s.id === 'global') || settings[0];
@@ -813,6 +815,7 @@ const app = {
     renderAll: function() {
         this.renderMetrics();
         this.renderDashboardRecent();
+        this.renderProviders();
         this.renderUserDropdowns();
         this.initPackagesSearch();
         this.renderLockersList();
@@ -3148,6 +3151,91 @@ const app = {
         document.getElementById('cot-results-card').style.display = 'none';
         document.getElementById('cot-breakdown-content').innerHTML = '';
         this.setCotizMode('natural');
+    },
+
+    // ── Proveedores Aliados ────────────────────────────────────────────────
+    renderProviders: function() {
+        const tbody = document.getElementById('providers-tbody');
+        if (!tbody) return;
+        const list = state.providers || [];
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:2rem;">No hay proveedores registrados.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(p => {
+            const estadoBadge = p.estado === 'activo'
+                ? `<span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Activo</span>`
+                : `<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">Pendiente</span>`;
+            const aliasBadge = p.alias
+                ? `<span style="background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:0.78rem;font-weight:600;">${p.alias}</span>`
+                : `<span style="color:var(--text-muted);font-size:0.82rem;">— Por definir —</span>`;
+            return `<tr>
+                <td><strong>${p.nombre}</strong></td>
+                <td>${aliasBadge}</td>
+                <td>${p.pais || '—'} ${p.ciudad ? `· ${p.ciudad}` : ''}</td>
+                <td><code style="font-size:0.78rem;">${p.direccion || '— Pendiente —'}</code></td>
+                <td style="display:flex;gap:0.4rem;align-items:center;">
+                    ${estadoBadge}
+                    <button onclick="app.openProviderModal('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:1rem;" title="Editar">✏️</button>
+                </td>
+            </tr>`;
+        }).join('');
+    },
+
+    openProviderModal: function(id) {
+        const p = id ? (state.providers || []).find(p => p.id === id) : null;
+        document.getElementById('prov-modal-id').value     = p ? p.id : '';
+        document.getElementById('prov-nombre').value       = p ? (p.nombre || '') : '';
+        document.getElementById('prov-alias').value        = p ? (p.alias || '') : '';
+        document.getElementById('prov-pais').value         = p ? (p.pais || '') : '';
+        document.getElementById('prov-ciudad').value       = p ? (p.ciudad || '') : '';
+        document.getElementById('prov-direccion').value    = p ? (p.direccion || '') : '';
+        document.getElementById('prov-estado').value       = p ? (p.estado || 'pendiente') : 'pendiente';
+        document.getElementById('modal-provider-title').textContent = p ? '✏️ Editar Proveedor' : '➕ Nuevo Proveedor';
+        const delBtn = document.getElementById('prov-delete-btn');
+        if (delBtn) delBtn.style.display = p ? 'inline-flex' : 'none';
+        document.getElementById('modal-provider').classList.add('active');
+    },
+
+    handleSaveProvider: async function() {
+        const id       = document.getElementById('prov-modal-id').value;
+        const nombre   = document.getElementById('prov-nombre').value.trim();
+        const alias    = document.getElementById('prov-alias').value.trim();
+        const pais     = document.getElementById('prov-pais').value.trim();
+        const ciudad   = document.getElementById('prov-ciudad').value.trim();
+        const direccion = document.getElementById('prov-direccion').value.trim();
+        const estado   = document.getElementById('prov-estado').value;
+
+        if (!nombre) { alert('El nombre del proveedor es obligatorio.'); return; }
+
+        const payload = { nombre, alias: alias || null, pais: pais || null, ciudad: ciudad || null, direccion: direccion || null, estado };
+
+        if (useSupabase) {
+            if (id) {
+                const { error } = await supabaseClient.from('providers').update(payload).eq('id', id);
+                if (error) { alert('Error al guardar: ' + error.message); return; }
+            } else {
+                const { error } = await supabaseClient.from('providers').insert(payload);
+                if (error) { alert('Error al crear: ' + error.message); return; }
+            }
+            const { data } = await supabaseClient.from('providers').select('*').order('nombre');
+            state.providers = data || [];
+        }
+        this.closeModal('modal-provider');
+        this.renderProviders();
+    },
+
+    handleDeleteProvider: async function() {
+        const id = document.getElementById('prov-modal-id').value;
+        if (!id) return;
+        if (!confirm('¿Eliminar este proveedor?')) return;
+        if (useSupabase) {
+            const { error } = await supabaseClient.from('providers').delete().eq('id', id);
+            if (error) { alert('Error: ' + error.message); return; }
+            state.providers = (state.providers || []).filter(p => p.id !== id);
+        }
+        this.closeModal('modal-provider');
+        this.renderProviders();
     },
 
     imprimirCotizacion: function() {
