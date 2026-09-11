@@ -3357,8 +3357,8 @@ async function loadTRM(spanId) {
         const data = await res.json();
         if (data && data.length > 0 && data[0].valor) {
             const trm = parseFloat(data[0].valor);
-            const trmServicio = trm + 300;
-            el.innerHTML = 'COP <strong>$' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>';
+            const trmServicio = Math.ceil((trm + 300) / 100) * 100;
+            el.innerHTML = 'COP <strong>$' + trmServicio.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '</strong>';
         } else {
             el.textContent = 'TRM no disponible';
         }
