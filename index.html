@@ -1687,45 +1687,45 @@ Miami, FL 33166</pre>
 
     <!-- Modal: Proveedor -->
     <div class="modal-overlay" id="modal-provider" onclick="if(event.target===this) app.closeModal('modal-provider')">
-        <div class="modal" style="max-width:480px;">
-            <div class="modal-header">
-                <h3 id="modal-provider-title">➕ Nuevo Proveedor</h3>
-                <button class="modal-close" onclick="app.closeModal('modal-provider')">✕</button>
+        <div class="modal" style="max-width:480px; background:linear-gradient(135deg,#1a1f2e 0%,#0f172a 100%); border:1.5px solid #FF6B2C; color:#f1f5f9;">
+            <div class="modal-header" style="border-bottom-color:rgba(255,107,44,0.3);">
+                <h3 id="modal-provider-title" style="color:#fff;">➕ Nuevo Proveedor</h3>
+                <button class="modal-close" onclick="app.closeModal('modal-provider')" style="color:#94a3b8;">✕</button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem;">
                 <input type="hidden" id="prov-modal-id">
                 <div class="form-group">
-                    <label>Nombre Real del Proveedor *</label>
-                    <input type="text" id="prov-nombre" class="form-control" placeholder="Ej: Breton, Somos Cargo…">
+                    <label style="color:#cbd5e1;">Nombre Real del Proveedor *</label>
+                    <input type="text" id="prov-nombre" class="form-control" placeholder="Ej: Breton, Somos Cargo…" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                 </div>
                 <div class="form-group">
-                    <label>Alias Pakki</label>
-                    <input type="text" id="prov-alias" class="form-control" placeholder="Ej: Pakki Express">
+                    <label style="color:#cbd5e1;">Alias Pakki</label>
+                    <input type="text" id="prov-alias" class="form-control" placeholder="Ej: Pakki Express" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
                     <div class="form-group">
-                        <label>País</label>
-                        <input type="text" id="prov-pais" class="form-control" placeholder="🇺🇸 Estados Unidos">
+                        <label style="color:#cbd5e1;">País</label>
+                        <input type="text" id="prov-pais" class="form-control" placeholder="🇺🇸 Estados Unidos" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                     </div>
                     <div class="form-group">
-                        <label>Ciudad</label>
-                        <input type="text" id="prov-ciudad" class="form-control" placeholder="Miami, FL">
+                        <label style="color:#cbd5e1;">Ciudad</label>
+                        <input type="text" id="prov-ciudad" class="form-control" placeholder="Miami, FL" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Dirección Real</label>
-                    <input type="text" id="prov-direccion" class="form-control" placeholder="Dirección completa del proveedor">
+                    <label style="color:#cbd5e1;">Dirección Real</label>
+                    <input type="text" id="prov-direccion" class="form-control" placeholder="Dirección completa del proveedor" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                 </div>
                 <div class="form-group">
-                    <label>Estado</label>
-                    <select id="prov-estado" class="form-control">
+                    <label style="color:#cbd5e1;">Estado</label>
+                    <select id="prov-estado" class="form-control" style="background:#0f172a; border-color:rgba(255,107,44,0.4); color:#f1f5f9;">
                         <option value="activo">Activo</option>
                         <option value="pendiente">Pendiente</option>
                         <option value="inactivo">Inactivo</option>
                     </select>
                 </div>
             </div>
-            <div class="modal-footer" style="display:flex;justify-content:space-between;">
+            <div class="modal-footer" style="display:flex;justify-content:space-between; border-top-color:rgba(255,107,44,0.3);">
                 <button class="btn btn-danger" id="prov-delete-btn" onclick="app.handleDeleteProvider()" style="font-size:0.85rem;">🗑️ Eliminar</button>
                 <div style="display:flex;gap:0.5rem;">
                     <button class="btn btn-secondary" onclick="app.closeModal('modal-provider')">Cancelar</button>
