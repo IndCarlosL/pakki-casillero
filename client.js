@@ -547,13 +547,10 @@ const clientApp = {
             : nameParts.length === 2
             ? `${nameParts[0]} ${nameParts[1]}`
             : nameParts[0] || '';
-        const addressBlock = document.getElementById('client-miami-address-block');
-        addressBlock.innerHTML = `
-<strong>${shortName} [${loggedUser.lockerCode}]</strong>
-8524 NW 61st ST, Suite 105
-Miami, FL 33166
-Tel: +1 (305) 555-0199
-        `;
+        const addressBlock = document.getElementById('cl-express-address');
+        if (addressBlock) {
+            addressBlock.innerHTML = `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n8524 NW 61st ST, Suite 105\nMiami, FL 33166`;
+        }
 
         // Metrics calculations
         const myPackages = state.packages.filter(p => p.lockerCode === loggedUser.lockerCode);
