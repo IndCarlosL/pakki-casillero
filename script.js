@@ -3072,8 +3072,13 @@ const app = {
     calcularCotizacion: function() {
         const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
         let pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
+        if (valorUsd <= 0) {
+            alert('El Valor Declarado es obligatorio y debe ser mayor que 0.');
+            document.getElementById('cot-valor').focus();
+            return;
+        }
         if (pesoLbs <= 0) {
-            this.showAlert('El peso en libras es obligatorio y debe ser mayor que 0.', 'warning');
+            alert('El Peso en Libras es obligatorio y debe ser mayor que 0.');
             document.getElementById('cot-peso').focus();
             return;
         }
