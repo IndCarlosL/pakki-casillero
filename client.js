@@ -552,6 +552,12 @@ const clientApp = {
             addressBlock.innerHTML = `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n8524 NW 61st ST, Suite 105\nMiami, FL 33166`;
         }
 
+        const waBtn = document.getElementById('whatsapp-fab');
+        if (waBtn) {
+            const msg = encodeURIComponent(`Hola Pakki, soy ${shortName} [${loggedUser.lockerCode}], necesito ayuda.`);
+            waBtn.href = `https://wa.me/573174250144?text=${msg}`;
+        }
+
         // Metrics calculations
         const myPackages = state.packages.filter(p => p.lockerCode === loggedUser.lockerCode);
         document.getElementById('cmetric-total-packages').textContent = myPackages.length;
