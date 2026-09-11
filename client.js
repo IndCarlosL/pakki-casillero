@@ -1168,11 +1168,14 @@ Tel: +1 (305) 555-0199
 
     calcularCotizacion: function() {
         const valorUsd = parseFloat(document.getElementById('cl-cot-valor').value) || 0;
-        const pesoLbs = parseFloat(document.getElementById('cl-cot-peso').value) || 0;
-        if (valorUsd <= 0 && pesoLbs <= 0) {
-            alert('Ingresa al menos el valor declarado o el peso para calcular.');
+        let pesoLbs = parseFloat(document.getElementById('cl-cot-peso').value) || 0;
+        if (pesoLbs <= 0) {
+            alert('El peso en libras es obligatorio y debe ser mayor que 0.');
+            document.getElementById('cl-cot-peso').focus();
             return;
         }
+        pesoLbs = Math.ceil(pesoLbs);
+        document.getElementById('cl-cot-peso').value = pesoLbs;
 
         const d = this._buildCotizData();
         const s = state.settings || {};

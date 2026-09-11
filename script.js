@@ -3071,11 +3071,14 @@ const app = {
 
     calcularCotizacion: function() {
         const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
-        const pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
-        if (valorUsd <= 0 && pesoLbs <= 0) {
-            this.showAlert('Ingresa al menos el valor declarado o el peso para calcular.', 'warning');
+        let pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
+        if (pesoLbs <= 0) {
+            this.showAlert('El peso en libras es obligatorio y debe ser mayor que 0.', 'warning');
+            document.getElementById('cot-peso').focus();
             return;
         }
+        pesoLbs = Math.ceil(pesoLbs);
+        document.getElementById('cot-peso').value = pesoLbs;
 
         const d = this._buildCotizData();
         const trm = d.trm;
