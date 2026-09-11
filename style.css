@@ -1192,6 +1192,69 @@ tr:hover td {
     td, th { padding: 0.4rem 0.45rem; font-size: 0.7rem; }
 }
 
+/* ── Responsive: cotizador, bodegas y TRM en móvil ──────────────────────── */
+
+/* Cotizador — resultados: en tablet ocultar columna COP, en móvil scroll */
+@media (max-width: 900px) {
+    /* Mostrar TRM también en cliente tablet/móvil */
+    #client-trm-badge { display: flex !important; }
+
+    /* Cotizador: 2 columnas en tablet (ocultar COP) */
+    .cot-total-row {
+        grid-template-columns: 2fr 1fr;
+        font-size: 0.8rem;
+    }
+    .cot-total-row span:last-child { display: none; }
+    .cot-total-row.grand-total span:last-child { display: none; }
+}
+
+@media (max-width: 600px) {
+    /* Cotizador: envolver en scroll horizontal */
+    #cot-breakdown-content,
+    #cl-cot-breakdown-content {
+        overflow-x: auto;
+    }
+    .cot-total-row {
+        grid-template-columns: 2fr 1fr;
+        font-size: 0.75rem;
+        min-width: 280px;
+    }
+    .cot-total-row.grand-total { font-size: 0.9rem; }
+
+    /* Bodegas: pre con scroll horizontal */
+    .bodega-address {
+        overflow-x: auto;
+        white-space: pre;
+        font-size: 0.72rem;
+    }
+
+    /* Bodegas: botones de filtro más compactos */
+    .bodega-filter-btn {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.7rem;
+    }
+
+    /* Sección de modos cotizador en móvil */
+    #cl-btn-mode-natural, #btn-mode-natural,
+    #cl-btn-mode-corp,    #btn-mode-corp {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.85rem;
+    }
+}
+
+@media (max-width: 420px) {
+    /* En teléfono muy pequeño, cotizador vuelve a 2 col con scroll */
+    .cot-total-row {
+        font-size: 0.7rem;
+        padding: 0.5rem 0.35rem;
+    }
+    /* Bodegas: grid forzado a 1 columna */
+    #bodegas-grid,
+    #cl-bodegas-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 /* ==========================================================================
    Client Portal - Login & Timeline Styles
    ========================================================================== */
