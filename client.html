@@ -253,20 +253,23 @@
                     <!-- Grid de bodegas -->
                     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;" id="cl-bodegas-grid">
 
-                        <div class="bodega-card" data-bodega="miami-express">
+                        <div class="bodega-card" data-bodega="miami-express"
+                             style="background:linear-gradient(135deg,#1a1f2e 0%,#0f172a 100%); border:1.5px solid #FF6B2C; color:#f1f5f9;">
                             <div class="bodega-card-header">
                                 <span class="bodega-flag">🇺🇸</span>
                                 <div>
-                                    <div class="bodega-title">Pakki Express</div>
-                                    <div class="bodega-subtitle">Miami, FL — Bodega Principal</div>
+                                    <div class="bodega-title" style="color:#fff;">Pakki Express</div>
+                                    <div class="bodega-subtitle" style="color:#FF6B2C; font-weight:600;">Miami, FL — Tu Dirección de Casillero</div>
                                 </div>
                             </div>
-                            <pre class="bodega-address" id="cl-express-address">Cargando...</pre>
-                            <div style="margin-top:0.6rem; font-size:0.75rem; color:var(--text-muted); display:flex; flex-direction:column; gap:0.2rem;">
+                            <pre class="bodega-address" id="cl-express-address"
+                                 style="background:rgba(255,107,44,0.1); border:1px solid rgba(255,107,44,0.3); color:#f1f5f9;">Cargando...</pre>
+                            <div style="margin-top:0.6rem; font-size:0.75rem; color:#94a3b8; display:flex; flex-direction:column; gap:0.2rem;">
                                 <span>⚠️ Incluye tu código de casillero al lado de tu nombre.</span>
                                 <span>🚚 Prealerta el tracking para agilizar el despacho.</span>
                             </div>
-                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)" style="margin-top:0.75rem;">Copiar Dirección</button>
+                            <button class="bodega-copy-btn" onclick="copyBodegaAddressClient(this)"
+                                    style="margin-top:0.75rem; background:#FF6B2C; color:#fff; border-color:#FF6B2C;">Copiar Dirección</button>
                         </div>
 
                     </div>
