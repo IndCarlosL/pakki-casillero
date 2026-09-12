@@ -549,7 +549,10 @@ const app = {
         const freightCalc   = chargeableWeight * s.baseRatePerLb;
         const insuranceCalc = pkg.value * (s.insurancePercent / 100);
         const fuelCalc      = freightCalc * (s.fuelSurchargePercent / 100);
-        const taxCalc       = pkg.value > s.vatThresholdUsd ? (pkg.value * (s.vatPercent / 100)) : 0;
+        const ivaPercent    = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
+        const arancelPercent= s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
+        const aplicaImpuestos = pkg.value > (s.vatThresholdUsd || 200);
+        const taxCalc       = aplicaImpuestos ? pkg.value * ((ivaPercent + arancelPercent) / 100) : 0;
         const handlingCalc  = s.handlingFee;
 
         // Use override if explicitly saved on the package, otherwise use auto-calc
@@ -2465,7 +2468,13 @@ const app = {
         document.getElementById('edit-pkg-handling').placeholder  = `Auto (${calc.handlingCalc})`;
         document.getElementById('edit-pkg-insurance').placeholder = `Auto (${calc.insuranceCalc})`;
         document.getElementById('edit-pkg-fuel').placeholder      = `Auto (${calc.fuelCalc})`;
-        document.getElementById('edit-pkg-tax').placeholder       = `Auto (${calc.taxCalc})`;
+        const _s = state.settings || {};
+        const _ivaPct = _s.cotizIvaPercent || 19;
+        const _arPct  = _s.cotizArancelPercent || 10;
+        const _taxDesc = calc.taxCalc > 0
+            ? ` → IVA ${_ivaPct}% + Arancel ${_arPct}%`
+            : ` (valor ≤ $200 — sin impuestos)`;
+        document.getElementById('edit-pkg-tax').placeholder = `Auto (${calc.taxCalc}${_taxDesc})`;
 
         // Domicilio
         const hasDomicilio = pkg.domicilioCOP != null && pkg.domicilioCOP > 0;
@@ -2517,6 +2526,19 @@ const app = {
     handleSavePackageEdit: async function() {
         const msgEl = document.getElementById('edit-pkg-msg');
         if (msgEl) msgEl.style.display = 'none';
+
+        const _valor  = parseFloat(document.getElementById('edit-pkg-value').value) || 0;
+        const _peso   = parseFloat(document.getElementById('edit-pkg-weight').value) || 0;
+        if (_valor > 2000) {
+            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('edit-pkg-value').focus();
+            return;
+        }
+        if (_peso > 110) {
+            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('edit-pkg-weight').focus();
+            return;
+        }
 
         const pkgId = document.getElementById('edit-pkg-id').value;
         const carrier = resolveCarrier('edit-pkg-carrier', 'edit-pkg-carrier-other');
@@ -3087,8 +3109,18 @@ const app = {
             document.getElementById('cot-valor').focus();
             return;
         }
+        if (valorUsd > 2000) {
+            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('cot-valor').focus();
+            return;
+        }
         if (pesoLbs <= 0) {
             alert('El Peso en Libras es obligatorio y debe ser mayor que 0.');
+            document.getElementById('cot-peso').focus();
+            return;
+        }
+        if (pesoLbs > 110) {
+            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
             document.getElementById('cot-peso').focus();
             return;
         }

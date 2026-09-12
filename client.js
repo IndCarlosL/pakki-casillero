@@ -1193,8 +1193,18 @@ const clientApp = {
             document.getElementById('cl-cot-valor').focus();
             return;
         }
+        if (valorUsd > 2000) {
+            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('cl-cot-valor').focus();
+            return;
+        }
         if (pesoLbs <= 0) {
             alert('El Peso en Libras es obligatorio y debe ser mayor que 0.');
+            document.getElementById('cl-cot-peso').focus();
+            return;
+        }
+        if (pesoLbs > 110) {
+            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
             document.getElementById('cl-cot-peso').focus();
             return;
         }
