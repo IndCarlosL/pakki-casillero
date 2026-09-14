@@ -282,8 +282,8 @@ body {
 /* Cards & Grid Layouts */
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2.5rem;
 }
 
@@ -490,14 +490,16 @@ textarea {
     border-radius: var(--radius-sm);
 }
 
-/* ── Columnas ocultables por breakpoint (usadas en tabla Casilleros) ── */
+/* ── Columnas ocultables por breakpoint ── */
+.col-hide-1200,
 .col-hide-900,
 .col-hide-700,
 .col-hide-500 { display: table-cell; }   /* visible por defecto */
 
-@media (max-width: 900px) { .col-hide-900 { display: none !important; } }
-@media (max-width: 700px) { .col-hide-700 { display: none !important; } }
-@media (max-width: 500px) { .col-hide-500 { display: none !important; } }
+@media (max-width: 1200px) { .col-hide-1200 { display: none !important; } }
+@media (max-width: 900px)  { .col-hide-900  { display: none !important; } }
+@media (max-width: 700px)  { .col-hide-700  { display: none !important; } }
+@media (max-width: 500px)  { .col-hide-500  { display: none !important; } }
 
 /* Tabla Casilleros: padding compacto */
 #tab-casillero-list .table-container th,
@@ -654,6 +656,11 @@ tr:hover td {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 1.5rem;
+}
+.dashboard-split > * {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .full-split {

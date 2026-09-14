@@ -2765,15 +2765,15 @@ const app = {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><span style="font-family:monospace; font-size:0.78rem; color:var(--primary); font-weight:700;">${shortId}</span></td>
-                <td>${req.dateCreated}</td>
+                <td class="col-hide-700">${req.dateCreated}</td>
                 <td><strong style="color:var(--primary);">${req.lockerCode}</strong></td>
                 <td>${req.clientName}</td>
-                <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${req.productName}">${req.productName}</td>
-                <td>${req.store}</td>
-                <td style="text-align:center;">${req.quantity}</td>
-                <td>${req.estimatedWeightLbs} Lbs</td>
-                <td style="text-align:center;">${req.insure ? '<span class="badge badge-success">Sí</span>' : '<span class="badge badge-neutral">No</span>'}</td>
-                <td>${req.deliveryCity}</td>
+                <td style="max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${req.productName}">${req.productName}</td>
+                <td class="col-hide-900">${req.store}</td>
+                <td class="col-hide-1200" style="text-align:center;">${req.quantity}</td>
+                <td class="col-hide-900">${req.estimatedWeightLbs} Lbs</td>
+                <td class="col-hide-1200" style="text-align:center;">${req.insure ? '<span class="badge badge-success">Sí</span>' : '<span class="badge badge-neutral">No</span>'}</td>
+                <td class="col-hide-700">${req.deliveryCity}</td>
                 <td><span class="badge ${badgeClass}">${req.status}</span>${quoteLabel}</td>
                 <td>
                     <div style="display:flex; gap:0.3rem; align-items:center; flex-wrap:wrap;">
