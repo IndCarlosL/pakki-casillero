@@ -8,6 +8,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Admin Login Gate -->
+    <div id="admin-login-gate" style="position:fixed;inset:0;background:linear-gradient(135deg,#1a1f2e 0%,#0f172a 100%);z-index:99999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:#1e293b;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.6);border:1px solid #334155;">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">📦</div>
+            <h2 style="color:#fff;margin:0 0 0.25rem;font-size:1.4rem;font-weight:700;">Panel Admin</h2>
+            <p style="color:#64748b;font-size:0.85rem;margin:0 0 1.75rem;">Pakki Casillero Internacional</p>
+            <div id="login-gate-error" style="display:none;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;margin-bottom:1rem;text-align:left;"></div>
+            <input type="password" id="admin-pwd-input" placeholder="Contraseña" autocomplete="current-password"
+                style="width:100%;padding:0.8rem 1rem;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:1rem;margin-bottom:1rem;box-sizing:border-box;"
+                onkeydown="if(event.key==='Enter')checkAdminAuth()">
+            <button onclick="checkAdminAuth()" style="width:100%;padding:0.8rem;background:#FF6B2C;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;">
+                Ingresar →
+            </button>
+        </div>
+    </div>
+
     <!-- Mobile top bar (visible only on ≤900px) -->
     <div class="mobile-topbar" id="mobile-topbar">
         <button class="hamburger-btn" id="hamburger-btn" aria-label="Menú" onclick="toggleMobileMenu()">

@@ -3397,9 +3397,57 @@ const app = {
     }
 };
 
+// Admin auth gate
+async function hashPassword(pwd) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkAdminAuth() {
+    const input = document.getElementById('admin-pwd-input');
+    const errEl = document.getElementById('login-gate-error');
+    const btn   = document.querySelector('#admin-login-gate button');
+    if (!input) return;
+    const pwd = input.value;
+    if (!pwd) return;
+    if (btn) btn.disabled = true;
+    try {
+        const inputHash = await hashPassword(pwd);
+        const { data, error } = await supabaseClient
+            .from('settings')
+            .select('admin_password_hash')
+            .eq('id', 'global')
+            .single();
+        if (error || !data || !data.admin_password_hash) {
+            errEl.textContent = 'No se pudo verificar la contraseña. Intenta de nuevo.';
+            errEl.style.display = 'block';
+        } else if (inputHash === data.admin_password_hash) {
+            sessionStorage.setItem('pakki_admin_auth', '1');
+            document.getElementById('admin-login-gate').style.display = 'none';
+            app.init();
+        } else {
+            errEl.textContent = 'Contraseña incorrecta. Intenta de nuevo.';
+            errEl.style.display = 'block';
+            input.value = '';
+            input.focus();
+        }
+    } catch(e) {
+        errEl.textContent = 'Error de conexión. Recarga la página.';
+        errEl.style.display = 'block';
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
 // Start application
 document.addEventListener('DOMContentLoaded', () => {
-    app.init();
+    if (sessionStorage.getItem('pakki_admin_auth') === '1') {
+        document.getElementById('admin-login-gate').style.display = 'none';
+        app.init();
+    } else {
+        document.getElementById('admin-login-gate').style.display = 'flex';
+        setTimeout(() => document.getElementById('admin-pwd-input')?.focus(), 100);
+    }
 });
 
 // Populate data-label for icon tooltips (sidebar icon-only mode on small phones)
