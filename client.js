@@ -672,6 +672,17 @@ const clientApp = {
         const deliveryCity = document.getElementById('cprealert-city').value;
         const shippingType = document.getElementById('cprealert-shipping-type').value;
 
+        if (value > 2000) {
+            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('cprealert-value').focus();
+            return;
+        }
+        if (weightLbs && weightLbs > 110) {
+            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('cprealert-weight').focus();
+            return;
+        }
+
         // Handle file upload (convert to base64)
         let invoiceFileName = '';
         let invoiceFileData = '';

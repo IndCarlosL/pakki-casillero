@@ -2155,6 +2155,17 @@ const app = {
         const deliveryCity = document.getElementById('prealert-city').value;
         const shippingType = document.getElementById('prealert-shipping-type').value;
 
+        if (value > 2000) {
+            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('prealert-value').focus();
+            return;
+        }
+        if (weightLbs && weightLbs > 110) {
+            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            document.getElementById('prealert-weight').focus();
+            return;
+        }
+
         if (!lockerCode) {
             this.showAlert('Debes seleccionar un casillero de la lista de sugerencias — escribe y haz clic en un resultado.', 'warning');
             document.getElementById('prealert-locker-search').focus();
