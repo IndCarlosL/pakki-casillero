@@ -1,3 +1,9 @@
+// Sanitiza strings para inserción segura en innerHTML
+function sanitize(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Muestra popup informativo al seleccionar tipo de envío en Miami
 function showShippingTypeInfo(type) {
     if (!type) return;
@@ -576,6 +582,9 @@ const clientApp = {
         const inMiami = myPackages.filter(p => p.status === 'En Bodega Miami').length;
         document.getElementById('cmetric-warehouse-packages').textContent = inMiami;
 
+        const bogotaEl = document.getElementById('cmetric-bogota-packages');
+        if (bogotaEl) bogotaEl.textContent = myPackages.filter(p => p.status === 'En Bodega Bogotá').length;
+
         // Sum of unpaid invoices
         let unpaidTotal = 0;
         myPackages.forEach(p => {
@@ -670,6 +679,7 @@ const clientApp = {
         const weightLbs = parseFloat(document.getElementById('cprealert-weight').value) || null;
         const description = document.getElementById('cprealert-desc').value.trim();
         const deliveryCity = document.getElementById('cprealert-city').value;
+        const deliveryAddress = document.getElementById('cprealert-delivery-address').value.trim();
         const shippingType = document.getElementById('cprealert-shipping-type').value;
 
         if (value > 2000) {
@@ -722,6 +732,7 @@ const clientApp = {
             weightLbs,
             description,
             deliveryCity,
+            deliveryAddress,
             shippingType,
             invoiceFileName,
             invoiceFileData,
@@ -1210,13 +1221,20 @@ const clientApp = {
     calcularCotizacion: function() {
         const valorUsd = parseFloat(document.getElementById('cl-cot-valor').value) || 0;
         let pesoLbs = parseFloat(document.getElementById('cl-cot-peso').value) || 0;
+        const inlineMsg = document.getElementById('cl-cot-inline-msg');
+        if (inlineMsg) inlineMsg.style.display = 'none';
         if (valorUsd <= 0) {
             alert('El Valor Declarado es obligatorio y debe ser mayor que 0.');
             document.getElementById('cl-cot-valor').focus();
             return;
         }
         if (valorUsd > 2000) {
-            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            const waUrl = `https://api.whatsapp.com/send?phone=+573174250144&text=${encodeURIComponent('Deseo asesoría para enviar un paquete a Colombia mayor a USD$2000. Mi nombre es:')}`;
+            if (inlineMsg) {
+                inlineMsg.innerHTML = `⚠️ <strong>Este envío requiere cambio de modalidad aduanera en Destino Colombia.</strong><br>El valor declarado supera los $2,000 USD. Por favor <a href="${waUrl}" target="_blank" style="color:#92400e; font-weight:700; text-decoration:underline;">contáctanos por WhatsApp</a> para recibir asesoría especializada.`;
+                inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #f59e0b; background:#fef3c7; color:#92400e;';
+                inlineMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             document.getElementById('cl-cot-valor').focus();
             return;
         }
@@ -1226,9 +1244,17 @@ const clientApp = {
             return;
         }
         if (pesoLbs > 110) {
-            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            if (inlineMsg) {
+                inlineMsg.innerHTML = `⚠️ <strong>El peso supera las 110 Lbs.</strong> Este envío requiere un cambio de modalidad. <a href="https://wa.me/573174250144" target="_blank" style="color:#92400e; font-weight:700; text-decoration:underline;">Contactar a Pakki →</a>`;
+                inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #f59e0b; background:#fef3c7; color:#92400e;';
+                inlineMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             document.getElementById('cl-cot-peso').focus();
             return;
+        }
+        if (valorUsd > 200 && inlineMsg) {
+            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> Se calculará IVA + Arancel (sobre el 30%) porque el valor declarado supera los $200 USD.';
+            inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af;';
         }
         pesoLbs = Math.ceil(pesoLbs);
         document.getElementById('cl-cot-peso').value = pesoLbs;
@@ -1289,6 +1315,8 @@ const clientApp = {
         });
         document.getElementById('cl-cot-results-card').style.display = 'none';
         document.getElementById('cl-cot-breakdown-content').innerHTML = '';
+        const inlineMsg = document.getElementById('cl-cot-inline-msg');
+        if (inlineMsg) inlineMsg.style.display = 'none';
         this.setCotizMode('natural');
     },
 

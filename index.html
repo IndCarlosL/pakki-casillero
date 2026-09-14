@@ -218,6 +218,36 @@
                         </div>
                         <div class="metric-cta-hint">Ver gráfica →</div>
                     </div>
+                    <div class="card metric-card metric-card-cta" onclick="app.switchTab('tab-bodega')" title="Ver paquetes en Bogotá">
+                        <div class="metric-data">
+                            <h3>En Bodega Bogotá</h3>
+                            <div class="value" id="metric-bogota">0</div>
+                            <span class="trend info">
+                                <span>Listos para distribución</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                            </svg>
+                        </div>
+                        <div class="metric-cta-hint">Ver bodega →</div>
+                    </div>
+                    <div class="card metric-card" title="Paquetes con facturación pendiente">
+                        <div class="metric-data">
+                            <h3>Pendientes de Pago</h3>
+                            <div class="value" id="metric-pending-payment">0</div>
+                            <span class="trend danger">
+                                <span>Facturas sin liquidar</span>
+                            </span>
+                        </div>
+                        <div class="metric-icon warning">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Últimos paquetes — ancho completo -->
@@ -771,6 +801,7 @@ Miami, FL 33166</pre>
                         <table>
                             <thead>
                                 <tr>
+                                    <th>ID Solicitud</th>
                                     <th>Fecha</th>
                                     <th>Casillero</th>
                                     <th>Cliente</th>
@@ -785,7 +816,7 @@ Miami, FL 33166</pre>
                                 </tr>
                             </thead>
                             <tbody id="table-pr-body">
-                                <tr><td colspan="11" style="text-align:center; color:var(--text-muted);">No hay solicitudes registradas.</td></tr>
+                                <tr><td colspan="12" style="text-align:center; color:var(--text-muted);">No hay solicitudes registradas.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -887,7 +918,7 @@ Miami, FL 33166</pre>
                             <div class="form-grid" style="margin-top: 1rem;">
                                 <div class="form-group">
                                     <label for="cot-valor">Valor Declarado (USD) *</label>
-                                    <input type="number" id="cot-valor" min="0.01" step="0.01" placeholder="Ej. 150.00">
+                                    <input type="number" id="cot-valor" min="0.01" max="99999" step="0.01" placeholder="Ej. 150.00">
                                 </div>
                                 <div class="form-group">
                                     <label for="cot-peso">Peso (Libras) *</label>
@@ -914,6 +945,8 @@ Miami, FL 33166</pre>
                                 </label>
                             </div>
 
+                            <div id="cot-inline-msg" style="display:none; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid;"></div>
+
                             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                                 <button class="btn btn-secondary" onclick="app.limpiarCotizacion()">Limpiar</button>
                                 <button class="btn btn-primary" onclick="app.calcularCotizacion()">Calcular Cotización</button>
@@ -935,6 +968,30 @@ Miami, FL 33166</pre>
                                 </button>
                             </div>
                             <div id="cot-breakdown-content" style="margin-top: 1rem;"></div>
+                        </div>
+
+                        <!-- Fichas condiciones courier -->
+                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+                            <div style="flex:1; min-width:140px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; font-weight:700; margin-bottom:0.2rem;">Valor Máximo</div>
+                                <div style="font-size:1.05rem; font-weight:700; color:#1e3a8a;">$2,000 USD</div>
+                                <div style="font-size:0.73rem; color:#3b82f6; margin-top:0.15rem;">por paquete courier</div>
+                            </div>
+                            <div style="flex:1; min-width:140px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#15803d; font-weight:700; margin-bottom:0.2rem;">Peso Máximo</div>
+                                <div style="font-size:1.05rem; font-weight:700; color:#14532d;">110 Lbs</div>
+                                <div style="font-size:0.73rem; color:#22c55e; margin-top:0.15rem;">por paquete courier</div>
+                            </div>
+                            <div style="flex:1; min-width:140px; background:#fefce8; border:1px solid #fef08a; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#a16207; font-weight:700; margin-bottom:0.2rem;">Artículos</div>
+                                <div style="font-size:1.05rem; font-weight:700; color:#713f12;">Máx. 6 unid.</div>
+                                <div style="font-size:0.73rem; color:#ca8a04; margin-top:0.15rem;">misma referencia</div>
+                            </div>
+                            <div style="flex:1; min-width:140px; background:#fdf4ff; border:1px solid #e9d5ff; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#7e22ce; font-weight:700; margin-bottom:0.2rem;">Dimensiones</div>
+                                <div style="font-size:1.05rem; font-weight:700; color:#581c87;">Máx 1.50 m</div>
+                                <div style="font-size:0.73rem; color:#a855f7; margin-top:0.15rem;">por arista</div>
+                            </div>
                         </div>
 
                     </div>
@@ -1251,11 +1308,11 @@ Miami, FL 33166</pre>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="prealert-tracking">Número de Tracking *</label>
-                            <input type="text" id="prealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
+                            <input type="text" id="prealert-tracking" required maxlength="80" placeholder="Ej. 1Z999AA10123456784">
                         </div>
                         <div class="form-group">
                             <label for="prealert-store">Tienda de Compra *</label>
-                            <input type="text" id="prealert-store" required placeholder="Ej. Amazon, Shein, Nike…">
+                            <input type="text" id="prealert-store" required maxlength="80" placeholder="Ej. Amazon, Shein, Nike…">
                         </div>
                         <div class="form-group">
                             <label for="prealert-carrier">Transportadora *</label>
@@ -1312,6 +1369,11 @@ Miami, FL 33166</pre>
                                 </optgroup>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prealert-delivery-address">Dirección de Entrega *</label>
+                        <input type="text" id="prealert-delivery-address" required maxlength="200" placeholder="Ej. Calle 123 # 45-67, Apto 301, Barrio Centro">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Dirección donde se entregará el paquete en Colombia.</span>
                     </div>
                     <div class="form-group">
                         <label for="prealert-desc">Descripción del Producto *</label>

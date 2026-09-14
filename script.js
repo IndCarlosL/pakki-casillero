@@ -1,3 +1,9 @@
+// Sanitiza strings para inserción segura en innerHTML
+function sanitize(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Muestra/oculta el campo de texto cuando se selecciona "Otro" en transportadora
 function toggleCarrierOther(selectId, inputId) {
     const sel = document.getElementById(selectId);
@@ -844,6 +850,14 @@ const app = {
         // Packages in warehouse count
         const whPackages = state.packages.filter(p => p.status === 'En Bodega Miami').length;
         document.getElementById('metric-packages').textContent = whPackages;
+
+        // Packages in Bogotá warehouse
+        const bogotaEl = document.getElementById('metric-bogota');
+        if (bogotaEl) bogotaEl.textContent = state.packages.filter(p => p.status === 'En Bodega Bogotá').length;
+
+        // Pending payment (packages not marked paid)
+        const pendingPayEl = document.getElementById('metric-pending-payment');
+        if (pendingPayEl) pendingPayEl.textContent = state.packages.filter(p => p.invoiceStatus !== 'Pagado').length;
         
         // Monthly Revenue Calculation (sum of paid invoices + projected pending)
         let totalRevenue = 0;
@@ -2153,6 +2167,7 @@ const app = {
         const weightLbs = parseFloat(document.getElementById('prealert-weight').value) || null;
         const description = document.getElementById('prealert-desc').value.trim();
         const deliveryCity = document.getElementById('prealert-city').value;
+        const deliveryAddress = document.getElementById('prealert-delivery-address').value.trim();
         const shippingType = document.getElementById('prealert-shipping-type').value;
 
         if (value > 2000) {
@@ -2208,6 +2223,7 @@ const app = {
             weightLbs,
             description,
             deliveryCity,
+            deliveryAddress,
             shippingType,
             invoiceFileName,
             invoiceFileData,
@@ -2742,8 +2758,13 @@ const app = {
                              : req.quoteStatus === 'rejected' ? '<br><span class="badge badge-danger"  style="font-size:0.68rem;">✗ Rechazado</span>'
                              : '';
 
+            // Short ID: PR-YYYYMMDD-XXXX using last 4 chars of id
+            const shortId = 'PR-' + (req.dateCreated || '').replace(/-/g, '').slice(0, 8) + '-' + String(req.id || '').slice(-4).toUpperCase();
+            const waNotifUrl = `https://wa.me/573174250144?text=${encodeURIComponent(`Hola Pakki, quiero info de mi solicitud ${shortId} - ${req.productName || ''}. Mi casillero es ${req.lockerCode}.`)}`;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><span style="font-family:monospace; font-size:0.78rem; color:var(--primary); font-weight:700;">${shortId}</span></td>
                 <td>${req.dateCreated}</td>
                 <td><strong style="color:var(--primary);">${req.lockerCode}</strong></td>
                 <td>${req.clientName}</td>
@@ -2758,8 +2779,9 @@ const app = {
                     <div style="display:flex; gap:0.3rem; align-items:center; flex-wrap:wrap;">
                         <button class="btn btn-secondary btn-sm" onclick="app.viewPRDetail('${req.id}')">Ver</button>
                         <button class="btn btn-primary btn-sm" onclick="app.openQuoteModal('${req.id}')">💰</button>
+                        <a href="${waNotifUrl}" target="_blank" title="Notificar cliente por WhatsApp" style="display:inline-flex; align-items:center; justify-content:center; background:#25d366; color:#fff; border-radius:6px; padding:0.2rem 0.45rem; font-size:0.75rem; font-weight:700; text-decoration:none; line-height:1.4;">WA</a>
                         ${req.purchaseInvoiceDriveUrl
-                            ? `<a href="${req.purchaseInvoiceDriveUrl}" target="_blank" title="Ver en Drive: ${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || ''}" style="font-size:1rem; line-height:1; text-decoration:none;" title="Drive">📎</a>`
+                            ? `<a href="${req.purchaseInvoiceDriveUrl}" target="_blank" title="Ver en Drive: ${req.purchaseInvoiceDriveFileName || req.purchaseInvoiceFileName || ''}" style="font-size:1rem; line-height:1; text-decoration:none;">📎</a>`
                             : req.purchaseInvoiceFileData
                                 ? `<a href="${req.purchaseInvoiceFileData}" target="_blank" title="${req.purchaseInvoiceFileName || 'Ver factura'}" style="font-size:1rem; line-height:1; text-decoration:none;">📎</a>`
                                 : ''}
@@ -3115,13 +3137,19 @@ const app = {
     calcularCotizacion: function() {
         const valorUsd = parseFloat(document.getElementById('cot-valor').value) || 0;
         let pesoLbs = parseFloat(document.getElementById('cot-peso').value) || 0;
+        const inlineMsg = document.getElementById('cot-inline-msg');
+        if (inlineMsg) inlineMsg.style.display = 'none';
         if (valorUsd <= 0) {
             alert('El Valor Declarado es obligatorio y debe ser mayor que 0.');
             document.getElementById('cot-valor').focus();
             return;
         }
         if (valorUsd > 2000) {
-            alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            const waUrl = `https://wa.me/573174250144?text=${encodeURIComponent('Deseo asesoría para enviar un paquete a Colombia mayor a USD$2000. Mi nombre es:')}`;
+            if (inlineMsg) {
+                inlineMsg.innerHTML = `⚠️ <strong>Este envío requiere cambio de modalidad aduanera.</strong> El valor declarado supera los $2,000 USD. <a href="${waUrl}" target="_blank" style="color:#92400e; font-weight:700; text-decoration:underline;">Contactar a Pakki por WhatsApp →</a>`;
+                inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #f59e0b; background:#fef3c7; color:#92400e;';
+            }
             document.getElementById('cot-valor').focus();
             return;
         }
@@ -3131,9 +3159,16 @@ const app = {
             return;
         }
         if (pesoLbs > 110) {
-            alert('⚠️ El peso supera las 110 Lbs.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
+            if (inlineMsg) {
+                inlineMsg.innerHTML = `⚠️ <strong>El peso supera las 110 Lbs.</strong> Este envío requiere un cambio de modalidad.`;
+                inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #f59e0b; background:#fef3c7; color:#92400e;';
+            }
             document.getElementById('cot-peso').focus();
             return;
+        }
+        if (valorUsd > 200 && inlineMsg) {
+            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> IVA + Arancel se calcularán sobre el valor declarado (valor > $200 USD).';
+            inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af;';
         }
         pesoLbs = Math.ceil(pesoLbs);
         document.getElementById('cot-peso').value = pesoLbs;
@@ -3193,6 +3228,8 @@ const app = {
         });
         document.getElementById('cot-results-card').style.display = 'none';
         document.getElementById('cot-breakdown-content').innerHTML = '';
+        const inlineMsg = document.getElementById('cot-inline-msg');
+        if (inlineMsg) inlineMsg.style.display = 'none';
         this.setCotizMode('natural');
     },
 

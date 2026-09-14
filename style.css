@@ -421,7 +421,7 @@ input, select, textarea {
     font-family: var(--font-body);
     font-size: 0.9rem;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid #94a3b8;
     border-radius: var(--radius-md);
     background-color: #ffffff;
     color: var(--text-main);

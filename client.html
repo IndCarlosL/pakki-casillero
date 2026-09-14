@@ -212,6 +212,19 @@
                             </svg>
                         </div>
                     </div>
+                    <div class="card metric-card">
+                        <div class="metric-data">
+                            <h3>En Bodega Bogotá</h3>
+                            <div class="value" id="cmetric-bogota-packages">0</div>
+                            <span class="trend info">Listos para entrega</span>
+                        </div>
+                        <div class="metric-icon secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px; height:24px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="dashboard-split">
@@ -310,11 +323,11 @@
                             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                                 <div class="form-group">
                                     <label for="cprealert-tracking">Número de Tracking (Rastreo) *</label>
-                                    <input type="text" id="cprealert-tracking" required placeholder="Ej. 1Z999AA10123456784">
+                                    <input type="text" id="cprealert-tracking" required maxlength="80" placeholder="Ej. 1Z999AA10123456784">
                                 </div>
                                 <div class="form-group">
                                     <label for="cprealert-store">Tienda de Compra *</label>
-                                    <input type="text" id="cprealert-store" required placeholder="Ej. Amazon, Shein, Nike, eBay…">
+                                    <input type="text" id="cprealert-store" required maxlength="80" placeholder="Ej. Amazon, Shein, Nike, eBay…">
                                 </div>
                                 <div class="form-group">
                                     <label for="cprealert-carrier">Transportadora *</label>
@@ -422,6 +435,11 @@
                                             <option>Zipaquirá</option>
                                         </optgroup>
                                     </select>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label for="cprealert-delivery-address">Dirección de Entrega *</label>
+                                    <input type="text" id="cprealert-delivery-address" required maxlength="200" placeholder="Ej. Calle 123 # 45-67, Apto 301, Barrio Centro">
+                                    <span style="font-size:0.75rem; color:var(--text-muted);">Dirección donde recibirás el paquete en Colombia.</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="cprealert-file">Soporte de Compra (PNG, JPG o PDF — máx. 3 MB)</label>
@@ -606,7 +624,7 @@
                         <div class="form-grid" style="margin-top: 1rem;">
                             <div class="form-group">
                                 <label for="cl-cot-valor">Valor Declarado (USD) *</label>
-                                <input type="number" id="cl-cot-valor" min="0.01" step="0.01" placeholder="Ej. 150.00">
+                                <input type="number" id="cl-cot-valor" min="0.01" max="99999" step="0.01" placeholder="Ej. 150.00">
                             </div>
                             <div class="form-group">
                                 <label for="cl-cot-peso">Peso (Libras) *</label>
@@ -633,9 +651,35 @@
                             </label>
                         </div>
 
+                        <div id="cl-cot-inline-msg" style="display:none; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid;"></div>
+
                         <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                             <button class="btn btn-secondary" onclick="clientApp.limpiarCotizacion()">Limpiar</button>
                             <button class="btn btn-primary" onclick="clientApp.calcularCotizacion()">Calcular Cotización</button>
+                        </div>
+                    </div>
+
+                    <!-- Fichas condiciones courier -->
+                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:1rem;">
+                        <div style="flex:1; min-width:140px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                            <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; font-weight:700; margin-bottom:0.2rem;">Valor Máximo</div>
+                            <div style="font-size:1.05rem; font-weight:700; color:#1e3a8a;">$2,000 USD</div>
+                            <div style="font-size:0.73rem; color:#3b82f6; margin-top:0.15rem;">por paquete courier</div>
+                        </div>
+                        <div style="flex:1; min-width:140px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                            <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#15803d; font-weight:700; margin-bottom:0.2rem;">Peso Máximo</div>
+                            <div style="font-size:1.05rem; font-weight:700; color:#14532d;">110 Lbs</div>
+                            <div style="font-size:0.73rem; color:#22c55e; margin-top:0.15rem;">por paquete courier</div>
+                        </div>
+                        <div style="flex:1; min-width:140px; background:#fefce8; border:1px solid #fef08a; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                            <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#a16207; font-weight:700; margin-bottom:0.2rem;">Artículos</div>
+                            <div style="font-size:1.05rem; font-weight:700; color:#713f12;">Máx. 6 unid.</div>
+                            <div style="font-size:0.73rem; color:#ca8a04; margin-top:0.15rem;">misma referencia</div>
+                        </div>
+                        <div style="flex:1; min-width:140px; background:#fdf4ff; border:1px solid #e9d5ff; border-radius:var(--radius-md); padding:0.75rem 1rem;">
+                            <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; color:#7e22ce; font-weight:700; margin-bottom:0.2rem;">Dimensiones</div>
+                            <div style="font-size:1.05rem; font-weight:700; color:#581c87;">Máx 1.50 m</div>
+                            <div style="font-size:0.73rem; color:#a855f7; margin-top:0.15rem;">por arista</div>
                         </div>
                     </div>
 
