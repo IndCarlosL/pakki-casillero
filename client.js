@@ -548,19 +548,20 @@ const clientApp = {
             ? `${nameParts[0]} ${nameParts[1]}`
             : nameParts[0] || '';
         const esCorp = loggedUser.clientType === 'corporativo';
-        const bodegaNombre   = esCorp ? 'Pakki Business'         : 'Pakki Express';
-        const bodegaSubtitle = esCorp ? 'Miami, FL — Aliado Comercial' : 'Miami, FL — Bodega Principal';
-        const bodegaDireccion = esCorp
-            ? `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n7128 NW 52nd ST\nMiami, FL 33166`
-            : `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n8524 NW 61st ST, Suite 105\nMiami, FL 33166`;
 
-        const addressBlock = document.getElementById('cl-express-address');
-        if (addressBlock) addressBlock.innerHTML = bodegaDireccion;
+        // Pakki Express — siempre visible
+        const expressBlock = document.getElementById('cl-express-address');
+        if (expressBlock) {
+            expressBlock.innerHTML = `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n8524 NW 61st ST, Suite 105\nMiami, FL 33166`;
+        }
 
-        const bodegaTitleEl = document.querySelector('#cl-bodegas-grid .bodega-title');
-        if (bodegaTitleEl) bodegaTitleEl.textContent = bodegaNombre;
-        const bodegaSubtitleEl = document.querySelector('#cl-bodegas-grid .bodega-subtitle');
-        if (bodegaSubtitleEl) bodegaSubtitleEl.textContent = bodegaSubtitle;
+        // Pakki Business — solo para corporativos
+        const businessCard = document.getElementById('cl-business-card');
+        const businessBlock = document.getElementById('cl-business-address');
+        if (businessCard) businessCard.style.display = esCorp ? 'flex' : 'none';
+        if (businessBlock && esCorp) {
+            businessBlock.innerHTML = `<strong>${shortName} [${loggedUser.lockerCode}]</strong>\n7128 NW 52nd ST\nMiami, FL 33166`;
+        }
 
         const waBtn = document.getElementById('whatsapp-fab');
         if (waBtn) {
