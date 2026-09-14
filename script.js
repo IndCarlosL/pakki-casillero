@@ -3397,6 +3397,11 @@ const app = {
     }
 };
 
+function adminLogout() {
+    sessionStorage.removeItem('pakki_admin_auth');
+    location.reload();
+}
+
 // Admin auth gate
 async function hashPassword(pwd) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
