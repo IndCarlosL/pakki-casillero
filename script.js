@@ -2017,7 +2017,7 @@ const app = {
         const value = parseFloat(document.getElementById('mci-value').value);
         const description = document.getElementById('mci-desc').value.trim();
         const deliveryCity = document.getElementById('mci-city').value;
-        const weightLbs = parseFloat(document.getElementById('mci-weight').value);
+        const weightLbs = Math.round(parseFloat(document.getElementById('mci-weight').value));
         const lengthIn = parseInt(document.getElementById('mci-length').value);
         const widthIn = parseInt(document.getElementById('mci-width').value);
         const heightIn = parseInt(document.getElementById('mci-height').value);
@@ -2206,7 +2206,8 @@ const app = {
         const carrier = resolveCarrier('prealert-carrier', 'prealert-carrier-other');
         if (!carrier) return;
         const value = parseFloat(document.getElementById('prealert-value').value);
-        const weightLbs = parseFloat(document.getElementById('prealert-weight').value) || null;
+        const _wRaw = parseFloat(document.getElementById('prealert-weight').value);
+        const weightLbs = _wRaw ? Math.round(_wRaw) : null;
         const description = document.getElementById('prealert-desc').value.trim();
         const deliveryCity = document.getElementById('prealert-city').value;
         const deliveryAddress = document.getElementById('prealert-delivery-address').value.trim();
@@ -2597,7 +2598,7 @@ const app = {
         if (msgEl) msgEl.style.display = 'none';
 
         const _valor  = parseFloat(document.getElementById('edit-pkg-value').value) || 0;
-        const _peso   = parseFloat(document.getElementById('edit-pkg-weight').value) || 0;
+        const _peso   = Math.round(parseFloat(document.getElementById('edit-pkg-weight').value) || 0);
         if (_valor > 2000) {
             alert('⚠️ El Valor Declarado supera los $2,000 USD.\n\nEste envío requiere un cambio de modalidad. Por favor comunícate con Pakki para asistirte.');
             document.getElementById('edit-pkg-value').focus();
@@ -2625,7 +2626,7 @@ const app = {
             carrier,
             value:       parseFloat(document.getElementById('edit-pkg-value').value),
             description: document.getElementById('edit-pkg-desc').value.trim(),
-            weightLbs:   parseFloat(document.getElementById('edit-pkg-weight').value),
+            weightLbs:   _peso,
             lengthIn:    parseInt(document.getElementById('edit-pkg-length').value),
             widthIn:     parseInt(document.getElementById('edit-pkg-width').value),
             heightIn:    parseInt(document.getElementById('edit-pkg-height').value),

@@ -713,7 +713,8 @@ const clientApp = {
             : carrierSel.value;
         if (!carrier) return;
         const value = parseFloat(document.getElementById('cprealert-value').value);
-        const weightLbs = parseFloat(document.getElementById('cprealert-weight').value) || null;
+        const _wRaw = parseFloat(document.getElementById('cprealert-weight').value);
+        const weightLbs = _wRaw ? Math.round(_wRaw) : null;
         const description = document.getElementById('cprealert-desc').value.trim();
         const deliveryCity = document.getElementById('cprealert-city').value;
         const deliveryAddress = document.getElementById('cprealert-delivery-address').value.trim();
