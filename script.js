@@ -575,15 +575,28 @@ const app = {
         const volWeight = parseFloat(((pkg.lengthIn * pkg.widthIn * pkg.heightIn) / 166).toFixed(2));
         const chargeableWeight = parseFloat((pkg.weightLbs || 0).toFixed(2));
 
-        // Base auto-calculations
-        const freightCalc   = chargeableWeight * s.baseRatePerLb;
-        const insuranceCalc = pkg.value * (s.insurancePercent / 100);
-        const fuelCalc      = freightCalc * (s.fuelSurchargePercent / 100);
-        const ivaPercent    = s.cotizIvaPercent !== undefined ? s.cotizIvaPercent : 19;
-        const arancelPercent= s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
+        // Flete: primera libra + adicionales
+        const primeraLbRate   = s.cotizFletePrimeraLb   || 5;
+        const adicionalLbRate = s.cotizFleteAdicionalLb  || 3.50;
+        const w = chargeableWeight;
+        const freightCalc = w <= 0 ? 0
+            : w <= 1 ? primeraLbRate
+            : primeraLbRate + (w - 1) * adicionalLbRate;
+
+        // Seguro: opcional (default $0, admin override por paquete)
+        const insuranceCalc = 0;
+
+        // Combustible: eliminado
+        const fuelCalc = 0;
+
+        // IVA + Arancel: automático si valor > umbral
+        const ivaPercent     = s.cotizIvaPercent    !== undefined ? s.cotizIvaPercent    : 19;
+        const arancelPercent = s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
         const aplicaImpuestos = pkg.value > (s.vatThresholdUsd || 200);
-        const taxCalc       = aplicaImpuestos ? pkg.value * ((ivaPercent + arancelPercent) / 100) : 0;
-        const handlingCalc  = s.handlingFee;
+        const taxCalc = aplicaImpuestos ? pkg.value * ((ivaPercent + arancelPercent) / 100) : 0;
+
+        // Manejo/handling: eliminado (domicilio es campo abierto COP por paquete)
+        const handlingCalc = 0;
 
         // Use override if explicitly saved on the package, otherwise use auto-calc
         const freight  = pkg.freightOverride  != null ? pkg.freightOverride  : parseFloat(freightCalc.toFixed(2));
@@ -596,6 +609,7 @@ const app = {
 
         return {
             volWeight, chargeableWeight,
+            primeraLbRate, adicionalLbRate,
             freight:   parseFloat(freight.toFixed(2)),
             insurance: parseFloat(insurance.toFixed(2)),
             fuel:      parseFloat(fuel.toFixed(2)),
@@ -607,7 +621,8 @@ const app = {
             insuranceCalc: parseFloat(insuranceCalc.toFixed(2)),
             fuelCalc:      parseFloat(fuelCalc.toFixed(2)),
             taxCalc:       parseFloat(taxCalc.toFixed(2)),
-            handlingCalc:  parseFloat(handlingCalc.toFixed(2))
+            handlingCalc:  parseFloat(handlingCalc.toFixed(2)),
+            aplicaImpuestos, ivaPercent, arancelPercent
         };
     },
 
@@ -2465,23 +2480,26 @@ const app = {
                     <h5 class="invoice-section-title">Cálculos Logísticos</h5>
                     <div class="invoice-total-section">
                         <div class="invoice-total-row">
-                            <span>Flete Base (${calc.chargeableWeight} Lbs &times; $${s.baseRatePerLb.toFixed(2)} USD)${pkg.freightOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>Flete (${calc.chargeableWeight <= 1 ? '1ª Lb $'+calc.primeraLbRate.toFixed(2) : '1ª Lb $'+calc.primeraLbRate.toFixed(2)+' + '+(calc.chargeableWeight-1).toFixed(0)+' Lbs × $'+calc.adicionalLbRate.toFixed(2)})${pkg.freightOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.freight.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.freight)}</small></span>
                         </div>
+                        ${calc.insurance > 0 || pkg.insuranceOverride != null ? `
                         <div class="invoice-total-row">
-                            <span>Cargo de Manejo Bodega${pkg.handlingOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
-                            <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
-                        </div>
-                        <div class="invoice-total-row">
-                            <span>Seguro Comercial (${s.insurancePercent}% del Valor)${pkg.insuranceOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>Seguro Comercial${pkg.insuranceOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.insurance.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.insurance)}</small></span>
-                        </div>
+                        </div>` : ''}
+                        ${calc.fuel > 0 || pkg.fuelOverride != null ? `
                         <div class="invoice-total-row">
-                            <span>Recargo Combustible (${s.fuelSurchargePercent}% del Flete)${pkg.fuelOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>Recargo Combustible${pkg.fuelOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.fuel.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.fuel)}</small></span>
-                        </div>
+                        </div>` : ''}
+                        ${calc.handling > 0 || pkg.handlingOverride != null ? `
                         <div class="invoice-total-row">
-                            <span>Impuestos Aduana (IVA ${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200 USD' : 'Exento < $200 USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>Cargo Adicional${pkg.handlingOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
+                        </div>` : ''}
+                        <div class="invoice-total-row">
+                            <span>IVA + Arancel (${calc.ivaPercent}% + ${calc.arancelPercent}% — ${calc.aplicaImpuestos ? 'Valor > $'+(s.vatThresholdUsd||200)+' USD' : 'Exento ≤ $'+(s.vatThresholdUsd||200)+' USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         ${pkg.domicilioCOP ? `
@@ -2534,17 +2552,17 @@ const app = {
         document.getElementById('edit-pkg-fuel').value      = pkg.fuelOverride      != null ? pkg.fuelOverride      : '';
         document.getElementById('edit-pkg-tax').value       = pkg.taxOverride       != null ? pkg.taxOverride       : '';
         // Update placeholders with the current auto-calculated values
-        document.getElementById('edit-pkg-freight').placeholder   = `Auto (${calc.freightCalc})`;
-        document.getElementById('edit-pkg-handling').placeholder  = `Auto (${calc.handlingCalc})`;
-        document.getElementById('edit-pkg-insurance').placeholder = `Auto (${calc.insuranceCalc})`;
-        document.getElementById('edit-pkg-fuel').placeholder      = `Auto (${calc.fuelCalc})`;
-        const _s = state.settings || {};
-        const _ivaPct = _s.cotizIvaPercent || 19;
-        const _arPct  = _s.cotizArancelPercent || 10;
+        const _fDesc = calc.chargeableWeight <= 1
+            ? `$${calc.primeraLbRate} (1ª Lb)`
+            : `$${calc.primeraLbRate} + ${(calc.chargeableWeight-1).toFixed(0)}Lbs×$${calc.adicionalLbRate}`;
+        document.getElementById('edit-pkg-freight').placeholder   = `Auto (${calc.freightCalc} — ${_fDesc})`;
+        document.getElementById('edit-pkg-handling').placeholder  = `Opcional ($0)`;
+        document.getElementById('edit-pkg-insurance').placeholder = `Opcional ($0)`;
+        document.getElementById('edit-pkg-fuel').placeholder      = `Opcional ($0)`;
         const _taxDesc = calc.taxCalc > 0
-            ? ` → IVA ${_ivaPct}% + Arancel ${_arPct}%`
-            : ` (valor ≤ $200 — sin impuestos)`;
-        document.getElementById('edit-pkg-tax').placeholder = `Auto (${calc.taxCalc}${_taxDesc})`;
+            ? `IVA ${calc.ivaPercent}% + Arancel ${calc.arancelPercent}%`
+            : `Exento (valor ≤ $${(state.settings.vatThresholdUsd||200)} USD)`;
+        document.getElementById('edit-pkg-tax').placeholder = `Auto (${calc.taxCalc} — ${_taxDesc})`;
 
         // Domicilio
         const hasDomicilio = pkg.domicilioCOP != null && pkg.domicilioCOP > 0;
