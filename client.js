@@ -536,7 +536,7 @@ const clientApp = {
         const freightCost = chargeableWeight * s.baseRatePerLb;
         const insuranceCost = pkg.value * (s.insurancePercent / 100);
         const fuelSurchargeCost = freightCost * (s.fuelSurchargePercent / 100);
-        const taxCost = pkg.value > s.vatThresholdUsd ? (pkg.value * (s.vatPercent / 100)) : 0;
+        const taxCost = pkg.value >= s.vatThresholdUsd ? (pkg.value * (s.vatPercent / 100)) : 0;
         const handlingFee = s.handlingFee;
         
         const grandTotal = freightCost + insuranceCost + fuelSurchargeCost + taxCost + handlingFee;
@@ -998,7 +998,7 @@ const clientApp = {
                             <span>$${calc.fuel.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.fuel)}</small></span>
                         </div>
                         <div class="invoice-total-row">
-                            <span>IVA Aduana (${s.vatPercent}% ${pkg.value > s.vatThresholdUsd ? '> $200' : 'Exento'}):</span>
+                            <span>IVA Aduana (${s.vatPercent}% ${pkg.value >= s.vatThresholdUsd ? '≥ $200' : 'Exento < $200'}):</span>
                             <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         <div class="invoice-total-row grand-total">
@@ -1242,10 +1242,10 @@ const clientApp = {
             fleteLabel = pesoFacturable <= 1
                 ? `Flete (${pesoFacturable} Lb &mdash; 1ª libra${redNota})`
                 : `Flete (1&ordf; Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable-1} Lbs &times; $${fleteAdicional.toFixed(2)}${redNota})`;
-            const aplicaImpuestos = valorUsd > 200;
+            const aplicaImpuestos = valorUsd >= 200;
             iva = aplicaImpuestos ? valorUsd * (ivaPercent / 100) : 0;
             arancel = aplicaImpuestos ? valorUsd * (arancelPercent / 100) : 0;
-            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor ≤ $200 USD — sin impuestos)' : ` (valor > $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)`}`;
+            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor < $200 USD — sin impuestos)' : ` (valor ≥ $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)`}`;
         }
 
         const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
@@ -1290,8 +1290,8 @@ const clientApp = {
             document.getElementById('cl-cot-peso').focus();
             return;
         }
-        if (valorUsd > 200 && inlineMsg) {
-            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> Se calculará IVA + Arancel (sobre el 30%) porque el valor declarado supera los $200 USD.';
+        if (valorUsd >= 200 && inlineMsg) {
+            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> Se calculará IVA + Arancel porque el valor declarado es igual o mayor a $200 USD.';
             inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af;';
         }
         pesoLbs = Math.ceil(pesoLbs);

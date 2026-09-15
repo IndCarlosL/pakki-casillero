@@ -592,7 +592,7 @@ const app = {
         // IVA + Arancel: automático si valor > umbral
         const ivaPercent     = s.cotizIvaPercent    !== undefined ? s.cotizIvaPercent    : 19;
         const arancelPercent = s.cotizArancelPercent !== undefined ? s.cotizArancelPercent : 10;
-        const aplicaImpuestos = pkg.value > (s.vatThresholdUsd || 200);
+        const aplicaImpuestos = pkg.value >= (s.vatThresholdUsd || 200);
         const taxCalc = aplicaImpuestos ? pkg.value * ((ivaPercent + arancelPercent) / 100) : 0;
 
         // Manejo/handling: eliminado (domicilio es campo abierto COP por paquete)
@@ -2493,7 +2493,7 @@ const app = {
                             <span>$${calc.handling.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.handling)}</small></span>
                         </div>` : ''}
                         <div class="invoice-total-row">
-                            <span>IVA + Arancel (${calc.ivaPercent}% + ${calc.arancelPercent}% — ${calc.aplicaImpuestos ? 'Valor > $'+(s.vatThresholdUsd||200)+' USD' : 'Exento ≤ $'+(s.vatThresholdUsd||200)+' USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
+                            <span>IVA + Arancel (${calc.ivaPercent}% + ${calc.arancelPercent}% — ${calc.aplicaImpuestos ? 'Valor ≥ $'+(s.vatThresholdUsd||200)+' USD' : 'Exento < $'+(s.vatThresholdUsd||200)+' USD'})${pkg.taxOverride != null ? ' <span title="Valor ajustado manualmente" style="color:var(--warning); font-size:0.75em;">✏️</span>' : ''}:</span>
                             <span>$${calc.tax.toFixed(2)} <small style="display:block; color:var(--text-muted); font-size:0.82em;">${fmtCOP(calc.tax)}</small></span>
                         </div>
                         ${pkg.domicilioCOP ? `
@@ -2555,7 +2555,7 @@ const app = {
         document.getElementById('edit-pkg-fuel').placeholder      = `Opcional ($0)`;
         const _taxDesc = calc.taxCalc > 0
             ? `IVA ${calc.ivaPercent}% + Arancel ${calc.arancelPercent}%`
-            : `Exento (valor ≤ $${(state.settings.vatThresholdUsd||200)} USD)`;
+            : `Exento (valor < $${(state.settings.vatThresholdUsd||200)} USD)`;
         document.getElementById('edit-pkg-tax').placeholder = `Auto (${calc.taxCalc} — ${_taxDesc})`;
 
         // Domicilio
@@ -3175,10 +3175,10 @@ const app = {
             fleteLabel = pesoFacturable <= 1
                 ? `Flete (${pesoFacturable} Lb &mdash; 1ª libra${redNota})`
                 : `Flete (1&ordf; Lb $${fletePrimera.toFixed(2)} + ${pesoFacturable-1} Lbs &times; $${fleteAdicional.toFixed(2)}${redNota})`;
-            const aplicaImpuestos = valorUsd > 200;
+            const aplicaImpuestos = valorUsd >= 200;
             iva = aplicaImpuestos ? valorUsd * (ivaPercent / 100) : 0;
             arancel = aplicaImpuestos ? valorUsd * (arancelPercent / 100) : 0;
-            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor ≤ $200 USD — sin impuestos)' : ` (valor > $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)` }`;
+            modoTexto = `Persona Natural${!aplicaImpuestos ? ' (valor < $200 USD — sin impuestos)' : ` (valor ≥ $200 USD — IVA ${ivaPercent}% + Arancel ${arancelPercent}%)` }`;
         }
 
         const seguro = incluyeSeguro ? valorUsd * (seguroPercent / 100) : 0;
@@ -3221,8 +3221,8 @@ const app = {
             document.getElementById('cot-peso').focus();
             return;
         }
-        if (valorUsd > 200 && inlineMsg) {
-            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> IVA + Arancel se calcularán sobre el valor declarado (valor > $200 USD).';
+        if (valorUsd >= 200 && inlineMsg) {
+            inlineMsg.innerHTML = 'ℹ️ <strong>Aplican impuestos:</strong> IVA + Arancel se calcularán sobre el valor declarado (valor ≥ $200 USD).';
             inlineMsg.style.cssText = 'display:block; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af;';
         }
         pesoLbs = Math.ceil(pesoLbs);
