@@ -1991,13 +1991,18 @@ const app = {
         }
         document.getElementById('mci-file').value = '';
 
-        // Clear physical measurements
-        ['mci-weight', 'mci-length', 'mci-width', 'mci-height'].forEach(id => {
+        // Pre-fill weight from prealert; clear dimensions (to be measured at warehouse)
+        document.getElementById('mci-weight').value = pre.weightLbs || '';
+        ['mci-length', 'mci-width', 'mci-height'].forEach(id => {
             document.getElementById(id).value = '';
         });
 
         this.openModal('modal-checkin-confirm');
-        setTimeout(() => document.getElementById('mci-weight').focus(), 200);
+        // Focus weight if empty, otherwise focus the confirm button
+        setTimeout(() => {
+            const wField = document.getElementById('mci-weight');
+            if (!wField.value) wField.focus();
+        }, 200);
     },
 
     handleCheckinConfirm: async function() {
