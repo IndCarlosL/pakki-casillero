@@ -2136,12 +2136,10 @@ const app = {
 
     renderConfigInputs: function() {
         const s = state.settings;
-        document.getElementById('cfg-base-rate').value = s.baseRatePerLb;
-        document.getElementById('cfg-handling').value = s.handlingFee;
-        document.getElementById('cfg-insurance').value = s.insurancePercent;
-        document.getElementById('cfg-fuel').value = s.fuelSurchargePercent;
-        document.getElementById('cfg-vat-threshold').value = s.vatThresholdUsd;
-        document.getElementById('cfg-vat-rate').value = s.vatPercent;
+        document.getElementById('cfg-primera-lb').value   = s.cotizFletePrimeraLb   || 5;
+        document.getElementById('cfg-adicional-lb').value = s.cotizFleteAdicionalLb  || 3.50;
+        document.getElementById('cfg-vat-threshold').value = s.vatThresholdUsd || 200;
+        document.getElementById('cfg-vat-rate').value = s.vatPercent || 19;
         document.getElementById('cfg-trm').value = s.trm || 4000;
     },
 
@@ -2310,20 +2308,16 @@ const app = {
     },
 
     handleSaveConfig: async function() {
-        const baseRate = parseFloat(document.getElementById('cfg-base-rate').value);
-        const handling = parseFloat(document.getElementById('cfg-handling').value);
-        const insurance = parseFloat(document.getElementById('cfg-insurance').value);
-        const fuel = parseFloat(document.getElementById('cfg-fuel').value);
+        const primeraLb   = parseFloat(document.getElementById('cfg-primera-lb').value);
+        const adicionalLb = parseFloat(document.getElementById('cfg-adicional-lb').value);
         const vatThreshold = parseFloat(document.getElementById('cfg-vat-threshold').value);
         const vatRate = parseFloat(document.getElementById('cfg-vat-rate').value);
         const trm = parseFloat(document.getElementById('cfg-trm').value) || 4000;
 
         const newSettings = {
             id: 'global',
-            baseRatePerLb: baseRate,
-            handlingFee: handling,
-            insurancePercent: insurance,
-            fuelSurchargePercent: fuel,
+            cotizFletePrimeraLb:  primeraLb,
+            cotizFleteAdicionalLb: adicionalLb,
             vatThresholdUsd: vatThreshold,
             vatPercent: vatRate,
             trm: trm
