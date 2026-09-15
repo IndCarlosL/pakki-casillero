@@ -2018,9 +2018,9 @@ const app = {
         const description = document.getElementById('mci-desc').value.trim();
         const deliveryCity = document.getElementById('mci-city').value;
         const weightLbs = Math.round(parseFloat(document.getElementById('mci-weight').value));
-        const lengthIn = parseInt(document.getElementById('mci-length').value);
-        const widthIn = parseInt(document.getElementById('mci-width').value);
-        const heightIn = parseInt(document.getElementById('mci-height').value);
+        const lengthIn = parseInt(document.getElementById('mci-length').value) || null;
+        const widthIn = parseInt(document.getElementById('mci-width').value) || null;
+        const heightIn = parseInt(document.getElementById('mci-height').value) || null;
 
         // Handle optional new file upload
         let invoiceFileName = pre.invoiceFileName || '';
@@ -2452,7 +2452,7 @@ const app = {
                         <tbody>
                             <tr>
                                 <td>${pkg.weightLbs} Lbs</td>
-                                <td>${pkg.lengthIn}" x ${pkg.widthIn}" x ${pkg.heightIn}"</td>
+                                <td>${(pkg.lengthIn && pkg.widthIn && pkg.heightIn) ? `${pkg.lengthIn}" x ${pkg.widthIn}" x ${pkg.heightIn}"` : '—'}</td>
                                 <td>${calc.volWeight} Lbs</td>
                                 <td><strong style="color:var(--secondary);">${calc.chargeableWeight} Lbs</strong></td>
                             </tr>
@@ -2627,9 +2627,9 @@ const app = {
             value:       parseFloat(document.getElementById('edit-pkg-value').value),
             description: document.getElementById('edit-pkg-desc').value.trim(),
             weightLbs:   _peso,
-            lengthIn:    parseInt(document.getElementById('edit-pkg-length').value),
-            widthIn:     parseInt(document.getElementById('edit-pkg-width').value),
-            heightIn:    parseInt(document.getElementById('edit-pkg-height').value),
+            lengthIn:    parseInt(document.getElementById('edit-pkg-length').value) || null,
+            widthIn:     parseInt(document.getElementById('edit-pkg-width').value) || null,
+            heightIn:    parseInt(document.getElementById('edit-pkg-height').value) || null,
             status:      document.getElementById('edit-pkg-status').value
         };
 
