@@ -222,6 +222,7 @@ function saveGlobalState() {
 }
 
 const clientApp = {
+    _registeringPrealert: false,
     init: async function() {
         await loadGlobalState();
         this.setupAuth();
@@ -690,6 +691,19 @@ const clientApp = {
     },
 
     handleRegisterPrealert: async function() {
+        if (this._registeringPrealert) return;
+        this._registeringPrealert = true;
+        const submitBtn = document.querySelector('#form-client-prealert button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Guardando...'; }
+        try {
+            await this._doRegisterPrealert();
+        } finally {
+            this._registeringPrealert = false;
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Registrar Prealerta'; }
+        }
+    },
+
+    _doRegisterPrealert: async function() {
         const tracking = document.getElementById('cprealert-tracking').value.trim();
         const store = document.getElementById('cprealert-store').value.trim();
         const carrierSel = document.getElementById('cprealert-carrier');

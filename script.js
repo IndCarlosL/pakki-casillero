@@ -2186,7 +2186,20 @@ const app = {
         this.switchTab('tab-casillero-list');
     },
 
+    _registeringPrealert: false,
     handleRegisterPrealert: async function() {
+        if (this._registeringPrealert) return;
+        this._registeringPrealert = true;
+        const submitBtn = document.querySelector('#form-register-prealert button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Guardando...'; }
+        try {
+            await this._doRegisterPrealert();
+        } finally {
+            this._registeringPrealert = false;
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Registrar Prealerta'; }
+        }
+    },
+    _doRegisterPrealert: async function() {
         const lockerCode = document.getElementById('prealert-locker').value;
         const tracking = document.getElementById('prealert-tracking').value.trim();
         const store = document.getElementById('prealert-store').value.trim();
