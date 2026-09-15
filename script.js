@@ -1,3 +1,32 @@
+// Abre un archivo guardado como base64 data-URL usando Blob (evita bloqueo de Chrome)
+function openBase64File(dataUrl, fileName) {
+    try {
+        const [header, b64] = dataUrl.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const blob = new Blob([arr], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        if (fileName) a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch(e) {
+        alert('No se pudo abrir el archivo. Intenta de nuevo.');
+    }
+}
+
+function openPrealertFile(preId) {
+    const pre = (state.prealerts || []).find(p => String(p.id) === String(preId));
+    if (pre && pre.invoiceFileData) openBase64File(pre.invoiceFileData, pre.invoiceFileName);
+}
+
 // Sanitiza strings para inserción segura en innerHTML
 function sanitize(str) {
     if (str == null) return '';
@@ -1542,7 +1571,7 @@ const app = {
         pageData.forEach(pre => {
             const statusBadge = pre.status === 'Pendiente' ? 'badge-warning' : 'badge-success';
             const fileLink = pre.invoiceFileData
-                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600; white-space:nowrap;">📎 Ver</a>`
+                ? `<a href="#" onclick="openPrealertFile('${pre.id}');return false;" style="color:var(--primary); font-weight:600; white-space:nowrap;">📎 Ver</a>`
                 : `<span style="color:var(--text-muted); font-size:0.78rem;">—</span>`;
             const shippingColor = pre.shippingType === 'Corporativo' ? 'var(--secondary)' : 'var(--primary)';
 
@@ -1896,7 +1925,7 @@ const app = {
             const user = (state.users || []).find(u => u.lockerCode === pre.lockerCode);
             const clientName = user ? user.name : '—';
             const fileLink = pre.invoiceFileData
-                ? `<a href="${pre.invoiceFileData}" target="_blank" title="${pre.invoiceFileName || 'Ver soporte'}" style="color:var(--primary);">📎 Ver</a>`
+                ? `<a href="#" onclick="openPrealertFile('${pre.id}');return false;" title="${pre.invoiceFileName || 'Ver soporte'}" style="color:var(--primary);">📎 Ver</a>`
                 : '—';
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -1961,7 +1990,7 @@ const app = {
         // Existing file
         const fileCurrentDiv = document.getElementById('mci-file-current');
         if (pre.invoiceFileData) {
-            fileCurrentDiv.innerHTML = `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte actual'}</a>`;
+            fileCurrentDiv.innerHTML = `<a href="#" onclick="openPrealertFile('${pre.id}');return false;" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte actual'}</a>`;
         } else {
             fileCurrentDiv.textContent = 'Sin soporte adjunto';
         }

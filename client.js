@@ -1,3 +1,26 @@
+// Abre archivo base64 como Blob (evita bloqueo de Chrome con data: URLs)
+function openBase64File(dataUrl, fileName) {
+    try {
+        const [header, b64] = dataUrl.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const blob = new Blob([arr], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener';
+        if (fileName) a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch(e) { alert('No se pudo abrir el archivo.'); }
+}
+
+function openPrealertFile(preId) {
+    const pre = (state.prealerts || []).find(p => String(p.id) === String(preId));
+    if (pre && pre.invoiceFileData) openBase64File(pre.invoiceFileData, pre.invoiceFileName);
+}
+
 // Sanitiza strings para inserción segura en innerHTML
 function sanitize(str) {
     if (str == null) return '';
@@ -645,7 +668,7 @@ const clientApp = {
             card.style.borderLeft = `4px solid ${pre.status === 'Pendiente' ? 'var(--warning)' : 'var(--success)'}`;
             
             const fileLink = pre.invoiceFileData
-                ? `<a href="${pre.invoiceFileData}" target="_blank" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte'}</a>`
+                ? `<a href="#" onclick="openPrealertFile('${pre.id}');return false;" style="color:var(--primary); font-weight:600;">📎 ${pre.invoiceFileName || 'Ver soporte'}</a>`
                 : '<span style="color:var(--text-muted);">Sin soporte</span>';
 
             card.innerHTML = `
