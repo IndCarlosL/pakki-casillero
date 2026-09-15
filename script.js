@@ -488,12 +488,7 @@ const app = {
             this.handleRegisterUser();
         });
 
-        // Register Prealert Form
-        document.getElementById('form-register-prealert').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegisterPrealert();
-        });
-
+        // (form-register-prealert uses onsubmit inline in ops.html — no listener needed here)
         // (check-in now handled via modal — form-checkin-modal uses onsubmit inline)
 
         // Edit Config Logic Form
