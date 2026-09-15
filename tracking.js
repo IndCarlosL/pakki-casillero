@@ -211,7 +211,7 @@ async function searchLocker() {
                         8400 NW 25th Street, Suite 100 · Doral, FL 33198<br>
                         Tel: +1 (305) 555-0199
                     </div>
-                    <a href="client.html" class="btn btn-primary" style="margin-top:1rem; display:inline-block;">Ir a Mi Portal →</a>
+                    <a href="index.html" class="btn btn-primary" style="margin-top:1rem; display:inline-block;">Ir a Mi Portal →</a>
                 </div>
             </div>
         </div>`;

@@ -473,7 +473,7 @@ const clientApp = {
                     8400 NW 25th Street, Suite 100 · Doral, FL 33198 · Tel: +1 (305) 555-0199
                 </div>
 
-                <a href="client.html" class="btn btn-primary" style="width:100%; display:block;">
+                <a href="index.html" class="btn btn-primary" style="width:100%; display:block;">
                     Ingresar a mi Portal →
                 </a>
             </div>`;
