@@ -3133,7 +3133,7 @@ const app = {
         const infoEl = document.getElementById('cot-mode-info');
         if (isNatural) {
             infoEl.style.background = '#eff6ff'; infoEl.style.color = '#1e40af'; infoEl.style.borderColor = '#bfdbfe';
-            infoEl.innerHTML = `<strong>Persona Natural:</strong> 1ª libra $${(s.cotizFletePrimeraLb||5).toFixed(2)} USD + adicionales $${(s.cotizFleteAdicionalLb||3.50).toFixed(2)} USD. Si el valor declarado supera los <strong>$200 USD</strong> se aplican automáticamente IVA ${s.cotizIvaPercent||19}% + Arancel ${s.cotizArancelPercent||10}%.`;
+            infoEl.innerHTML = `<strong>Persona Natural:</strong> 1ª libra $${(s.cotizFletePrimeraLb||5).toFixed(2)} USD + adicionales $${(s.cotizFleteAdicionalLb||3.50).toFixed(2)} USD. Si el valor declarado es <strong>igual o mayor a $200 USD</strong> se aplican automáticamente IVA ${s.cotizIvaPercent||19}% + Arancel ${s.cotizArancelPercent||10}%.`;
         } else {
             infoEl.style.background = '#f0fdf4'; infoEl.style.color = '#166534'; infoEl.style.borderColor = '#bbf7d0';
             infoEl.innerHTML = `<strong>Corporativo:</strong> Sistema de consolidación internacional con tarifas preferenciales desde <strong>$${(s.cotizCorpLbUsd||8).toFixed(2)} USD/lb</strong>. <strong>Sin IVA ni Arancel</strong> · Cotización a la medida según tu volumen y frecuencia de importación.`;
