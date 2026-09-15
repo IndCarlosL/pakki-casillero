@@ -578,7 +578,7 @@ const app = {
         const s = state.settings;
 
         const volWeight = parseFloat(((pkg.lengthIn * pkg.widthIn * pkg.heightIn) / 166).toFixed(2));
-        const chargeableWeight = parseFloat(Math.max(pkg.weightLbs, volWeight).toFixed(2));
+        const chargeableWeight = parseFloat((pkg.weightLbs || 0).toFixed(2));
 
         // Base auto-calculations
         const freightCalc   = chargeableWeight * s.baseRatePerLb;
